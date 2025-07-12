@@ -1,0 +1,1384 @@
+/* Layout Principal */
+.mainLayout {
+  display: flex;
+  flex-direction: column; /* Mudança: coluna para acomodar header */
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+
+/* Header Discreto do Usuário */
+.userHeader {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-light);
+  padding: 0.5rem 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.userHeaderContent {
+  max-width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.userAvatar {
+  width: 32px;
+  height: 32px;
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.userDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.userName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.userMatricula {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.2;
+}
+
+.logoutButton {
+  padding: 0.375rem 0.75rem;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.logoutButton:hover {
+  background: var(--danger);
+  color: white;
+  border-color: var(--danger);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Container Principal - Ajustado para layout com header */
+.mainContent {
+  display: flex;
+  flex-direction: row-reverse; /* sidebar direita, calendário esquerda */
+  flex: 1;
+  min-height: 0; /* Permite compressão */
+}
+
+/* Sidebar Direita - ESTILIZADA IGUAL AO CALENDÁRIO */
+.sidebarLeft {
+  width: 200px; /* Reduzido de 250px para 200px */
+  background: var(--bg-secondary);
+  padding: 0.75rem; /* Reduzido padding */
+  overflow-y: auto;
+  border-left: 1px solid var(--border-color); /* Borda esquerda em vez de direita */
+  order: 1; /* Garante que fique do lado direito */
+  flex-shrink: 0; /* Não encolhe */
+}
+
+.sidebarPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.5rem 0.75rem; /* Reduzido padding */
+  background: var(--bg-card);
+  border-radius: 12px; /* Mesmo arredondamento do calendário */
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1); /* Mesma sombra do calendário */
+}
+
+.sidebarPlaceholder .icon {
+  font-size: 2.5rem; /* Reduzido */
+  margin-bottom: 0.75rem; /* Reduzido */
+}
+
+.sidebarPlaceholder h3 {
+  font-size: 1rem; /* Reduzido */
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.sidebarPlaceholder p {
+  color: var(--text-secondary);
+  margin-bottom: 1rem; /* Reduzido */
+  font-size: 0.875rem; /* Reduzido */
+}
+
+.sidebarPlaceholder ul {
+  list-style: none;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+}
+
+.sidebarPlaceholder li {
+  padding: 0.25rem 0; /* Reduzido */
+  color: var(--text-secondary);
+  font-size: 0.8rem; /* Reduzido */
+}
+
+/* Toggle de Tema na Sidebar */
+.sidebarThemeToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.sidebarThemeToggle:hover {
+  background: var(--bg-hover);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sidebarThemeIcon {
+  font-size: 1.1rem;
+}
+
+/* Área Principal - OTIMIZADA PARA LADO ESQUERDO */
+.calendarArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem; /* Margem charmosa e leve */
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100vh; /* Força altura da viewport */
+  box-sizing: border-box;
+  order: 2; /* Garante que fique do lado esquerdo */
+}
+
+.calendarContainer {
+  width: 100%;
+  max-width: 100%; /* Largura total do container pai */
+  margin: 0; /* ZERO margem */
+  background: var(--bg-card);
+  border-radius: 12px; /* Bordas suavemente arredondadas - charmoso */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1); /* Sombra sutil e elegante */
+  overflow: hidden;
+  flex-shrink: 0;
+  min-height: 0; /* Permite compressão vertical */
+  max-height: calc(100vh - 1.5rem); /* Ajusta para o padding da área */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Borda sutil para definição */
+}
+
+/* Barra de Controles REMOVIDA para ganhar espaço - toggle movido para sidebar */
+
+/* Header do Calendário - LAYOUT FLEXÍVEL PARA BOTÃO HOJE */
+.calendarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--bg-primary);
+  border-radius: 8px 8px 0 0;
+  border-bottom: 1px solid var(--border-color);
+  min-height: 60px;
+  /* Layout: [Anterior + Hoje] | Nome | Próximo */
+}
+
+.leftButtons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Nome do Mês - LAYOUT FIXO PARA EVITAR PULINHO */
+.monthYear {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-transform: capitalize;
+  margin: 0;
+  text-align: center;
+  flex: 1;
+  /* Estabilidade visual para evitar layout shift */
+  min-width: 180px; /* Largura mínima para meses longos */
+  max-width: 200px; /* Largura máxima controlada */
+  /* Fonte moderna e elegante */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", sans-serif;
+  letter-spacing: 0.02em;
+  /* Remove completamente qualquer fundo ou borda */
+  background: none;
+  padding: 0;
+  border: none;
+  /* Sombra sutil apenas para melhor legibilidade */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  /* Previne quebra de linha */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Tema escuro - cor clara para visibilidade com !important para sobrescrever globals.css */
+[data-theme='dark'] .monthYear {
+  color: #f8fafc !important; /* !important para sobrescrever regra global */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); /* Sombra mais forte para contraste */
+}
+
+.navButton {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.5rem 0.8rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+  min-height: 42px;
+  flex-shrink: 0;
+}
+
+.navButton:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Botão Hoje - ESTILO ESPECIAL */
+.todayButton {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.5rem 0.8rem;
+  background: var(--success); /* Verde para destaque */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+  min-height: 42px;
+  white-space: nowrap; /* Evita quebra de linha */
+  flex-shrink: 0;
+}
+
+.todayButton:hover {
+  background: #059669; /* Verde mais escuro */
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.todayButton:focus {
+  outline: 2px solid var(--success);
+  outline-offset: 2px;
+}
+
+/* Conteúdo do Calendário - ELEGANTE E CHARMOSO */
+.calendarContent {
+  padding: 0.5rem; /* Padding leve e charmoso */
+  height: calc(100vh - 100px); /* Altura otimizada sem barra de controles */
+  overflow: hidden; /* Evita scroll vertical */
+}
+
+.calendarGridWrapper {
+  position: relative;
+  background: var(--bg-secondary);
+  border-radius: 8px; /* Bordas suaves e charmosas */
+  padding: 0.15rem; /* Padding reduzido para menos gap */
+  overflow: hidden;
+  height: 100%; /* Usa toda altura disponível */
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.05); /* Borda quase imperceptível */
+}
+
+/* Efeito de luminescência removido conforme solicitado */
+
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  /* Grid robusto: cabeçalho fixo + 6 semanas com altura mínima e máxima */
+  grid-template-rows: auto repeat(6, minmax(60px, 1fr)); /* Altura original restaurada */
+  gap: 2px; /* Gap ajustado para criar efeito losango com chanfros */
+  justify-content: stretch; /* Estica para usar todo espaço */
+  max-width: 100%; /* USA toda largura disponível */
+  margin: 0; /* ZERO margem */
+  flex: 1; /* Ocupa todo espaço disponível */
+  height: 100%; /* Usa toda altura disponível */
+  width: 100%; /* Força largura total */
+  border-radius: 6px; /* Bordas internas suaves */
+  overflow: hidden; /* Mantém bordas arredondadas nas células */
+}
+
+/* Dias da Semana - ULTRA COMPACTOS PARA OTIMIZAR ESPAÇO */
+.dayName {
+  text-align: center;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 0.1rem; /* Padding mínimo para máxima compactação */
+  font-size: 0.6rem; /* Tamanho ainda menor */
+  text-transform: uppercase;
+  letter-spacing: 0.1em; /* Maior espaçamento para elegância */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 16px; /* Altura fixa bem pequena - 4px a menos */
+  background: var(--bg-primary);
+  /* Chamfered Corners ainda menores para headers */
+  clip-path: polygon(3px 0%, 100% 0%, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0% 100%, 0% 3px);
+  border: 1px solid var(--border-light);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06); /* Sombra mais sutil */
+  transform: translateY(-0.5px); /* Elevação mais sutil */
+}
+
+/* Células de Dias - ELEGANTES E CHARMOSAS COM CHAMFERED CORNERS */
+.dayCell {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light); /* Borda sutil para definir os chanfros */
+  /* Chamfered Corners: cantos cortados suavemente criando efeito losango */
+  clip-path: polygon(10px 0%, 100% 0%, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0% 100%, 0% 10px);
+  padding: clamp(0.15rem, 1.5%, 0.4rem); /* Padding responsivo */
+  cursor: pointer;
+  transition: all 0.3s ease; /* Transição mais suave */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* Altura controlada pelo grid-template-rows */
+  min-height: 50px; /* Altura confortável */
+  max-width: none; /* Remove limitação de largura */
+  min-width: auto; /* Largura automática */
+  width: 100%; /* Força largura total */
+  box-sizing: border-box;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Sombra sutil para profundidade */
+  /* Garantir distribuição adequada do espaço interno */
+  justify-content: flex-start;
+  gap: clamp(0.05rem, 0.8%, 0.15rem);
+}
+
+.dayCell:hover {
+  background: var(--bg-hover);
+  border-color: var(--primary);
+  transform: translateY(-1px) scale(1.01); /* Levitação sutil sem exagero */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Sombra mais pronunciada e elegante */
+  z-index: 1;
+}
+
+.dayCell:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.dayNumber {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  margin-bottom: 0.125rem;
+  line-height: 1;
+}
+
+.otherMonth .dayNumber {
+  color: var(--text-disabled);
+  opacity: 0.5;
+}
+
+.currentDay {
+  background: var(--primary-light);
+  border-color: var(--primary);
+}
+
+.currentDay .dayNumber {
+  color: var(--primary);
+}
+
+.selected {
+  background: var(--primary);
+  border-color: var(--primary-dark);
+}
+
+.selected .dayNumber {
+  color: white;
+}
+
+.selected:hover {
+  background: var(--primary-dark);
+}
+
+/* ✅ NOVAS CLASSES - CORES LEVES E INTUITIVAS */
+
+/* Operação única com botão rápido */
+.singleOperationCell {
+  border-width: 2px;
+}
+
+/* Cores leves para tipos de operação */
+.lightBLITZ {
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%);
+  border-color: #fca5a5;
+}
+
+.lightBALANCA {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-color: #86efac;
+}
+
+.lightMultiple {
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+  border-color: #c4b5fd;
+}
+
+/* Informações da operação única */
+.singleOperationInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin-top: 0.25rem;
+  flex: 1;
+  overflow: hidden;
+  /* Garantir que o conteúdo se adapte ao container */
+  min-height: 0;
+  max-width: 100%;
+}
+
+.operationTitle {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.15rem, 1.5%, 0.3rem);
+  font-size: clamp(0.6rem, 2.8vw, 0.75rem);
+  font-weight: 600;
+  /* Otimizar espaço vertical */
+  flex-shrink: 0;
+  min-height: 0;
+  line-height: 1.2;
+}
+
+.operationIcon {
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.operationName {
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ✅ NOVO: Estilos para horário das operações */
+.operationTime {
+  color: var(--primary);
+  font-weight: 500;
+  font-size: 0.65rem;
+  margin-left: 0.25rem;
+  background: rgba(59, 130, 246, 0.1);
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.operationStats {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.2rem, 2%, 0.5rem);
+  font-size: clamp(0.5rem, 2.5vw, 0.65rem);
+  color: var(--text-secondary);
+  /* Evitar que ocupe muito espaço vertical */
+  flex-shrink: 0;
+  min-height: 0;
+}
+
+.participantCount {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.6rem;
+}
+
+.queueCount {
+  color: #f59e0b;
+  font-weight: 500;
+  font-size: 0.55rem;
+}
+
+/* ✅ BOTÃO RÁPIDO - OTIMIZADO PARA CLIQUES E ZOOM RESPONSIVO */
+.quickActionButton {
+  /* Margin responsivo ao container */
+  margin-top: auto;
+  margin-bottom: 0.1rem;
+  /* Padding responsivo usando clamp para garantir limites */
+  padding: clamp(0.2rem, 2.5%, 0.5rem) clamp(0.3rem, 4%, 0.8rem);
+  border: none;
+  /* Border radius responsivo */
+  border-radius: clamp(3px, 1.2%, 8px);
+  /* Font size responsivo com limites mínimos e máximos */
+  font-size: clamp(0.5rem, 2.8vw, 0.7rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  /* Altura responsiva com limites seguros */
+  min-height: clamp(20px, 12%, 32px);
+  max-height: 25%;
+  width: 100%;
+  /* Line height adaptativo */
+  line-height: clamp(1, 1.3, 1.4);
+  /* Melhora na área de clique */
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  /* Controle de overflow */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  /* Flexbox para melhor controle */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Garantir que sempre caiba no container */
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.quickActionButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.quickActionButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Variações do botão rápido */
+.quickParticipate {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.quickParticipate:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669, #047857);
+}
+
+.quickQueue {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+}
+
+.quickQueue:hover:not(:disabled) {
+  background: linear-gradient(135deg, #d97706, #b45309);
+}
+
+.quickCancel {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+}
+
+.quickCancel:hover:not(:disabled) {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+}
+
+.quickUnavailable {
+  background: #f3f4f6;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+/* ✅ NOVO: Classe para operação lotada (apenas visual - não funcional) */
+.quickLotado {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  cursor: default; /* ✅ CORREÇÃO: cursor padrão - não clicável */
+  opacity: 0.8; /* ✅ CORREÇÃO: opacidade para indicar não-funcional */
+  user-select: none; /* ✅ CORREÇÃO: não selecionável */
+}
+
+.quickLotado:hover {
+  /* ✅ CORREÇÃO: sem hover - apenas visual */
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  transform: none; /* ✅ CORREÇÃO: sem animação */
+}
+
+/* ✅ OPERAÇÕES MÚLTIPLAS - Compactas para células menores */
+.operacaoItem {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e5e7eb;
+  border-radius: 3px;
+  padding: 0.15rem;
+  margin-bottom: 0.125rem;
+  font-size: 0.6rem;
+}
+
+.operacaoHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.125rem;
+  margin-bottom: 0.0625rem;
+}
+
+.operacaoIcon {
+  font-size: 0.6rem;
+  flex-shrink: 0;
+}
+
+.operacaoName {
+  font-weight: 600;
+  font-size: 0.55rem;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.operacaoStats {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.participantesCount {
+  font-size: 0.5rem;
+  color: var(--text-secondary);
+}
+
+.filaIndicator {
+  font-size: 0.5rem;
+  color: #f59e0b;
+}
+
+.statusIndicator {
+  font-size: 0.5rem;
+}
+
+.statusDisponivel {
+  color: #10b981;
+}
+
+.statusFila {
+  color: #f59e0b;
+}
+
+.statusLotado {
+  color: #ef4444;
+}
+
+/* Tema escuro para operações múltiplas */
+[data-theme='dark'] .operacaoItem {
+  background: rgba(31, 41, 55, 0.9);
+  border-color: #4b5563;
+}
+
+[data-theme='dark'] .operacaoName {
+  color: #e5e7eb;
+}
+
+[data-theme='dark'] .participantesCount {
+  color: #9ca3af;
+}
+
+/* Indicadores de Operações */
+.operacoesIndicators {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+
+.operacaoIndicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-disabled);
+}
+
+.operacaoIndicator.modalidadeBLITZ {
+  background: var(--danger);
+}
+
+.operacaoIndicator.modalidadeBALANCA {
+  background: var(--warning);
+}
+
+.operacaoIndicator.confirmado {
+  box-shadow: 0 0 0 2px var(--success);
+}
+
+/* ✅ MODALIDADES ESPECÍFICAS */
+.blitz {
+  border-left: 3px solid #ef4444;
+}
+
+.balanca {
+  border-left: 3px solid #10b981;
+}
+
+/* Tema escuro para modalidades */
+[data-theme='dark'] .blitz {
+  border-left-color: #f87171;
+}
+
+[data-theme='dark'] .balanca {
+  border-left-color: #34d399;
+}
+
+.moreOperacoes {
+  font-size: 0.5rem;
+  color: var(--text-secondary);
+  margin-top: 0.125rem;
+  text-align: center;
+  font-weight: 500;
+  padding: 0.125rem;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 2px;
+}
+
+/* Info da Data Atual - COMPACTA */
+.currentDateInfo {
+  margin-top: 0.5rem; /* Margem reduzida */
+  padding: 0.4rem; /* Padding reduzido */
+  background: var(--bg-secondary);
+  border-radius: 6px;
+  text-align: center;
+  font-size: 0.75rem; /* Tamanho reduzido */
+  color: var(--text-secondary);
+  min-height: 32px; /* Altura controlada */
+}
+
+.currentDateInfo strong {
+  color: var(--text-primary);
+}
+
+/* Responsividade OTIMIZADA - ESTILO GOOGLE CALENDAR */
+@media (max-width: 1200px) {
+  .calendarContainer {
+    max-width: 95vw;
+  }
+  
+  .dayCell {
+    height: 65px; /* Altura original restaurada */
+  }
+}
+
+/* BREAKPOINT ESPECÍFICO: DESKTOPS GRANDES (1025px+) */
+@media (min-width: 1025px) {
+  .calendarContainer {
+    max-width: 100vw; /* USA toda largura da tela */
+    margin: 0;
+  }
+  
+  .calendarGrid {
+    gap: 2px; /* Mantém gap para efeito losango */
+    max-width: 100%; /* USA toda largura disponível */
+    margin: 0;
+    border: none; /* Remove borda externa para máximo espaço */
+    /* Grid robusto para desktop */
+    grid-template-rows: auto repeat(6, minmax(65px, 1fr)); /* Altura original restaurada */
+  }
+  
+  .dayCell {
+    /* Altura controlada pelo grid para caber tudo na tela */
+    max-width: none; /* Remove limitação de largura */
+    min-width: auto;
+    /* Chamfered Corners mantido em desktop */
+    clip-path: polygon(8px 0%, 100% 0%, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0% 100%, 0% 8px);
+    min-height: 40px; /* Altura original restaurada */
+    padding: 0.25rem; /* Mantém padding consistente */
+  }
+  
+  .dayCell:nth-child(7n) {
+    border-right: none; /* Remove borda da última coluna */
+  }
+  
+  .calendarContent {
+    height: calc(100vh - 50px); /* Altura otimizada sem barra de controles */
+  }
+}
+
+/* BREAKPOINT ESPECÍFICO: TELAS EXTRA GRANDES (1400px+) - Um pouco mais de espaço */
+@media (min-width: 1400px) {
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(75px, 1fr)); /* Ligeiramente maior em telas grandes */
+  }
+  
+  .dayCell {
+    min-height: 50px;
+    padding: 0.375rem; /* Um pouco mais de padding em telas grandes */
+  }
+  
+  /* Permitir fontes ligeiramente maiores em telas muito grandes */
+  .operationTitle {
+    font-size: 0.75rem;
+  }
+  
+  .operationIcon {
+    font-size: 0.875rem;
+  }
+  
+  .quickActionButton {
+    font-size: 0.65rem;
+    padding: 0.45rem 0.65rem;
+    min-height: 28px;
+    border-radius: 8px;
+  }
+  
+  .dayNumber {
+    font-size: 1rem;
+  }
+}
+
+/* BREAKPOINT ESPECÍFICO: 768px - 1024px (TABLETS E LAPTOPS PEQUENOS) */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .calendarContainer {
+    max-width: 100vw;
+    margin: 0;
+  }
+
+  .calendarGrid {
+    gap: 2px;
+    height: 100%;
+    /* Grid robusto para tablets */
+    grid-template-rows: auto repeat(6, minmax(55px, 1fr)); /* Altura mínima para tablets */
+  }
+
+  .dayCell {
+    height: auto;
+    min-height: 50px;
+    max-width: none;
+    min-width: auto;
+    /* Chamfered Corners menores para tablets */
+    clip-path: polygon(6px 0%, 100% 0%, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0% 100%, 0% 6px);
+    aspect-ratio: 1.1; /* Proporção adequada para tablets */
+  }
+
+  .dayCell:nth-child(7n) {
+    border-right: none;
+  }
+
+  .calendarGridWrapper {
+    padding: 0.4rem;
+    border-radius: 8px;
+  }
+
+  .calendarContent {
+    height: auto; /* Altura automática para tablets */
+  }
+}
+
+/* BREAKPOINT GERAL: OCULTAR SIDEBAR EM DISPOSITIVOS MENORES */
+@media (max-width: 1024px) {
+  .sidebarLeft {
+    display: none;
+  }
+}
+
+/* BREAKPOINT MOBILE: 481px - 767px (MOBILE LANDSCAPE E PEQUENOS TABLETS) */
+@media (min-width: 481px) and (max-width: 767px) {
+  .calendarContainer {
+    border-radius: 6px;
+    box-shadow: var(--shadow-md);
+    max-width: 100vw;
+    margin: 0;
+  }
+
+  .calendarArea {
+    padding: 0.4rem;
+  }
+
+  .calendarHeader {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    min-height: 60px;
+  }
+
+  .leftButtons {
+    gap: 0.4rem;
+  }
+
+  .monthYear {
+    font-size: 1.1rem; /* Tamanho ajustado para mobile landscape */
+    font-weight: 600;
+    flex: 1;
+    text-align: center;
+    /* Remove qualquer fundo em mobile landscape */
+    background: none;
+    padding: 0;
+    border: none;
+  }
+
+  .navButton {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.8rem;
+    min-height: 42px;
+    flex-shrink: 0;
+  }
+
+  .todayButton {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.8rem;
+    min-height: 42px;
+    flex-shrink: 0;
+  }
+
+  .calendarContent {
+    padding: 0.4rem;
+    height: auto; /* Altura automática para mobile landscape */
+  }
+
+  .calendarGridWrapper {
+    padding: 0.4rem;
+    border-radius: 8px;
+  }
+
+  .calendarGrid {
+    gap: 2px; /* Gap adequado para mobile landscape */
+    grid-template-rows: auto repeat(6, minmax(50px, 1fr)); /* Altura mínima para mobile landscape */
+    max-width: 100%;
+    border: none; /* Remove borda externa em mobile */
+  }
+
+  .dayName {
+    padding: 0.2rem; /* Mais compacto */
+    font-size: 0.65rem; /* Menor */
+    height: 18px; /* Altura fixa pequena */
+  }
+
+  .dayCell {
+    height: auto; /* Altura automática */
+    min-height: 55px; /* Altura mínima adequada */
+    max-width: none; /* Remove limitação de largura */
+    min-width: auto; /* Largura automática */
+    padding: 0.3rem;
+    border: 1px solid var(--border-light);
+    /* Chamfered Corners menores para mobile landscape */
+    clip-path: polygon(4px 0%, 100% 0%, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0% 100%, 0% 4px);
+    aspect-ratio: 1.2; /* Proporção adequada para mobile */
+  }
+
+  .dayNumber {
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .operacaoIndicator {
+    width: 6px;
+    height: 6px;
+  }
+
+  .currentDateInfo {
+    margin-top: 0.75rem;
+    padding: 0.6rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* BREAKPOINT MOBILE GRANDE: 320px - 480px (MOBILE PORTRAIT PADRÃO) */
+@media (min-width: 320px) and (max-width: 480px) {
+  .calendarContainer {
+    border-radius: 4px;
+    box-shadow: var(--shadow-sm);
+    max-width: 100vw;
+    margin: 0;
+  }
+
+  .calendarArea {
+    padding: 0.3rem;
+  }
+
+  .calendarHeader {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.6rem;
+    min-height: 54px;
+  }
+
+  .leftButtons {
+    gap: 0.3rem;
+  }
+
+  .monthYear {
+    font-size: 1rem; /* Tamanho ajustado para mobile portrait */
+    font-weight: 600;
+    flex: 1;
+    text-align: center;
+    /* Remove qualquer fundo em mobile portrait */
+    background: none;
+    padding: 0;
+    border: none;
+  }
+
+  .navButton {
+    padding: 0.4rem 0.7rem;
+    font-size: 0.75rem;
+    min-height: 38px;
+    flex-shrink: 0;
+  }
+
+  .todayButton {
+    padding: 0.4rem 0.7rem;
+    font-size: 0.75rem;
+    min-height: 38px;
+    flex-shrink: 0;
+  }
+
+  .calendarContent {
+    padding: 0.3rem;
+    height: auto;
+  }
+
+  .calendarGridWrapper {
+    padding: 0.25rem;
+    border-radius: 6px;
+  }
+
+  .calendarGrid {
+    gap: 1px;
+    grid-template-rows: auto repeat(6, minmax(45px, 1fr)); /* Altura mínima para mobile portrait */
+    max-width: 100%;
+    border: none;
+  }
+
+  .dayName {
+    padding: 0.15rem; /* Mais compacto */
+    font-size: 0.6rem; /* Menor */
+    height: 16px; /* Altura fixa pequena */
+    font-weight: 600;
+  }
+
+  .dayCell {
+    height: auto;
+    min-height: 50px;
+    max-width: none;
+    min-width: auto;
+    padding: 0.25rem;
+    border: 1px solid var(--border-light);
+    border-right: none;
+    border-bottom: none;
+    aspect-ratio: 1.1; /* Ligeiramente retangular */
+  }
+
+  .dayNumber {
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+
+  .operacaoIndicator {
+    width: 5px;
+    height: 5px;
+  }
+
+  .currentDateInfo {
+    margin-top: 0.6rem;
+    padding: 0.5rem;
+    font-size: 0.75rem;
+    min-height: 30px;
+  }
+}
+
+/* BREAKPOINT MOBILE PEQUENO: ≤320px (MOBILE EXTRA PEQUENO) */
+@media (max-width: 320px) {
+  .calendarContainer {
+    border-radius: 0;
+    box-shadow: none;
+    max-width: 100vw;
+    margin: 0;
+  }
+
+  .calendarArea {
+    padding: 0.25rem;
+  }
+
+  .calendarHeader {
+    flex-direction: column; /* Vertical em telas muito pequenas */
+    gap: 0.5rem;
+    padding: 0.5rem;
+    min-height: auto;
+  }
+
+  .leftButtons {
+    gap: 0.3rem;
+  }
+
+  .monthYear {
+    font-size: 0.95rem; /* Tamanho ajustado para mobile pequeno */
+    font-weight: 600;
+    order: 1;
+    /* Remove qualquer fundo em mobile pequeno */
+    background: none;
+    padding: 0;
+    border: none;
+  }
+
+  .navButton {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.75rem;
+    min-height: 36px;
+    flex: 1;
+    max-width: 120px;
+  }
+
+  .todayButton {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.75rem;
+    min-height: 36px;
+    flex-shrink: 0;
+  }
+
+  .calendarContent {
+    padding: 0.25rem;
+    height: auto;
+  }
+
+  .calendarGridWrapper {
+    padding: 0.2rem;
+    border-radius: 6px;
+  }
+
+  .calendarGrid {
+    gap: 1px; /* Gap mínimo para máximo aproveitamento */
+    grid-template-rows: auto repeat(6, minmax(40px, 1fr)); /* Altura mínima para mobile pequeno */
+    max-width: 100%;
+    border: none;
+  }
+
+  .dayName {
+    padding: 0.1rem; /* Padding mínimo */
+    font-size: 0.55rem; /* Tamanho ultra compacto */
+    height: 14px; /* Altura fixa bem pequena */
+    font-weight: 700;
+  }
+
+  .dayCell {
+    height: auto;
+    min-height: 42px; /* Altura ultra compacta */
+    max-width: none;
+    min-width: auto;
+    padding: 0.15rem;
+    border: 1px solid var(--border-light);
+    border-right: none;
+    border-bottom: none;
+    aspect-ratio: 0.95; /* Ligeiramente mais largo que alto */
+  }
+
+  .dayNumber {
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .operacaoIndicator {
+    width: 4px;
+    height: 4px;
+  }
+
+  .currentDateInfo {
+    margin-top: 0.5rem;
+    padding: 0.4rem;
+    font-size: 0.7rem;
+    min-height: 28px;
+  }
+
+  /* Navegação horizontal em mobile pequeno */
+  .calendarHeader {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .navButton:first-child {
+    order: 1;
+  }
+
+  .monthYear {
+    order: 2;
+    flex: 1;
+    text-align: center;
+    /* Remove qualquer fundo no breakpoint final */
+    background: none;
+    padding: 0;
+    border: none;
+  }
+
+  .navButton:last-child {
+    order: 3;
+  }
+}
+
+/* Tema escuro para breakpoints responsivos - COR CLARA VISÍVEL COM !IMPORTANT */
+@media (min-width: 481px) and (max-width: 767px) {
+  [data-theme='dark'] .monthYear {
+    /* Cor clara específica para visibilidade */
+    color: #f8fafc !important; /* !important para sobrescrever regra global */
+    background: none;
+    border: none;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
+}
+
+@media (min-width: 320px) and (max-width: 480px) {
+  [data-theme='dark'] .monthYear {
+    /* Cor clara específica para visibilidade */
+    color: #f8fafc !important; /* !important para sobrescrever regra global */
+    background: none;
+    border: none;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
+}
+
+@media (max-width: 320px) {
+  [data-theme='dark'] .monthYear {
+    /* Cor clara específica para visibilidade */
+    color: #f8fafc !important; /* !important para sobrescrever regra global */
+    background: none;
+    border: none;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* Tema escuro removido - mantendo apenas tema claro */
+
+/* ===== RESPONSIVIDADE DOS BOTÕES RÁPIDOS - OTIMIZADO PARA CLIQUES ===== */
+
+/* Mobile Portrait (320px - 480px) */
+@media (max-width: 480px) {
+  .quickActionButton {
+    /* Ajustes específicos para mobile - valores mais conservadores */
+    font-size: clamp(0.5rem, 3.2vw, 0.62rem);
+    min-height: clamp(18px, 14%, 30px);
+    max-height: 30%;
+    /* Otimizações para toque */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+}
+
+/* Mobile Landscape & Tablet Portrait (481px - 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  .quickActionButton {
+    /* Valores mais generosos para tablets */
+    font-size: clamp(0.55rem, 2.5vw, 0.65rem);
+    min-height: clamp(20px, 13%, 28px);
+    max-height: 28%;
+  }
+}
+
+/* Tablet Landscape & Desktop (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .quickActionButton {
+    /* Ajuste para tablets landscape */
+    font-size: clamp(0.58rem, 2.2vw, 0.68rem);
+    min-height: clamp(22px, 12%, 30px);
+    max-height: 26%;
+  }
+}
+
+/* Large Desktop (1025px - 1399px) */
+@media (min-width: 1025px) and (max-width: 1399px) {
+  .quickActionButton {
+    /* Desktop padrão - mais espaço disponível */
+    font-size: clamp(0.6rem, 1.8vw, 0.7rem);
+    min-height: clamp(22px, 11%, 28px);
+    max-height: 24%;
+  }
+}
+
+/* Extra Large Desktop (1400px+) - Já definido acima */
+
+/* Hover effects otimizados para diferentes tamanhos de tela */
+@media (hover: hover) and (pointer: fine) {
+  .quickActionButton:hover:not(:disabled) {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  }
+}
+
+/* Para dispositivos apenas de toque (sem hover) */
+@media (hover: none) and (pointer: coarse) {
+  .quickActionButton:active:not(:disabled) {
+    transform: scale(0.98);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* ===== CONTROLE ESPECÍFICO PARA ZOOMS ALTOS ===== */
+/* Quando o zoom está alto, reduzir ainda mais os tamanhos para garantir visibilidade */
+@media (min-resolution: 144dpi), (min-resolution: 1.5dppx) {
+  .quickActionButton {
+    /* Em zooms altos, usar valores mais conservadores */
+    font-size: clamp(0.45rem, 2.2vw, 0.6rem);
+    min-height: clamp(16px, 10%, 26px);
+    max-height: 22%;
+    padding: clamp(0.15rem, 2%, 0.4rem) clamp(0.25rem, 3.5%, 0.6rem);
+  }
+}
+
+/* Para zooms muito altos (200%+) */
+@media (min-resolution: 192dpi), (min-resolution: 2dppx) {
+  .quickActionButton {
+    /* Em zooms muito altos, priorizar a visibilidade */
+    font-size: clamp(0.4rem, 2vw, 0.55rem);
+    min-height: clamp(14px, 9%, 22px);
+    max-height: 20%;
+    padding: clamp(0.1rem, 1.8%, 0.35rem) clamp(0.2rem, 3%, 0.5rem);
+    /* Forçar quebra de linha se necessário */
+    white-space: normal;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+}
+
+/* Fallback para garantir que o botão nunca seja maior que o container */
+.quickActionButton {
+  /* Forçar tamanho máximo baseado no container pai */
+  max-height: min(35%, 40px);
+  max-width: calc(100% - 2px);
+} 

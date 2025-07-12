@@ -1,0 +1,316 @@
+/* Novos estilos para células do calendário com operações */
+.dayCell.hasBlitz {
+  background: linear-gradient(135deg, #fef3c7 0%, #fef9e7 100%);
+  border: 1px solid #fbbf24;
+}
+
+.dayCell.hasBalanca {
+  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+  border: 1px solid #60a5fa;
+}
+
+.dayCell.hasMultiple {
+  background: linear-gradient(135deg, #e0e7ff 0%, #f0f4ff 100%);
+  border: 1px solid #818cf8;
+}
+
+/* Container para informações da operação - CORRIGIDO */
+.operacaoInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 2px;
+  font-size: 0.7rem;
+  width: 100%;
+}
+
+.operacaoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 3px 4px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  min-height: auto;
+  max-height: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  border-left: 3px solid transparent;
+  transition: all 0.2s ease;
+  word-break: break-word;
+}
+
+.operacaoItem:hover {
+  transform: scale(1.02);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.operacaoItem.blitz {
+  background: linear-gradient(to right, rgba(255, 193, 7, 0.15), rgba(255, 193, 7, 0.05));
+  color: #856404;
+  border-left-color: #ffc107;
+}
+
+.operacaoItem.balanca {
+  background: linear-gradient(to right, rgba(23, 162, 184, 0.15), rgba(23, 162, 184, 0.05));
+  color: #0c5460;
+  border-left-color: #17a2b8;
+}
+
+/* Primeira linha: ícone + nome + status */
+.operacaoHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 3px;
+  position: relative;
+  min-height: 1.5em;
+  flex-wrap: wrap;
+}
+
+.operacaoIcon {
+  font-size: 0.75rem;
+  flex-shrink: 0;
+  line-height: 1;
+  filter: saturate(1.2);
+}
+
+.operacaoName {
+  font-weight: 600;
+  font-size: 0.625rem;
+  line-height: 1.2;
+  white-space: normal;
+  word-wrap: break-word;
+  hyphens: auto;
+  letter-spacing: 0.02em;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  flex: 1;
+  max-width: 100%;
+}
+
+/* Indicador de status */
+.statusIndicator {
+  font-size: 0.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-left: auto;
+  filter: brightness(1.1);
+}
+
+.statusIndicator.statusDisponivel {
+  filter: saturate(1.5) brightness(1.1);
+}
+
+.statusIndicator.statusFila {
+  filter: saturate(1.3) brightness(1.1);
+}
+
+.statusIndicator.statusLotado {
+  filter: saturate(1.5) brightness(0.9);
+}
+
+/* Segunda linha: estatísticas */
+.operacaoStats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3px;
+  font-size: 0.575rem;
+  color: #495057;
+  line-height: 1.2;
+  font-weight: 500;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.participantesCount {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  white-space: nowrap;
+}
+
+.filaIndicator {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  color: #dc3545;
+  font-weight: 600;
+}
+
+/* Indicador "mais operações" melhorado */
+.moreOperacoes {
+  font-size: 0.55rem;
+  color: #495057;
+  text-align: center;
+  margin-top: 2px;
+  padding: 1px 3px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+/* Ajuste para células com operações */
+.dayCell.hasOperacoes {
+  padding: 4px 3px;
+  cursor: pointer;
+  position: relative;
+}
+
+/* Ajuste do número do dia quando há operações */
+.dayCell.hasOperacoes .dayNumber {
+  font-size: 0.85rem;
+  margin-bottom: 2px;
+  font-weight: 600;
+}
+
+/* Hover effects melhorados */
+.dayCell.hasOperacoes:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+/* Dark mode adjustments com melhor contraste */
+[data-theme='dark'] .operacaoItem {
+  background: rgba(40, 40, 40, 0.95);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme='dark'] .operacaoItem.blitz {
+  background: linear-gradient(to right, rgba(255, 193, 7, 0.25), rgba(255, 193, 7, 0.1));
+  color: #fbbf24;
+  border-left-color: #f59e0b;
+}
+
+[data-theme='dark'] .operacaoItem.balanca {
+  background: linear-gradient(to right, rgba(16, 185, 129, 0.25), rgba(16, 185, 129, 0.1));
+  color: #34d399;
+  border-left-color: #10b981;
+}
+
+[data-theme='dark'] .operacaoStats {
+  color: #e5e7eb;
+}
+
+[data-theme='dark'] .filaIndicator {
+  color: #f87171;
+}
+
+[data-theme='dark'] .moreOperacoes {
+  background: rgba(255, 255, 255, 0.1);
+  color: #d1d5db;
+}
+
+/* BREAKPOINTS PARA DIFERENTES TAMANHOS */
+/* Telas pequenas (mobile) */
+@media (max-width: 768px) {
+  .operacaoInfo {
+    font-size: 0.65rem;
+  }
+  
+  .operacaoItem {
+    padding: 3px 4px;
+    min-height: auto;
+  }
+  
+  .operacaoIcon {
+    font-size: 0.7rem;
+  }
+  
+  .operacaoName {
+    font-size: 0.6rem;
+    line-height: 1.3;
+  }
+  
+  .operacaoStats {
+    font-size: 0.55rem;
+  }
+  
+  .statusIndicator {
+    font-size: 0.5rem;
+  }
+  
+  .dayCell.hasOperacoes .dayNumber {
+    font-size: 0.8rem;
+  }
+  
+  .operacaoHeader {
+    min-height: 1.8em;
+  }
+}
+
+/* Tablets */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .operacaoInfo {
+    font-size: 0.7rem;
+    gap: 2px;
+  }
+  
+  .operacaoItem {
+    padding: 4px 5px;
+    min-height: auto;
+  }
+  
+  .operacaoIcon {
+    font-size: 0.8rem;
+  }
+  
+  .operacaoName {
+    font-size: 0.65rem;
+    line-height: 1.25;
+  }
+  
+  .operacaoStats {
+    font-size: 0.6rem;
+    gap: 4px;
+  }
+  
+  .statusIndicator {
+    font-size: 0.55rem;
+  }
+  
+  .operacaoHeader {
+    min-height: 1.6em;
+  }
+}
+
+/* BREAKPOINT ESPECÍFICO: DESKTOPS GRANDES (1025px+) */
+@media (min-width: 1025px) {
+  .operacaoInfo {
+    font-size: 0.75rem;
+    gap: 3px;
+    margin-top: 4px;
+  }
+  
+  .operacaoItem {
+    padding: 5px 7px;
+    gap: 3px;
+    min-height: auto;
+  }
+  
+  .operacaoIcon {
+    font-size: 0.9rem;
+  }
+  
+  .operacaoName {
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  
+  .operacaoStats {
+    font-size: 0.7rem;
+    gap: 6px;
+  }
+  
+  .statusIndicator {
+    font-size: 0.6rem;
+  }
+  
+  .dayCell.hasOperacoes .dayNumber {
+    font-size: 1rem;
+  }
+  
+  .operacaoHeader {
+    min-height: 1.4em;
+  }
+} 

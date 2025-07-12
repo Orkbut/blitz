@@ -1,0 +1,1188 @@
+/* Overlay e Container */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* 🔧 PADDING RESPONSIVO PARA DIFERENTES RESOLUÇÕES */
+  padding: clamp(0.5rem, 2vw, 1.5rem);
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+  /* ✅ PREVENIR SCROLL NO OVERLAY */
+  overflow: hidden;
+  overscroll-behavior: contain;
+  touch-action: none; /* Prevenir gestos de toque que causam scroll */
+  
+  /* 🔧 GARANTIR CENTRALIZAÇÃO EM QUALQUER RESOLUÇÃO */
+  min-height: 100vh;
+  min-width: 100vw;
+}
+
+.container {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  /* 🔧 RESPONSIVIDADE ADAPTATIVA: Garante que o modal funcione em qualquer resolução */
+  max-width: min(98vw, 1400px); /* Mais margem em telas pequenas */
+  max-height: min(92vh, 850px); /* Altura mais conservadora e responsiva */
+  min-height: 300px; /* Altura mínima para evitar modais muito pequenos */
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease;
+  overflow: hidden;
+  /* ✅ CONTROLE DE SCROLL INTERNO */
+  overscroll-behavior: contain; /* Impede propagação do scroll */
+  touch-action: pan-y; /* Permite scroll vertical interno */
+  
+  /* 🔧 ADAPTAÇÃO AUTOMÁTICA PARA TELAS PEQUENAS */
+  margin: auto;
+  position: relative;
+}
+
+/* Header Compacto - Foco nos Membros */
+.header {
+  display: flex;
+  align-items: center; /* Centralizado para economia de espaço */
+  justify-content: space-between;
+  padding: 1rem 1.5rem; /* Padding reduzido */
+  background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+  color: white;
+  min-height: 60px; /* Altura reduzida */
+  flex-shrink: 0; /* Impede que encolha */
+}
+
+.headerContent {
+  flex: 1;
+  margin-right: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem; /* Mais espaço entre título e detalhes */
+}
+
+.header h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.operacaoDetails {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem; /* Mais espaço entre elementos */
+  flex-wrap: wrap;
+}
+
+/* ✅ OPERAÇÃO TIPO - INFORMAÇÃO SECUNDÁRIA COM CONTRASTE */
+.operacaoType {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600; /* Peso ligeiramente maior para legibilidade */
+  color: #ddd6fe; /* Cor com melhor contraste */
+  background: rgba(255, 255, 255, 0.15); /* Fundo mais visível */
+  padding: 0.25rem 0.7rem;
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Borda para definição */
+  order: 2;
+  transition: all 0.2s ease;
+}
+
+/* ✅ HOVER PARA TIPO DE OPERAÇÃO */
+.operacaoType:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #e9d5ff;
+  transform: translateY(-1px);
+}
+
+.operacaoMeta {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* ✅ ITEM DE DATA - DESTAQUE MÁXIMO */
+.metaItem:first-child {
+  /* Data em destaque especial */
+  font-size: 1.15rem !important; /* Ainda maior */
+  font-weight: 800 !important; /* Peso extra bold */
+  color: #ffffff !important; /* Branco puro */
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.2)) !important; /* Gradiente elegante */
+  padding: 0.5rem 1.2rem !important; /* Padding ainda mais generoso */
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important; /* Borda mais visível */
+  backdrop-filter: blur(12px) !important; /* Blur mais intenso */
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    0 1px 3px rgba(255, 255, 255, 0.1) inset !important; /* Sombra dupla para destaque */
+  order: 1;
+  margin-right: 0.75rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important; /* Sombra no texto para legibilidade */
+  letter-spacing: 0.025em !important; /* Espaçamento de letras para elegância */
+  transition: all 0.2s ease !important;
+}
+
+/* ✅ OUTROS ITENS - INFORMAÇÕES SECUNDÁRIAS COM CONTRASTE ADEQUADO */
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem; /* Menor para dar destaque à data */
+  font-weight: 500; /* Peso ligeiramente maior para legibilidade */
+  color: #e2e8f0; /* Cor com melhor contraste */
+  background: rgba(255, 255, 255, 0.12); /* Fundo mais visível para acessibilidade */
+  padding: 0.2rem 0.5rem; /* Padding otimizado */
+  border-radius: 8px;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.08); /* Borda sutil para definição */
+  order: 3;
+  transition: all 0.2s ease;
+}
+
+/* ✅ HOVER PARA MELHOR FEEDBACK VISUAL */
+.metaItem:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #f1f5f9;
+  transform: translateY(-1px);
+}
+
+.metaItem strong {
+  font-weight: 600;
+}
+
+.closeButton {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Seleção de Operação */
+.operacaoSelector {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.operacaoSelector h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: #374151;
+}
+
+.operacoesList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* ✅ CARDS MODERNOS DAS OPERAÇÕES */
+.operacaoCard {
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  display: flex;
+  min-height: 140px;
+}
+
+.operacaoCard:hover {
+  border-color: #cbd5e1;
+  background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.operacaoCard.selecionada {
+  border-color: #3b82f6;
+  background: linear-gradient(145deg, #eff6ff 0%, #dbeafe 100%);
+  box-shadow: 0 6px 25px rgba(59, 130, 246, 0.15);
+  transform: translateY(-1px);
+}
+
+/* ✅ DATA EM DESTAQUE */
+.dataDestaque {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #1e40af 0%, #7c3aed 100%);
+  color: white;
+  padding: 1rem;
+  min-width: 90px;
+  text-align: center;
+  position: relative;
+}
+
+.dataDestaque::after {
+  content: '';
+  position: absolute;
+  right: -10px;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+  background: linear-gradient(145deg, #1e40af 0%, #7c3aed 100%);
+  clip-path: polygon(0 0, 50% 50%, 0 100%);
+}
+
+.diaMes {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.mesAno {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.mes {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.9;
+}
+
+.ano {
+  font-size: 0.65rem;
+  opacity: 0.7;
+}
+
+.diaSemana {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  opacity: 0.9;
+}
+
+/* ✅ INFORMAÇÕES DA OPERAÇÃO */
+.operacaoInfo {
+  flex: 1;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.operacaoHeader {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.modalidadeBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: #1f2937;
+  color: white;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.modalidadeBadge.blitz {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+}
+
+.modalidadeBadge.balanca {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+}
+
+.tipoBadge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tipoBadge.planejada {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+}
+
+.tipoBadge.voluntaria {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+.turnoInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.participacaoInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.participacaoItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+}
+
+.label {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.valor {
+  font-weight: 600;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.valor.confirmados {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.valor.fila {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.valor.pendentes {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.totalItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.25rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e5e7eb;
+  font-size: 0.75rem;
+}
+
+.totalLabel {
+  color: #374151;
+  font-weight: 600;
+}
+
+.totalValor {
+  font-weight: 700;
+  color: #1f2937;
+  background: #f3f4f6;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab:hover {
+  background: #f9fafb;
+  color: #374151;
+}
+
+.tab.activeTab {
+  background: #3b82f6;
+  color: white;
+}
+
+/* Conteúdo Otimizado - Mais Espaço para Membros */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem 1.5rem; /* Padding reduzido drasticamente */
+  display: flex;
+  flex-direction: column;
+}
+
+/* ✅ HEADER DA ABA REMOVIDO PARA ECONOMIZAR ESPAÇO */
+.headerTab {
+  display: none; /* Oculta completamente para dar mais espaço aos membros */
+}
+
+
+
+/* Search Box Compacto */
+.searchBox {
+  position: relative;
+  margin-bottom: 1rem; /* Margem reduzida */
+  flex-shrink: 0; /* Impede que encolha */
+}
+
+.searchBox svg {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+  width: 18px;
+  height: 18px;
+}
+
+.searchBox input {
+  width: 100%;
+  padding: 0.625rem 0.75rem 0.625rem 2.5rem; /* Padding compacto */
+  border: 1px solid #e5e7eb; /* Borda mais fina */
+  border-radius: 6px;
+  font-size: 0.875rem; /* Fonte menor */
+  transition: border-color 0.2s ease;
+}
+
+.searchBox input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+/* ✅ LISTAS MAXIMIZADAS - PANORAMA COMPLETO DOS MEMBROS */
+.membrosList,
+.participantesList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem; /* Gap otimizado para densidade */
+  max-height: none; /* Remove limitação - usa todo espaço */
+  min-height: calc(100vh - 220px); /* Altura dinâmica máxima */
+  overflow-y: auto;
+  padding: 0.5rem; /* Padding mínimo */
+  background: #ffffff;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  flex: 1; /* Ocupa todo espaço disponível */
+  
+  /* ✅ SCROLLBAR SIMPLES E FINO */
+  scrollbar-width: thin;
+  scrollbar-color: #9ca3af #f3f4f6;
+}
+
+.membrosList::-webkit-scrollbar,
+.participantesList::-webkit-scrollbar {
+  width: 8px;
+}
+
+.membrosList::-webkit-scrollbar-track,
+.participantesList::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.membrosList::-webkit-scrollbar-thumb,
+.participantesList::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.membrosList::-webkit-scrollbar-thumb:hover,
+.participantesList::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ✅ CARDS COMPACTOS - MÁXIMA DENSIDADE DE INFORMAÇÃO */
+.membroCard,
+.participanteCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem; /* Padding reduzido */
+  background: #f9fafb;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
+  min-height: 52px; /* Altura reduzida drasticamente */
+}
+
+.membroCard:hover,
+.participanteCard:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+/* ✅ INFORMAÇÕES MAIS LEGÍVEIS */
+.membroInfo,
+.participanteInfo {
+  flex: 1;
+  min-width: 0;
+  margin-right: 1rem;
+  line-height: 1.4;
+}
+
+.membroInfo h4,
+.participanteInfo h4 {
+  font-size: 0.95rem; /* Ligeiramente menor */
+  font-weight: 600;
+  margin: 0 0 0.125rem 0; /* Margem reduzida */
+  color: #1f2937;
+  
+  /* ✅ MELHOR TRUNCAMENTO */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 400px; /* Mais espaço para nomes */
+}
+
+.membroInfo p,
+.participanteInfo p {
+  font-size: 0.8rem; /* Fonte menor para compacidade */
+  color: #6b7280;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 400px; /* Mais espaço para informações */
+}
+
+/* Badges */
+.jaParticipa {
+  color: #059669;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem; /* Padding compacto */
+  border-radius: 4px; /* Raio menor */
+  font-size: 0.7rem; /* Fonte menor */
+  font-weight: 600;
+  margin-top: 0.25rem; /* Margem reduzida */
+}
+
+.statusBadge.confirmado {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.statusBadge.adicionadoSupervisor {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  font-weight: 600;
+  border: 1px solid #f59e0b;
+  box-shadow: 0 1px 3px rgba(245, 158, 11, 0.2);
+}
+
+.statusBadge.na_fila {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.statusBadge.pendente {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* Botões */
+.btnAdicionar,
+.btnRemover {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnAdicionar {
+  background: #059669;
+  color: white;
+}
+
+.btnAdicionar:hover {
+  background: #047857;
+}
+
+.btnAdicionar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btnRemover {
+  background: #dc2626;
+  color: white;
+}
+
+.btnRemover:hover {
+  background: #b91c1c;
+}
+
+.btnRemover:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Estados Vazios */
+.selecionar,
+.semParticipantes,
+.semBusca,
+.semResultados {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.selecionar svg,
+.semParticipantes svg,
+.semBusca svg,
+.semResultados svg {
+  color: #d1d5db;
+  margin-bottom: 1rem;
+}
+
+.semBusca p,
+.semResultados p {
+  margin: 0.5rem 0;
+}
+
+/* Texto menor para hints */
+.semBusca p:nth-child(3),
+.semResultados p:nth-child(3) {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+/* Aviso */
+.aviso {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.aviso svg {
+  color: #d97706;
+  flex-shrink: 0;
+}
+
+.aviso p {
+  color: #92400e;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* Animações */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 🚀 NOVO: Animação para indicador de status realtime */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.realtimeStatus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.realtimeIndicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.realtimeConnected {
+  background-color: #10b981;
+}
+
+.realtimeReconnecting {
+  background-color: #f59e0b;
+  animation: pulse 2s infinite;
+}
+
+.realtimeError {
+  background-color: #ef4444;
+}
+
+/* 🔧 CORREÇÃO PARA RESOLUÇÕES PROBLEMÁTICAS */
+/* Específico para resoluções menores que 1672x910px onde o modal é cortado */
+@media (max-width: 1672px) and (max-height: 910px) {
+  .container {
+    max-width: 96vw !important;
+    max-height: 88vh !important; /* Mais conservador para evitar corte */
+    min-height: 500px; /* Altura mínima adequada */
+  }
+  
+  .header {
+    padding: 0.75rem 1.25rem; /* Header mais compacto */
+    min-height: 50px;
+  }
+  
+  .operacoesList {
+    max-height: 140px; /* Lista de operações mais compacta */
+  }
+  
+  .membrosList,
+  .participantesList {
+    max-height: calc(88vh - 320px) !important; /* Ajuste dinâmico baseado na altura */
+    min-height: 300px; /* Mínimo para usabilidade */
+  }
+  
+  .content {
+    padding: 1rem 1.5rem; /* Padding otimizado */
+  }
+}
+
+/* 🔧 TELAS MÉDIAS (laptops pequenos, tablets landscape) */
+@media (max-width: 1200px) and (min-height: 600px) {
+  .container {
+    max-width: 94vw;
+    max-height: 90vh;
+  }
+  
+  .membrosList,
+  .participantesList {
+    max-height: calc(90vh - 300px);
+  }
+}
+
+/* 🔧 TABLETS PORTRAIT E TELAS PEQUENAS */
+@media (max-width: 900px) {
+  .container {
+    max-width: 98vw;
+    max-height: 95vh;
+  }
+  
+  .header {
+    padding: 1rem;
+  }
+  
+  .operacoesList {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    max-height: 180px;
+  }
+  
+  .membrosList,
+  .participantesList {
+    max-height: calc(95vh - 280px);
+  }
+}
+
+/* Responsividade Otimizada - Mobile */
+@media (max-width: 768px) {
+  .container {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .header {
+    padding: 0.75rem 1rem; /* Padding ainda menor em mobile */
+    min-height: 50px; /* Altura mínima em mobile */
+  }
+
+  .header h2 {
+    font-size: 1.2rem; /* Fonte menor em mobile */
+  }
+
+  .headerContent {
+    gap: 1rem; /* Gap menor em mobile */
+  }
+
+  .operacaoDetails {
+    gap: 0.75rem; /* Gap menor em mobile */
+    flex-direction: column; /* Empilhar em mobile para melhor organização */
+    align-items: flex-start;
+  }
+
+  /* ✅ DATA AINDA EM DESTAQUE EM MOBILE */
+  .metaItem:first-child {
+    font-size: 1rem !important; /* Ligeiramente menor mas ainda em destaque */
+    font-weight: 700 !important; /* Manter peso */
+    padding: 0.35rem 0.9rem !important;
+    margin-bottom: 0.25rem;
+    align-self: center; /* Centralizar data em mobile */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important; /* Manter sombra */
+  }
+
+  /* ✅ OUTROS ITENS EM MOBILE COM CONTRASTE */
+  .metaItem {
+    font-size: 0.65rem; /* Fonte menor */
+    font-weight: 500; /* Manter peso para legibilidade */
+    padding: 0.15rem 0.4rem;
+    color: #e2e8f0; /* Manter contraste */
+  }
+
+  .operacaoType {
+    font-size: 0.75rem; /* Ligeiramente maior em mobile para legibilidade */
+    font-weight: 600; /* Manter peso */
+    color: #ddd6fe; /* Manter contraste */
+    align-self: center; /* Centralizar em mobile */
+  }
+
+  .operacoesList {
+    grid-template-columns: 1fr;
+  }
+
+  .content {
+    padding: 0.5rem 1rem; /* Padding mínimo em mobile */
+  }
+
+  .membrosList,
+  .participantesList {
+    min-height: calc(100vh - 180px); /* Máximo espaço em mobile */
+  }
+
+  .membroCard,
+  .participanteCard {
+    min-height: 48px; /* Altura ultra compacta em mobile */
+    padding: 0.5rem;
+  }
+
+  .membroActions {
+    min-width: 150px; /* Menor em mobile */
+  }
+}
+
+/* ✅ WRAPPER PARA O CONTEÚDO DA ABA */
+.adicionarTab {
+  display: flex;
+  flex-direction: column;
+  flex: 1; /* Ocupa todo espaço vertical disponível */
+  min-height: 0; /* Permite encolhimento */
+}
+
+/* ✅ NOVAS AÇÕES DE MEMBROS */
+.membroActions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.375rem; /* Gap reduzido */
+  min-width: 180px; /* Largura ligeiramente menor */
+}
+
+.actionButtons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* ✅ NOVOS BOTÕES PARA APROVAÇÃO/REJEIÇÃO */
+.btnAprovar {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #059669;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.btnAprovar:hover:not(:disabled) {
+  background: #047857;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+}
+
+.btnRejeitar {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #dc2626;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.btnRejeitar:hover:not(:disabled) {
+  background: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.btnPromover {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #2563eb;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.btnPromover:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+/* ✅ ESTADOS DESABILITADOS PARA TODOS OS NOVOS BOTÕES */
+.btnAprovar:disabled,
+.btnRejeitar:disabled,
+.btnPromover:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ✅ AJUSTES PARA BOTÕES EXISTENTES NO NOVO LAYOUT */
+.btnAdicionar,
+.btnRemover {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.btnAdicionar:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+}
+
+.btnRemover:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+/* ===== OTIMIZAÇÕES FINAIS PARA PANORAMA TOTAL ===== */
+
+/* Garantir que nenhum elemento cause scroll desnecessário */
+.container * {
+  box-sizing: border-box;
+}
+
+/* Melhorar performance do scroll */
+.membrosList,
+.participantesList {
+  scroll-behavior: smooth;
+  will-change: scroll-position;
+}
+
+/* Estados de loading mais discretos */
+.membroCard:has(.btnAdicionar:disabled),
+.membroCard:has(.btnRemover:disabled) {
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+/* Otimização para telas ultrawide */
+@media (min-width: 1400px) {
+  .container {
+    max-width: min(90vw, 1600px); /* Aproveitar telas grandes */
+  }
+  
+  .membrosList,
+  .participantesList {
+    columns: 2; /* Duas colunas em telas muito grandes */
+    column-gap: 1rem;
+    column-fill: balance;
+  }
+  
+  .membroCard,
+  .participanteCard {
+    break-inside: avoid; /* Evitar quebra de cards entre colunas */
+    margin-bottom: 0.375rem;
+  }
+}
+
+/* ✅ LOADING ELEGANTE */
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  min-height: 300px;
+}
+
+.loadingSpinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(59, 130, 246, 0.1);
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loadingSpinner p {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ✅ INDICADOR CRONOLÓGICO DISCRETO */
+.membroNomeContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.posicaoCronologica {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+  color: #475569;
+  font-size: 0.625rem;
+  font-weight: 600;
+  border-radius: 50%;
+  border: 1px solid #d1d5db;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  cursor: help;
+}
+
+.posicaoCronologica:hover {
+  background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
+  color: #334155;
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 🎨 NOVA FUNCIONALIDADE: Cores de fundo conforme status do membro */
+
+/* ✅ VERDE CLARO: Membros confirmados (aparecem primeiro) */
+.membroConfirmado {
+  background: #f0fdf4 !important; /* Verde muito claro */
+  border-color: #bbf7d0 !important; /* Borda verde suave */
+}
+
+.membroConfirmado:hover {
+  background: #ecfdf5 !important; /* Verde ligeiramente mais intenso no hover */
+  border-color: #86efac !important;
+}
+
+/* 🟡 AMARELO: Membros aguardando aprovação - NA_FILA e PENDENTE (aparecem em segundo) */
+.membroAguardando {
+  background: #fffbeb !important; /* Amarelo muito claro */
+  border-color: #fed7aa !important; /* Borda amarela suave */
+}
+
+.membroAguardando:hover {
+  background: #fef3c7 !important; /* Amarelo ligeiramente mais intenso no hover */
+  border-color: #fbbf24 !important;
+}
+
+/* ⚪ BRANCO: Membros disponíveis (cor padrão, aparecem por último) */
+/* Não precisa de classe específica - usa o estilo padrão do .membroCard */ 

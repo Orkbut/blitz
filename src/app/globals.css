@@ -1,8 +1,42 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* 🎨 TEMA CLARO REFINADO - Cores suaves e aconchegantes com toque quente */
+  --background: #f8f7f4;
+  --foreground: #2c2a26;
+  
+  /* Fundos - Tons off-white quentes e aconchegantes */
+  --bg-primary: #f8f7f4;           /* Off-white com toque bege */
+  --bg-secondary: #f0ede8;         /* Bege clarinho suave */
+  --bg-card: #fdfcfa;              /* Branco cremoso para cards */
+  --bg-hover: #f4f2ee;             /* Hover suave com toque quente */
+  
+  /* Textos - Contrastes suaves mas legíveis com tons mais quentes */
+  --text-primary: #2c2a26;         /* Marrom escuro suave */
+  --text-secondary: #5a564f;       /* Cinza quente médio */
+  --text-disabled: #a8a29e;        /* Cinza claro quente */
+  
+  /* Bordas - Tons harmoniosos e quentes */
+  --border-color: #e7e2db;         /* Bege claro para bordas */
+  
+  /* Cores principais - Azul elegante (mantendo a identidade) */
+  --primary: #3b82f6;              /* Azul principal */
+  --primary-dark: #2563eb;         /* Azul escuro para hover */
+  --primary-light: #f0f6ff;        /* Azul clarinho levemente quente */
+  
+  /* Cores de estado */
+  --success: #059669;              /* Verde esmeralda */
+  --success-light: #d4f4e3;        /* Verde claro com toque quente */
+  --warning: #d97706;              /* Âmbar dourado */
+  --warning-light: #fde6ce;        /* Âmbar claro quente */
+  --danger: #dc2626;               /* Vermelho elegante */
+  --danger-light: #fee8e8;         /* Vermelho claro quente */
+  
+  /* Sombras suaves com toque mais quente */
+  --shadow-sm: 0 1px 2px 0 rgba(44, 42, 38, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(44, 42, 38, 0.07);
+  --shadow-lg: 0 10px 15px -3px rgba(44, 42, 38, 0.09);
+  --shadow-xl: 0 20px 25px -5px rgba(44, 42, 38, 0.12);
 }
 
 @theme inline {
@@ -12,10 +46,11 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Tema claro quente padrão também para preferência de esquema escuro */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #f8f7f4;
+    --foreground: #2c2a26;
   }
 }
 
@@ -24,3 +59,392 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Fallback para evitar hydration mismatch - tema quente e aconchegante */
+html:not([data-theme]) {
+  --background: #f8f7f4;
+  --foreground: #2c2a26;
+  --bg-primary: #f8f7f4;
+  --bg-secondary: #f0ede8;
+  --bg-card: #fdfcfa;
+  --bg-hover: #f4f2ee;
+  --text-primary: #2c2a26;
+  --text-secondary: #5a564f;
+  --text-disabled: #a8a29e;
+  --border-color: #e7e2db;
+  --primary: #3b82f6;
+  --primary-dark: #2563eb;
+  --primary-light: #f0f6ff;
+  --success: #059669;
+  --success-light: #d4f4e3;
+  --success-dark: #059669;
+  --warning: #d97706;
+  --warning-light: #fde6ce;
+  --danger: #dc2626;
+  --danger-light: #fee8e8;
+  --danger-dark: #b91c1c;
+  --shadow-sm: 0 1px 2px 0 rgba(44, 42, 38, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(44, 42, 38, 0.07);
+  --shadow-lg: 0 10px 15px -3px rgba(44, 42, 38, 0.09);
+  --shadow-xl: 0 20px 25px -5px rgba(44, 42, 38, 0.12);
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Otimizações de Performance */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Animações otimizadas */
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .transform-gpu {
+    transform: translateZ(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Componentes customizados */
+@layer components {
+  .card {
+    @apply bg-white rounded-xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 transform-gpu;
+  }
+  
+  .card:hover {
+    @apply -translate-y-1;
+  }
+  
+  .btn-primary {
+    @apply bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 transform-gpu;
+  }
+  
+  .btn-primary:hover {
+    @apply shadow-lg;
+  }
+  
+  .btn-success {
+    @apply bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 transform-gpu;
+  }
+  
+  .btn-danger {
+    @apply bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 transform-gpu;
+  }
+  
+  .status-badge {
+    @apply px-3 py-1 rounded-full text-sm font-medium border flex items-center transition-all duration-200;
+  }
+  
+  .status-confirmado {
+    @apply bg-green-100 text-green-800 border-green-300;
+  }
+  
+  .status-pendente {
+    @apply bg-yellow-100 text-yellow-800 border-yellow-300;
+  }
+  
+  .status-cancelado {
+    @apply bg-red-100 text-red-800 border-red-300;
+  }
+  
+  .input-field {
+    @apply w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200;
+    color: #0f172a !important;
+  }
+  
+  .tab-button {
+    @apply flex-1 py-4 px-6 text-center font-medium transition-all duration-300;
+  }
+  
+  .tab-active {
+    @apply bg-blue-600 text-white border-b-4 border-blue-800;
+  }
+  
+  .tab-inactive {
+    @apply text-gray-600 hover:text-blue-600 hover:bg-blue-50;
+  }
+}
+
+/* ========================================
+   🎯 ESTILOS GLOBAIS PARA TEXTO ESCURO
+   ======================================== */
+/* Todos os elementos de formulário com texto escuro */
+input, select, textarea, option {
+  color: #0f172a !important;
+}
+
+/* Texto padrão mais escuro */
+p, span, div, label, td, th, li, a {
+  color: var(--text-primary) !important;
+}
+
+/* Cabeçalhos ainda mais escuros */
+h1, h2, h3, h4, h5, h6 {
+  color: #0f172a !important;
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Loading spinner otimizado */
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  transform: translateZ(0);
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Toast notifications */
+.toast {
+  @apply fixed top-4 right-4 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50 max-w-sm transform-gpu;
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toast-success {
+  @apply border-green-200 bg-green-50;
+}
+
+.toast-error {
+  @apply border-red-200 bg-red-50;
+}
+
+/* Otimizações para dispositivos móveis */
+@media (max-width: 768px) {
+  .card {
+    @apply p-4;
+  }
+  
+  .tab-button {
+    @apply py-3 px-4 text-sm;
+  }
+}
+
+/* Melhorias de acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Focus states melhorados */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Grid responsivo otimizado */
+.responsive-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+@media (min-width: 768px) {
+  .responsive-grid {
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-grid {
+    gap: 2rem;
+  }
+}
+
+/* ✅ LOADING INICIAL ELEGANTE */
+body {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.02) 0%, rgba(147, 197, 253, 0.05) 50%, rgba(236, 254, 255, 0.08) 100%);
+  min-height: 100vh;
+}
+
+/* Loading inicial para substituir a tela preta */
+#__next {
+  min-height: 100vh;
+}
+
+/* Animação de entrada suave para páginas */
+.page-enter {
+  animation: pageEnter 0.5s ease-out;
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Loading overlay personalizado */
+.elegant-page-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(147, 197, 253, 0.08) 50%, rgba(236, 254, 255, 0.1) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  font-family: var(--font-montserrat), system-ui, sans-serif;
+}
+
+.elegant-loader-container {
+  background: linear-gradient(135deg, #ffffff 0%, #fafbff 100%);
+  border-radius: 20px;
+  padding: 2.5rem 3rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 
+              0 0 0 1px rgba(255, 255, 255, 0.8), 
+              inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  min-width: 280px;
+  animation: fadeInScale 0.6s ease-out;
+}
+
+.elegant-loader-icon {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+  animation: pulse 2s infinite;
+  font-size: 24px;
+  color: white;
+  font-weight: bold;
+}
+
+.elegant-loader-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(59, 130, 246, 0.1);
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.elegant-loader-text h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1f2937;
+  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-align: center;
+}
+
+.elegant-loader-text p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+  text-align: center;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Tooltip styles removed - now using Floating UI */

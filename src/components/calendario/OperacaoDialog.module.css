@@ -1,0 +1,1559 @@
+/* 
+🔍 MONITORAMENTO CSS - REMOÇÃO DO TOOLTIP SUPERVISOR
+Data de remoção: [DATA]
+Status: Estilos mantidos por precaução - podem ser compartilhados
+Próxima análise: Verificar se outros componentes usam estes estilos
+
+Estilos possivelmente compartilhados:
+- .tooltipText (linha ~321)
+- .tooltipDetalhado (linha ~340) 
+- Variações responsivas (@media queries)
+- Animações (tooltipFadeInScale, tooltipSlideIn)
+
+TODO FUTURO: Analisar uso destes estilos em:
+- TimelineOperacoes.module.css
+- Outros modais/componentes
+- Verificar se pode remover com segurança
+*/
+
+/* Overlay */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+/* Dialog */
+.dialog {
+  background: #ffffff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+  background: #f8f9fa;
+  border-radius: 12px 12px 0 0;
+}
+
+.header h2 {
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: #212529;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* Header Actions - Container para botões */
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Botão de Refresh */
+.refreshButton {
+  background: none;
+  border: none;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.refreshButton:hover:not(:disabled) {
+  background: #e3f2fd;
+  color: #1976d2;
+  transform: translateY(-1px);
+}
+
+.refreshButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Animação de spinning para o ícone de refresh */
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeButton:hover {
+  background: #e9ecef;
+  color: #212529;
+}
+
+/* Content */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  background: #ffffff;
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+  color: #6c757d;
+}
+
+.emptyState svg {
+  margin-bottom: 1rem;
+  color: #adb5bd;
+}
+
+.emptyState p {
+  font-size: 1rem;
+  margin: 0;
+  color: #495057;
+}
+
+/* Operações List */
+.operacoesList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Operação Card */
+.operacaoCard {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.operacaoCard:hover {
+  border-color: #dee2e6;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+/* ✅ NOVO: Contraste melhorado para múltiplas operações */
+.operacaoCardMultiple {
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  margin-bottom: 1.5rem;
+}
+
+.operacaoCardMultiple:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.operacaoCardMultiple:not(:last-child) {
+  border-bottom: 3px solid #f1f5f9;
+  padding-bottom: 1.5rem;
+}
+
+.operacaoCardMultiple .modalidadeBadge {
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.operacaoCardMultiple .tipoBadge {
+  font-weight: 700;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Operação Header */
+.operacaoHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.modalidadeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: #ffffff;
+  border: 2px solid #e9ecef;
+  color: #212529;
+}
+
+.tipoBadge {
+  padding: 0.375rem 0.875rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tipoBadge.planejada {
+  background: #e7f5ff;
+  color: #0c63e4;
+  border: 1px solid #b6d4fe;
+}
+
+.tipoBadge.voluntaria {
+  background: #d1f4e0;
+  color: #0f5132;
+  border: 1px solid #a3cfbb;
+}
+
+/* Operação Info */
+.operacaoInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.infoItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  color: #495057;
+}
+
+.infoItem svg {
+  color: #6c757d;
+  width: 18px;
+  height: 18px;
+}
+
+.vagasRestantes {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0f5132;
+  background: #d1f4e0;
+  padding: 0.375rem 0.875rem;
+  border-radius: 6px;
+  display: inline-block;
+  width: fit-content;
+  border: 1px solid #a3cfbb;
+}
+
+/* Operação Footer */
+.operacaoFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+  flex-wrap: wrap;
+}
+
+/* Estado Visual */
+.estadoVisual {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  background: #ffffff;
+  border: 2px solid #e9ecef;
+  position: relative;
+  cursor: help;
+}
+
+/* Tooltip Styles */
+.tooltipContainer {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+  z-index: 1000;
+}
+
+.estadoVisual:hover .tooltipContainer {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ✅ TOOLTIP BÁSICO (mantido para compatibilidade) */
+.tooltipText {
+  background: #2c3e50;
+  color: #ffffff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.tooltipText::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #2c3e50;
+}
+
+/* ✅ RESPONSIVO: TOOLTIP DETALHADO COM RESPONSIVIDADE PROFISSIONAL */
+.tooltipDetalhado {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  position: fixed;
+  z-index: 9999;
+  overflow: hidden;
+  
+  /* ✅ RESPONSIVO: Tamanhos dinâmicos baseados no viewport */
+  width: min(85vw, 680px);
+  max-width: 85vw;
+  max-height: min(85vh, 720px);
+  
+  /* ✅ GLASSMORPHISM: Efeito fantasma moderno */
+  box-shadow: 
+    0 24px 48px rgba(0, 0, 0, 0.12),
+    0 12px 24px rgba(0, 0, 0, 0.08),
+    0 6px 12px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  
+  /* ✅ ANIMAÇÃO SUAVE: Entrada elegante */
+  animation: tooltipFadeInScale 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.9) 0%, 
+    rgba(255, 255, 255, 0.85) 100%);
+}
+
+/* ✅ RESPONSIVO: DESKTOP GRANDE (>1600px) - Tamanho máximo */
+@media (min-width: 1600px) {
+  .tooltipDetalhado {
+    width: min(75vw, 780px);
+    max-height: min(80vh, 800px);
+  }
+}
+
+/* ✅ RESPONSIVO: DESKTOP MÉDIO (1366px-1600px) - Tamanho padrão */
+@media (min-width: 1366px) and (max-width: 1599px) {
+  .tooltipDetalhado {
+    width: min(80vw, 680px);
+    max-height: min(75vh, 720px);
+  }
+}
+
+/* ✅ RESPONSIVO: RESOLUÇÕES PROBLEMÁTICAS (< 1672x910px) - Correção específica */
+@media (max-width: 1672px) and (max-height: 910px) {
+  .tooltipDetalhado {
+    width: min(90vw, 520px) !important;
+    max-height: min(75vh, 580px) !important;
+    border-radius: 16px;
+    /* ✅ POSICIONAMENTO DEFENSIVO: Garante que não saia da tela */
+    position: fixed !important;
+    margin: 8px !important;
+  }
+}
+
+/* ✅ RESPONSIVO: DESKTOP PEQUENO (1024px-1365px) - Reduzido */
+@media (min-width: 1024px) and (max-width: 1365px) {
+  .tooltipDetalhado {
+    width: min(85vw, 580px);
+    max-height: min(70vh, 620px);
+    border-radius: 16px;
+  }
+}
+
+/* ✅ RESPONSIVO: TABLET (768px-1023px) - Compacto */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .tooltipDetalhado {
+    width: min(90vw, 500px);
+    max-height: min(65vh, 520px);
+    border-radius: 14px;
+  }
+}
+
+/* ✅ RESPONSIVO: MOBILE GRANDE (480px-767px) - Otimizado */
+@media (min-width: 480px) and (max-width: 767px) {
+  .tooltipDetalhado {
+    width: min(95vw, 450px);
+    max-height: min(80vh, 600px);
+    border-radius: 12px;
+    /* ✅ MOBILE: Menos blur para performance */
+    backdrop-filter: blur(12px) saturate(140%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+  }
+}
+
+/* ✅ RESPONSIVO: MOBILE PEQUENO (<480px) - Layout especial */
+@media (max-width: 479px) {
+  .tooltipDetalhado {
+    width: 95vw;
+    max-height: 85vh;
+    border-radius: 10px;
+    /* ✅ MOBILE: Performance otimizada */
+    backdrop-filter: blur(8px) saturate(120%);
+    -webkit-backdrop-filter: blur(8px) saturate(120%);
+    box-shadow: 
+      0 16px 32px rgba(0, 0, 0, 0.1),
+      0 8px 16px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* ✅ CORREÇÃO ADICIONAL: Garante overflow adequado em todas as resoluções */
+@media (max-width: 1672px) {
+  .tooltipDetalhado {
+    /* ✅ OVERFLOW: Previne conteúdo cortado */
+    overflow: visible !important;
+    /* ✅ PERFORMANCE: Otimizações para resoluções problemáticas */
+    backdrop-filter: blur(12px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(140%) !important;
+  }
+  
+  .timelineEventos {
+    /* ✅ SCROLL: Comportamento melhorado */
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+}
+
+/* ✅ SETAS POSICIONAIS: TOP (padrão - tooltip acima do elemento) */
+.tooltipDetalhado.tooltip-top::after,
+.tooltipDetalhado::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 8px solid transparent;
+  border-top-color: #ffffff;
+  z-index: 10000;
+}
+
+.tooltipDetalhado.tooltip-top::before,
+.tooltipDetalhado::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 9px solid transparent;
+  border-top-color: #e9ecef;
+  z-index: 9999;
+}
+
+/* ✅ SETAS POSICIONAIS: BOTTOM (tooltip abaixo do elemento) */
+.tooltipDetalhado.tooltip-bottom::after {
+  top: -16px;
+  border-top-color: transparent;
+  border-bottom-color: #ffffff;
+}
+
+.tooltipDetalhado.tooltip-bottom::before {
+  top: -18px;
+  border-top-color: transparent;
+  border-bottom-color: #e9ecef;
+}
+
+/* ✅ SETAS POSICIONAIS: RIGHT (tooltip à direita do elemento) */
+.tooltipDetalhado.tooltip-right::after {
+  top: 50%;
+  left: -16px;
+  transform: translateY(-50%);
+  border-top-color: transparent;
+  border-right-color: #ffffff;
+}
+
+.tooltipDetalhado.tooltip-right::before {
+  top: 50%;
+  left: -18px;
+  transform: translateY(-50%);
+  border-top-color: transparent;
+  border-right-color: #e9ecef;
+}
+
+/* ✅ SETAS POSICIONAIS: LEFT (tooltip à esquerda do elemento) */
+.tooltipDetalhado.tooltip-left::after {
+  top: 50%;
+  left: 100%;
+  transform: translateY(-50%);
+  border-top-color: transparent;
+  border-left-color: #ffffff;
+}
+
+.tooltipDetalhado.tooltip-left::before {
+  top: 50%;
+  left: 100%;
+  margin-left: 2px;
+  transform: translateY(-50%);
+  border-top-color: transparent;
+  border-left-color: #e9ecef;
+}
+
+.tooltipHeader {
+  background: linear-gradient(135deg, rgba(248, 249, 250, 0.8), rgba(233, 236, 239, 0.6));
+  /* ✅ RESPONSIVO: Padding adaptativo */
+  padding: 20px 24px;
+  border-radius: 18px 18px 0 0;
+  border-bottom: 1px solid rgba(222, 226, 230, 0.6);
+  backdrop-filter: blur(8px);
+  flex-shrink: 0;
+}
+
+.tooltipHeader strong {
+  display: block;
+  /* ✅ RESPONSIVO: Fonte adaptativa */
+  font-size: 1.125rem;
+  color: #1f2937;
+  font-weight: 700;
+  margin-bottom: 6px;
+  letter-spacing: -0.02em;
+  line-height: 1.4;
+}
+
+.tooltipSubtitle {
+  /* ✅ RESPONSIVO: Fonte adaptativa */
+  font-size: 0.9375rem;
+  color: #4b5563;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* ✅ RESPONSIVO: HEADERS MENORES EM TELAS PEQUENAS */
+@media (max-width: 1023px) {
+  .tooltipHeader {
+    padding: 16px 20px;
+    border-radius: 14px 14px 0 0;
+  }
+  
+  .tooltipHeader strong {
+    font-size: 1rem;
+    margin-bottom: 4px;
+  }
+  
+  .tooltipSubtitle {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .tooltipHeader {
+    padding: 14px 18px;
+    border-radius: 10px 10px 0 0;
+  }
+  
+  .tooltipHeader strong {
+    font-size: 0.9375rem;
+  }
+  
+  .tooltipSubtitle {
+    font-size: 0.8125rem;
+  }
+}
+
+.tooltipLoading {
+  padding: 16px;
+  text-align: center;
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+.tooltipErro {
+  padding: 16px;
+  text-align: center;
+  color: #dc3545;
+  font-size: 0.75rem;
+  font-style: italic;
+}
+
+.filaLista {
+  /* ✅ MELHORIA: Espaçamento mais generoso */
+  padding: 16px 0;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.filaHeader {
+  /* ✅ MELHORIA: Espaçamento mais profissional */
+  padding: 0 24px 12px 24px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 1px solid #f1f3f4;
+  margin-bottom: 12px;
+}
+
+.filaItem {
+  display: grid;
+  grid-template-columns: 30px 24px 1fr auto;
+  /* ✅ MELHORIA: Espaçamento mais generoso */
+  gap: 12px;
+  align-items: center;
+  padding: 12px 24px;
+  font-size: 0.875rem;
+  transition: background-color 0.2s ease;
+  border-radius: 8px;
+  margin: 0 8px;
+}
+
+.filaItem:hover {
+  background: #f8f9fa;
+}
+
+.filaItem.minhaLinha {
+  background: linear-gradient(90deg, #fff3cd, #ffffff);
+  border-left: 3px solid #ffc107;
+  font-weight: 600;
+}
+
+.filaPosicao {
+  font-weight: 600;
+  color: #495057;
+  text-align: center;
+  font-size: 0.75rem;
+}
+
+.filaIcone {
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.filaNome {
+  color: #212529;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filaMatricula {
+  color: #6c757d;
+  font-size: 0.75rem;
+  font-family: 'Courier New', monospace;
+}
+
+.filaResumo {
+  /* ✅ MELHORIA: Espaçamento mais profissional */
+  padding: 16px 24px;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: #6c757d;
+  font-style: italic;
+  border-top: 1px solid #f1f3f4;
+}
+
+/* ✅ SCROLLBAR CUSTOMIZADA PARA FILA */
+.filaLista::-webkit-scrollbar {
+  width: 6px;
+}
+
+.filaLista::-webkit-scrollbar-track {
+  background: #f1f3f4;
+  border-radius: 2px;
+}
+
+.filaLista::-webkit-scrollbar-thumb {
+  background: #dee2e6;
+  border-radius: 2px;
+}
+
+.filaLista::-webkit-scrollbar-thumb:hover {
+  background: #adb5bd;
+}
+
+/* ✅ ANIMAÇÕES DO TOOLTIP */
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.estadoVisual.confirmado {
+  background: #d1f4e0;
+  color: #0f5132;
+  border-color: #a3cfbb;
+}
+
+.estadoVisual.pendente {
+  background: #fff3cd;
+  color: #664d03;
+  border-color: #ffecb5;
+}
+
+.estadoVisual.naFila {
+  background: #fff3cd;
+  color: #664d03;
+  border-color: #ffecb5;
+}
+
+.estadoVisual.disponivel {
+  background: #e7f5ff;
+  color: #0c63e4;
+  border-color: #b6d4fe;
+}
+
+.estadoVisual.filaDisponivel {
+  background: #fff3cd;
+  color: #664d03;
+  border-color: #ffecb5;
+}
+
+.estadoVisual.lotada {
+  background: #f8d7da;
+  color: #721c24;
+  border-color: #f5c6cb;
+}
+
+/* EU VOU Button */
+.euVouButton {
+  padding: 0.75rem 1.75rem;
+  background: #0d6efd;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.euVouButton:hover:not(:disabled) {
+  background: #0b5ed7;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+}
+
+.euVouButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #6c757d;
+}
+
+.euVouButton.loading {
+  background: #6c757d;
+  pointer-events: none;
+}
+
+/* Cancelar Button */
+.euVouButton.cancelarButton {
+  background: #dc3545;
+  color: white;
+}
+
+.euVouButton.cancelarButton:hover:not(:disabled) {
+  background: #c82333;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.25);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Toggle participantes */
+.toggleParticipantes {
+  width: 100%;
+  padding: 10px;
+  margin-top: 12px;
+  background: #f8f9fa;
+  border: 1px dashed #dee2e6;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #495057;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  font-weight: 500;
+}
+
+.toggleParticipantes:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+  color: #212529;
+}
+
+/* Lista de participantes */
+.participantesLista {
+  margin-top: 12px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  border: 1px solid #e9ecef;
+}
+
+.participantesSection,
+.filaSection {
+  margin-bottom: 16px;
+}
+
+.participantesSection:last-child,
+.filaSection:last-child {
+  margin-bottom: 0;
+}
+
+.participantesSection h4,
+.filaSection h4 {
+  margin: 0 0 12px 0;
+  font-size: 0.9375rem;
+  color: #212529;
+  font-weight: 600;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.participantesSection ul,
+.filaSection ul {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.participantesSection li,
+.filaSection li {
+  padding: 6px 0;
+  color: #495057;
+  font-size: 0.875rem;
+  border-bottom: 1px solid #f1f3f5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.participantesSection li:last-child,
+.filaSection li:last-child {
+  border-bottom: none;
+}
+
+.participantesSection li::before {
+  content: '✓';
+  color: #198754;
+  font-weight: bold;
+  font-size: 0.75rem;
+}
+
+.filaSection li::before {
+  content: '⏳';
+  font-size: 0.75rem;
+}
+
+.emptyParticipantes {
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  padding: 8px;
+}
+
+/* Ícone indicativo para membros adicionados pelo supervisor */
+.adicionadoSupervisorIcon {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-left: 6px;
+  vertical-align: middle;
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+/* Responsividade */
+@media (max-width: 640px) {
+  .dialog {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .header {
+    padding: 1rem;
+  }
+
+  .content {
+    padding: 1rem;
+  }
+
+  .operacaoCard {
+    padding: 1rem;
+  }
+
+  .operacaoHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .operacaoFooter {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .euVouButton {
+    width: 100%;
+    padding: 0.75rem;
+  }
+}
+
+/* ✅ CORREÇÃO CRITICAL: Container sem scroll para evitar duplo scroll */
+.historicoLista {
+  padding: 16px 0;
+  /* ✅ CORREÇÃO: Removido max-height e overflow para evitar scroll duplo */
+  display: flex;
+  flex-direction: column;
+}
+
+.historicoHeader {
+  padding: 0 24px 12px 24px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 1px solid #f1f3f4;
+  margin-bottom: 12px;
+  /* ✅ NOVO: Header fixo, não scrollável */
+  flex-shrink: 0;
+}
+
+.timelineEventos {
+  /* ✅ RESPONSIVO: Altura adaptativa baseada no viewport e resolução */
+  max-height: min(50vh, 420px);
+  overflow-y: auto;
+  /* ✅ RESPONSIVO: Padding adaptativo */
+  padding: 0 8px;
+  flex: 1;
+  /* ✅ PERFORMANCE: Scroll suave e compatibilidade */
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+}
+
+/* ✅ CORREÇÃO ESPECÍFICA: Resoluções problemáticas (< 1672x910px) */
+@media (max-width: 1672px) and (max-height: 910px) {
+  .timelineEventos {
+    max-height: min(40vh, 320px) !important;
+    padding: 0 6px;
+  }
+}
+
+.eventoItem {
+  display: flex;
+  align-items: flex-start;
+  /* ✅ RESPONSIVO: Padding adaptativo */
+  padding: 18px 24px;
+  margin: 10px 0;
+  border-radius: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid transparent;
+  background: rgba(249, 250, 251, 0.8);
+  backdrop-filter: blur(4px);
+  position: relative;
+}
+
+/* ✅ RESPONSIVO: EVENTOS MENORES EM TELAS PEQUENAS */
+@media (max-width: 1023px) {
+  .timelineEventos {
+    max-height: min(55vh, 450px);
+    padding: 0 6px;
+  }
+  
+  .eventoItem {
+    padding: 14px 18px;
+    margin: 8px 0;
+    border-radius: 12px;
+  }
+}
+
+@media (max-width: 767px) {
+  .timelineEventos {
+    max-height: min(60vh, 400px);
+    padding: 0 4px;
+  }
+  
+  .eventoItem {
+    padding: 12px 16px;
+    margin: 6px 0;
+    border-radius: 10px;
+    /* ✅ MOBILE: Layout mais compacto */
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+}
+
+.eventoItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.eventoItem.eventoRecente {
+  background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+  border-color: #0ea5e9;
+}
+
+.eventoIcone {
+  font-size: 18px;
+  margin-right: 16px;
+  min-width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eventoConteudo {
+  flex: 1;
+  min-width: 0;
+}
+
+.eventoServidor {
+  font-weight: 700;
+  /* ✅ RESPONSIVO: Fonte adaptativa */
+  font-size: 1rem;
+  color: #1f2937;
+  margin-bottom: 6px;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+}
+
+.eventoDetalhes {
+  /* ✅ RESPONSIVO: Fonte adaptativa */
+  font-size: 0.9375rem;
+  color: #4b5563;
+  margin-bottom: 8px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.eventoTempo {
+  /* ✅ RESPONSIVO: Fonte adaptativa */
+  font-size: 0.875rem;
+  color: #6b7280;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* ✅ RESPONSIVO: FONTES MENORES EM TELAS PEQUENAS */
+@media (max-width: 1023px) {
+  .eventoServidor {
+    font-size: 0.9375rem;
+    margin-bottom: 4px;
+  }
+  
+  .eventoDetalhes {
+    font-size: 0.875rem;
+    margin-bottom: 6px;
+  }
+  
+  .eventoTempo {
+    font-size: 0.8125rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .eventoServidor {
+    font-size: 0.875rem;
+  }
+  
+  .eventoDetalhes {
+    font-size: 0.8125rem;
+    margin-bottom: 4px;
+  }
+  
+  .eventoTempo {
+    font-size: 0.75rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+  
+  /* ✅ MOBILE: Ícone e conteúdo em layout vertical */
+  .eventoItem {
+    flex-direction: row !important;
+    gap: 12px;
+  }
+  
+  .eventoIcone {
+    font-size: 16px !important;
+    min-width: 20px !important;
+    margin-right: 0 !important;
+  }
+}
+
+/* ✅ TEMPO DO EVENTO: Estilo simplificado sem duplicação de horários */
+
+.badgeRecente {
+  position: absolute;
+  top: -6px;
+  right: 8px;
+  background: #0ea5e9;
+  color: white;
+  font-size: 0.6875rem;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+}
+
+.statusAtual {
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: #f3f4f6;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  color: #374151;
+  margin: 12px 6px 0 6px;
+}
+
+/* ✅ RESPONSIVO: BADGE E STATUS MENORES EM TELAS PEQUENAS */
+@media (max-width: 1023px) {
+  .badgeRecente {
+    font-size: 0.625rem;
+    padding: 2px 5px;
+    top: -4px;
+    right: 6px;
+  }
+  
+  .statusAtual {
+    padding: 10px 14px;
+    margin: 10px 4px 0 4px;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .badgeRecente {
+    font-size: 0.5625rem;
+    padding: 2px 4px;
+    border-radius: 3px;
+  }
+  
+  .statusAtual {
+    padding: 8px 12px;
+    margin: 8px 2px 0 2px;
+    font-size: 0.6875rem;
+    border-radius: 8px;
+  }
+}
+
+.statusAtual .statusTitulo {
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #1f2937;
+}
+
+.statusAtual .statusDetalhes {
+  line-height: 1.5;
+}
+
+.statusAtual .minhaParticipacao {
+  margin-top: 6px;
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+.dicaTransparencia {
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: #fffbeb;
+  border: 1px solid #fbbf24;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  color: #92400e;
+  text-align: center;
+  margin: 12px 8px 0 8px;
+}
+
+/* ✅ SCROLLBAR CUSTOMIZADA RESPONSIVA PARA TIMELINE */
+.timelineEventos::-webkit-scrollbar {
+  width: 6px;
+}
+
+.timelineEventos::-webkit-scrollbar-track {
+  background: #f1f3f4;
+  border-radius: 3px;
+}
+
+.timelineEventos::-webkit-scrollbar-thumb {
+  background: #dee2e6;
+  border-radius: 3px;
+}
+
+.timelineEventos::-webkit-scrollbar-thumb:hover {
+  background: #ced4da;
+}
+
+/* ✅ RESPONSIVO: SCROLLBAR AINDA MAIS FINA EM MOBILE */
+@media (max-width: 767px) {
+  .timelineEventos::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .timelineEventos::-webkit-scrollbar-track {
+    background: rgba(241, 243, 244, 0.6);
+  }
+  
+  .timelineEventos::-webkit-scrollbar-thumb {
+    background: rgba(222, 226, 230, 0.8);
+  }
+}
+
+/* ✅ NOVA ANIMAÇÃO: Entrada elegante com escala e desfoque para tooltips */
+@keyframes tooltipFadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(-8px);
+    backdrop-filter: blur(0px);
+  }
+  50% {
+    opacity: 0.8;
+    backdrop-filter: blur(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    backdrop-filter: blur(24px);
+  }
+}
+
+/* ===== NOVO MODAL DO HISTÓRICO ===== */
+
+/* Botão do Histórico */
+.historicoButton {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.historicoButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.historicoButton:hover::before {
+  left: 100%;
+}
+
+.historicoButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.historicoButton:active {
+  transform: translateY(0);
+}
+
+/* Overlay do Modal do Histórico */
+.historicoModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 2000; /* Maior que o modal principal */
+  animation: fadeIn 0.3s ease;
+}
+
+/* Modal do Histórico */
+.historicoModal {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 700px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.2);
+  animation: slideUpScale 0.4s ease;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Efeito de glow */
+.historicoModal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  pointer-events: none;
+  border-radius: 20px;
+}
+
+/* Header do Modal do Histórico */
+.historicoModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 20px 20px 0 0;
+  position: relative;
+}
+
+.historicoModalTitle {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.historicoModalTitle strong {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.historicoModalDataOperacao {
+  font-size: 1rem;
+  color: #4a5568;
+  font-weight: 600;
+  margin-top: 0.25rem;
+  display: block;
+  opacity: 0.9;
+}
+
+.historicoModalSubtitle {
+  font-size: 0.875rem;
+  color: #718096;
+  font-weight: 500;
+}
+
+/* Botão Fechar do Modal do Histórico */
+.historicoModalCloseButton {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #4a5568;
+  cursor: pointer;
+  padding: 0.75rem;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.historicoModalCloseButton:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Conteúdo do Modal do Histórico */
+.historicoModalContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  position: relative;
+}
+
+/* Loading do Modal do Histórico */
+.historicoModalLoading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: #718096;
+  font-size: 1.125rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(5px);
+}
+
+/* Erro do Modal do Histórico */
+.historicoModalErro {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: #718096;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(5px);
+}
+
+/* Animações */
+@keyframes slideUpScale {
+  0% {
+    opacity: 0;
+    transform: translateY(50px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .historicoModal {
+    max-width: 95vw;
+    max-height: 90vh;
+    margin: 0.5rem;
+  }
+  
+  .historicoModalHeader {
+    padding: 1rem 1.5rem;
+  }
+  
+  .historicoModalContent {
+    padding: 1.5rem;
+  }
+  
+  .historicoModalTitle strong {
+    font-size: 1.25rem;
+  }
+  
+  .historicoButton {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .historicoModal {
+    max-width: 98vw;
+    max-height: 95vh;
+    margin: 0.25rem;
+    border-radius: 16px;
+  }
+  
+  .historicoModalHeader {
+    padding: 1rem;
+    border-radius: 16px 16px 0 0;
+  }
+  
+  .historicoModalContent {
+    padding: 1rem;
+  }
+  
+  .historicoModalTitle strong {
+    font-size: 1.125rem;
+  }
+} 
