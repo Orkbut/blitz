@@ -9,10 +9,13 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 // ✅ API JANELAS OPERACIONAIS - FASE 0 OBRIGATÓRIA
 // Conforme documentação: docs/00 - CASOS DE USO/0 - SUPERVISOR_DISPONIBILIZAÇÃO.txt
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    // ✅ BUSCAR DADOS REAIS DO BANCO SUPABASE
-    const { data: janelas, error } = await supabase
+    // ✅ ISOLAMENTO POR REGIONAL: Obter contexto do supervisor
+    const supervisorId = request.headers.get('X-Supervisor-Id');
+    const regionalId = request.headers.get('X-Regional-Id');
+    
+    let query = supabase
       .from('janela_operacional')
       .select(`
         id,
@@ -25,8 +28,14 @@ export async function GET() {
         criado_em,
         regional!inner(nome)
       `)
-      .eq('ativa', true)
-      .order('criado_em', { ascending: false });
+      .eq('ativa', true);
+
+    // ✅ FILTRAR POR REGIONAL se contexto disponível
+    if (regionalId) {
+      query = query.eq('regional_id', parseInt(regionalId));
+    }
+
+    const { data: janelas, error } = await query.order('criado_em', { ascending: false });
 
     if (error) {
       console.error('❌ Erro Supabase:', error);
@@ -88,8 +97,8 @@ export async function POST(request: NextRequest) {
       modalidades, 
       limiteMin = 2, 
       limiteMax = 30,
-      regionalId = 1,
-      supervisorId = 1
+      regionalId = 5, // ✅ UR IGUATU (ID válido)
+      supervisorId = 1 // ✅ DOUGLAS ALBERTO DOS SANTOS
     } = body;
 
     // ✅ VALIDAÇÕES BÁSICAS

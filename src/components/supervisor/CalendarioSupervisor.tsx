@@ -7,6 +7,7 @@ import { ptBR } from 'date-fns/locale';
 
 import { JanelaOperacional } from '@/shared/types';
 import { useRealtimeCentralized } from '@/hooks/useRealtimeCentralized';
+import { getSupervisorHeaders } from '@/lib/auth-utils';
 
 interface Operacao {
   id: number;
@@ -126,7 +127,10 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
 
   const carregarJanelas = async () => {
     try {
-      const response = await fetch('/api/supervisor/janelas-operacionais');
+      // ✅ ISOLAMENTO POR REGIONAL: Usar headers com contexto do supervisor
+      const response = await fetch('/api/supervisor/janelas-operacionais', {
+        headers: getSupervisorHeaders()
+      });
       const result = await response.json();
       
       if (result.success) {

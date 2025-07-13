@@ -7,7 +7,8 @@ export async function GET(request: NextRequest) {
   try {
     const url = new URL(request.url);
     const membroId = url.searchParams.get('membroId') || '1';
-    const regionalId = url.searchParams.get('regionalId') || '1';
+    const regionalId = url.searchParams.get('regionalId') || 
+                    request.headers.get('X-Regional-Id') || '5'; // ✅ Usar contexto do supervisor ou fallback
 
     // ✅ BUSCAR MENSAGENS ATIVAS DA REGIONAL COM ISOLAMENTO AUTOMÁTICO
     const response = await fetch('http://localhost:3000/api/internal/mcp-supabase', {
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest) {
     const { 
       conteudo, 
       supervisorId = 1,
-      regionalId = 1,
+      regionalId = parseInt(request.headers.get('X-Regional-Id') || '5'), // ✅ Usar contexto do supervisor
       prazoExpiracao = 7 // dias
     } = body;
 

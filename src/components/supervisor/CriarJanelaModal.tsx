@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { MultiDateCalendar } from './MultiDateCalendar';
+import { getSupervisorContext } from '@/lib/auth-utils';
 
 interface CriarJanelaModalProps {
   onClose: () => void;
@@ -73,6 +74,14 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
 
     setLoading(true);
     try {
+      // ✅ ISOLAMENTO POR REGIONAL: Obter contexto do supervisor logado
+      const supervisorContext = getSupervisorContext();
+      
+      if (!supervisorContext.supervisorId || !supervisorContext.regionalId) {
+        alert('Erro: Dados do supervisor não encontrados. Faça login novamente.');
+        return;
+      }
+
       const response = await fetch('/api/supervisor/janelas-operacionais', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -82,8 +91,8 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
           modalidades: novaJanela.modalidades,
           limiteMin: 2, // Valor fixo definido pelo admin
           limiteMax: novaJanela.limiteMaximo,
-          regionalId: 1, // TODO: pegar do contexto do usuário
-          supervisorId: 1 // TODO: pegar do contexto do usuário
+          regionalId: supervisorContext.regionalId, // ✅ DINÂMICO: Regional do supervisor logado
+          supervisorId: supervisorContext.supervisorId // ✅ DINÂMICO: ID do supervisor logado
         })
       });
 

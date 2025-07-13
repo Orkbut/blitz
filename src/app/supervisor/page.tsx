@@ -13,6 +13,7 @@ import { CalendarioSupervisor } from '@/components/supervisor/CalendarioSupervis
 import { ModalOperacaoSupervisor } from '@/components/supervisor/ModalOperacaoSupervisor';
 import TimelineOperacoes from '@/components/supervisor/TimelineOperacoes';
 import { ElegantPageLoader } from '@/shared/components/ui/LoadingSpinner';
+import { getSupervisorContext, getSupervisorHeaders } from '@/lib/auth-utils';
 
 export default function SupervisorPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -216,7 +217,10 @@ export default function SupervisorPage() {
 
   const carregarJanelas = async () => {
     try {
-      const response = await fetch('/api/supervisor/janelas-operacionais');
+      // ✅ ISOLAMENTO POR REGIONAL: Usar headers com contexto do supervisor
+      const response = await fetch('/api/supervisor/janelas-operacionais', {
+        headers: getSupervisorHeaders()
+      });
       const result = await response.json();
       
       if (result.success) {
@@ -615,7 +619,7 @@ export default function SupervisorPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          supervisorId: 1, // TODO: pegar do contexto do usuário
+          ...getSupervisorContext(),
           motivo: motivo.trim() 
         })
       });
@@ -655,9 +659,7 @@ export default function SupervisorPage() {
       const response = await fetch(`/api/supervisor/operacoes/${operacaoId}/reativar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          supervisorId: 1 // TODO: pegar do contexto do usuário
-        })
+        body: JSON.stringify(getSupervisorContext())
       });
 
       const result = await response.json();
@@ -707,7 +709,7 @@ export default function SupervisorPage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          supervisorId: 1, // TODO: pegar do contexto do usuário
+          ...getSupervisorContext(),
           horario: horario || null,
           turno: turno || null
         })
@@ -785,7 +787,7 @@ export default function SupervisorPage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          supervisorId: 1, // TODO: pegar do contexto do usuário
+          ...getSupervisorContext(),
           horario: null,
           turno: null
         })

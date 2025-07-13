@@ -11,7 +11,8 @@ export async function GET(request: NextRequest) {
   try {
     const url = new URL(request.url);
     const supervisorId = url.searchParams.get('supervisorId') || '1';
-    const regionalId = url.searchParams.get('regionalId') || '1';
+    const regionalId = url.searchParams.get('regionalId') || 
+                    request.headers.get('X-Regional-Id') || '5'; // ✅ Usar contexto do supervisor ou fallback
 
     // ✅ BUSCAR EVENTOS COM ISOLAMENTO REGIONAL AUTOMÁTICO
     const response = await fetch('http://localhost:3000/api/internal/mcp-supabase', {
