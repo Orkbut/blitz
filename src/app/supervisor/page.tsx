@@ -115,6 +115,9 @@ export default function SupervisorPage() {
   const [showCriarOperacaoModal, setShowCriarOperacaoModal] = useState(false);
   const [operacaoSelecionadaModal, setOperacaoSelecionadaModal] = useState<any>(null);
   
+  // ✅ NOVO: STATE PARA MENU DROPDOWN (compatível com mobile)
+  const [showDropdownMenu, setShowDropdownMenu] = useState(false);
+  
   // ✅ NOVO: STATE PARA MODAL DE HORÁRIO
   const [showHorarioPopover, setShowHorarioPopover] = useState<number | null>(null);
   const [operacaoParaHorario, setOperacaoParaHorario] = useState<any>(null);
@@ -268,6 +271,21 @@ export default function SupervisorPage() {
       }
     }
   }, [activeTab, isAuthenticated, carregarOperacoes, carregarJanelas]);
+
+  // ✅ NOVO: FECHAR MENU DROPDOWN AO CLICAR FORA (compatível com mobile)
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (showDropdownMenu && !target.closest('.dropdown-menu-container')) {
+        setShowDropdownMenu(false);
+      }
+    };
+
+    if (showDropdownMenu) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showDropdownMenu]);
 
   // ✅ GERENCIAR REFS DOS BOTÕES DE HORÁRIO
   const getHorarioButtonRef = (operacaoId: number) => {
@@ -691,26 +709,52 @@ export default function SupervisorPage() {
 
             {/* Menu compacto + Usuário */}
             <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-              {/* Menu dropdown */}
-              <div className="relative group">
-                <button className="px-2 sm:px-3 py-2 text-xs sm:text-sm bg-white/10 rounded-lg text-white hover:bg-white/20 transition-all flex items-center gap-1">
+              {/* Menu dropdown - CORRIGIDO para funcionar em mobile */}
+              <div className="relative dropdown-menu-container">
+                <button 
+                  onClick={() => setShowDropdownMenu(!showDropdownMenu)}
+                  className="px-2 sm:px-3 py-2 text-xs sm:text-sm bg-white/10 rounded-lg text-white hover:bg-white/20 transition-all flex items-center gap-1"
+                >
                   <span className="text-sm">⚙️</span>
                   <span className="hidden sm:inline">Menu</span>
-                  <svg className="w-3 h-3 sm:w-4 sm:h-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg 
+                    className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform ${showDropdownMenu ? 'rotate-180' : ''}`} 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-                  <a href="/supervisor/diretoria" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                    🏛️ Diretoria
-                  </a>
-                  <a href="/relatorio-diarias" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                    📊 Relatório de Diárias
-                  </a>
-                  <button onClick={carregarDados} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                    🔄 Atualizar Dados
-                  </button>
-                </div>
+                
+                {/* Menu dropdown - agora funciona com clique/toque */}
+                {showDropdownMenu && (
+                  <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border py-2 z-50 animate-fade-in">
+                    <a 
+                      href="/supervisor/diretoria" 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                      onClick={() => setShowDropdownMenu(false)}
+                    >
+                      🏛️ Diretoria
+                    </a>
+                    <a 
+                      href="/relatorio-diarias" 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                      onClick={() => setShowDropdownMenu(false)}
+                    >
+                      📊 Relatório de Diárias
+                    </a>
+                    <button 
+                      onClick={() => {
+                        carregarDados();
+                        setShowDropdownMenu(false);
+                      }} 
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                    >
+                      🔄 Atualizar Dados
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Usuário com responsividade corrigida */}

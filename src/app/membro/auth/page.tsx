@@ -145,6 +145,7 @@ export default function MembroAuthPage() {
       };
       
       localStorage.setItem('membroAuth', JSON.stringify(membroData));
+      localStorage.setItem('membroId', resultado.data.id.toString()); // ✅ CORREÇÃO: Salvar membroId para isolamento
       
       // Redirecionar direto para o portal (já temos a regional)
       router.push('/membro');

@@ -35,15 +35,15 @@ export async function GET(request: NextRequest) {
     const mode = searchParams.get('mode'); // ✅ OTIMIZAÇÃO: Modo light para modal gerenciar
     const janelaId = searchParams.get('janela_id'); // 🆕 NOVO: Filtro por janela operacional
     const tipo = searchParams.get('tipo'); // 🆕 NOVO: Filtro por tipo de operação
-    
+
     // ✅ OTIMIZADO: Log apenas quando necessário (comentado para reduzir verbosidade)
     // logDebug(`🔍 [API-UNIFIED] Requisição recebida`, {
     //   startDate, endDate, membroId, portal, includeParticipantes, mode, janelaId, tipo
     // });
-    
+
     // Busca TODAS as operações (ativas + em avaliação) - SOMENTE do banco real
     let selectQuery = `*`;
-    
+
     // ✅ MODO LIGHT: Query otimizada para o modal gerenciar
     if (mode === 'light' && portal === 'supervisor') {
       selectQuery = `
@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
         )
       `;
     }
-    
+
     let query = supabase
       .from('operacao')
       .select(selectQuery)
@@ -117,14 +117,17 @@ export async function GET(request: NextRequest) {
 
     // ✅ ISOLAMENTO POR REGIONAL: Filtrar operações apenas da regional do membro
     if (membroId && portal !== 'supervisor' && portal !== 'diretoria') {
-      // Buscar regional do membro primeiro
+      // Buscar regional do membro primeiro com nome da regional
       const { data: membro } = await supabase
         .from('servidor')
-        .select('regional_id')
+        .select(`
+          regional_id,
+          regional:regional_id(id, nome, codigo)
+        `)
         .eq('id', membroId)
         .eq('ativo', true)
         .single();
-        
+
       if (membro?.regional_id) {
         // Garantir que o JOIN com janela_operacional seja INNER para filtrar por regional
         selectQuery = selectQuery.replace(
@@ -132,8 +135,8 @@ export async function GET(request: NextRequest) {
           'janela:janela_operacional!inner('
         );
         query = query.eq('janela.regional_id', membro.regional_id);
-        
-        logInfo(`🔒 [ISOLAMENTO] Membro ${membroId} da Regional ${membro.regional_id} - operações filtradas`);
+
+        logInfo(`🔒 [ISOLAMENTO] Membro ${membroId} da Regional ${membro.regional_id} (${(membro.regional as any)?.nome || 'Nome não encontrado'}) - operações filtradas`);
       }
     }
 
@@ -157,9 +160,9 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       logError('❌ [API-UNIFIED] Erro ao buscar operações:', error);
-      return NextResponse.json({ 
+      return NextResponse.json({
         success: false,
-        error: error.message 
+        error: error.message
       }, { status: 500 });
     }
 
@@ -169,102 +172,102 @@ export async function GET(request: NextRequest) {
     // } else {
     //   logInfo(`✅ ${operacoes?.length || 0} operações encontradas`);
     // }
-    
+
     // Retorna dados REAIS do banco
     // ✅ CORRIGINDO CONTAGEM DE PARTICIPANTES
     const operacoesProcessadas = operacoes?.map((op: any) => {
-      
+
       // ✅ OTIMIZADO: Log comentado para reduzir verbosidade
       // logDebug(`🔍 Processando operação ${op.id}`, {
       //   totalParticipacoes: op.participacao?.length || 0,
       //   participacoesAtivas: op.participacao?.filter((p: any) => p.ativa === true).length || 0
       // });
-      
+
       // Filtrar apenas participações ATIVAS primeiro
       const participacoesAtivas = op.participacao?.filter((p: any) => p.ativa === true) || [];
-      
 
-      
+
+
       // Contar participantes confirmados (incluindo adicionados pelo supervisor)
       const participantesConfirmadosArray = participacoesAtivas.filter(
         (p: any) => p.estado_visual === 'CONFIRMADO' || p.estado_visual === 'ADICIONADO_SUP'
       );
       const participantesConfirmados = participantesConfirmadosArray.length;
-      
 
-      
+
+
       // ✅ NOVA LÓGICA: Contar solicitações pendentes (não mais "na fila")
       const solicitacoesPendentes = participacoesAtivas.filter(
         (p: any) => p.estado_visual === 'PENDENTE'
       );
-      
+
       // ✅ CONTAR TAMBÉM NA_FILA para compatibilidade
       const naFila = participacoesAtivas.filter(
         (p: any) => p.estado_visual === 'NA_FILA'
       );
-      
+
       // ✅ OTIMIZADO: Ordenar por data de participação para garantir ordem cronológica
       const todasSolicitacoes = [...solicitacoesPendentes, ...naFila].sort((a: any, b: any) => {
         const dataA = new Date(a.data_participacao || 0).getTime();
         const dataB = new Date(b.data_participacao || 0).getTime();
         return dataA - dataB; // Quem solicitou primeiro vem primeiro
       });
-      
+
       // ✅ OTIMIZADO: Log comentado para reduzir verbosidade
       // logDebug(`📊 Operação ${op.id}: ${participantesConfirmados.length} confirmados, ${solicitacoesPendentes.length} pendentes`);
 
       // ✅ N-03: POSIÇÃO CRONOLÓGICA REAL (não mais baseada em posicao_fila)
       let minhaParticipacao = null;
       let posicaoCronologica = null;
-      
+
       if (membroId) {
         // logDebug(`🔍 Buscando participação do membro ${membroId} na operação ${op.id}`);
-        
+
         // ✅ CORREÇÃO CRÍTICA: Buscar apenas em participações ATIVAS
         minhaParticipacao = participacoesAtivas.find((p: any) => p.membro_id == membroId);
-        
+
         if (minhaParticipacao) {
           // logDebug(`✅ Participação encontrada: ${minhaParticipacao.estado_visual}`);
-          
+
           // Calcular posição cronológica baseada na data de solicitação
           const participacoesCronologicas = op.participacao
             ?.filter((p: any) => p.data_solicitacao)
             ?.sort((a: any, b: any) => new Date(a.data_solicitacao).getTime() - new Date(b.data_solicitacao).getTime());
-          
+
           posicaoCronologica = participacoesCronologicas?.findIndex((p: any) => p.id === minhaParticipacao.id) + 1;
-          
+
           // logDebug(`📊 Posição cronológica calculada: ${posicaoCronologica} de ${participacoesCronologicas?.length || 0}`);
         } else {
           // logDebug(`❌ Nenhuma participação encontrada para o membro ${membroId}`);
         }
       }
-      
+
       // ✅ FORMATO ESPECIAL PARA SUPERVISOR com includeParticipantes
       if (portal === 'supervisor' && includeParticipantes === 'true') {
         // ✅ MODO LIGHT: Não incluir nome/matrícula quando otimizado
-        const todosParticipantes = mode === 'light' 
+        const todosParticipantes = mode === 'light'
           ? participacoesAtivas.map((p: any) => ({
-              id: p.id,
-              membro_id: p.membro_id,
-              estado_visual: p.estado_visual,
-              status_interno: p.status_interno,
-              data_participacao: p.data_participacao // ✅ ADICIONAR DATA PARA ORDENAÇÃO
-            }))
+            id: p.id,
+            membro_id: p.membro_id,
+            estado_visual: p.estado_visual,
+            status_interno: p.status_interno,
+            data_participacao: p.data_participacao // ✅ ADICIONAR DATA PARA ORDENAÇÃO
+          }))
           : participacoesAtivas.map((p: any) => ({
-              id: p.id,
-              membro_id: p.membro_id,
-              nome: p.servidor?.nome || 'Nome não encontrado',
-              matricula: p.servidor?.matricula || 'N/A',
-              estado_visual: p.estado_visual,
-              status_interno: p.status_interno,
-              data_participacao: p.data_participacao // ✅ ADICIONAR DATA PARA ORDENAÇÃO
-            }));
-            
+            id: p.id,
+            membro_id: p.membro_id,
+            nome: p.servidor?.nome || 'Nome não encontrado',
+            matricula: p.servidor?.matricula || 'N/A',
+            estado_visual: p.estado_visual,
+            status_interno: p.status_interno,
+            data_participacao: p.data_participacao // ✅ ADICIONAR DATA PARA ORDENAÇÃO
+          }));
+
         // ✅ OTIMIZADO: Ordenar participantes por data de participação para o modal supervisor
         const participantesOrdenados = [...todosParticipantes].sort((a: any, b: any) => {
           const participacaoA = participacoesAtivas.find((p: any) => p.id === a.id);
           const participacaoB = participacoesAtivas.find((p: any) => p.id === b.id);
-          
+
           if (participacaoA && participacaoB) {
             const dataA = new Date(participacaoA.data_participacao || 0).getTime();
             const dataB = new Date(participacaoB.data_participacao || 0).getTime();
@@ -272,7 +275,7 @@ export async function GET(request: NextRequest) {
           }
           return 0;
         });
-        
+
         // ✅ OTIMIZADO: Log comentado para reduzir verbosidade
         // logDebug(`🎯 Supervisor Modal - Operação ${op.id}: ${todosParticipantes.length} participantes formatados`);
 
@@ -297,7 +300,7 @@ export async function GET(request: NextRequest) {
           statusReal: op.status || 'Disponível',
           regional: op.janela?.regional?.nome || 'Sem Regional'
         };
-        
+
         return resultadoSupervisor;
       }
 
@@ -374,22 +377,22 @@ export async function GET(request: NextRequest) {
         statusReal: op.status || 'Disponível',
         regional: op.janela?.regional?.nome || 'Sem Regional'
       };
-      
+
       return resultadoPadrao;
     }) || [];
 
     // ✅ OTIMIZADO: Log final comentado para reduzir verbosidade
     // logInfo(`✅ ${operacoesProcessadas.length} operações processadas com sucesso`);
-    
+
     return NextResponse.json({
       success: true,
       data: operacoesProcessadas
     });
   } catch (error) {
     logError('❌ [API-UNIFIED] Erro na API:', error);
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: false,
-      error: 'Erro interno' 
+      error: 'Erro interno'
     }, { status: 500 });
   }
 }

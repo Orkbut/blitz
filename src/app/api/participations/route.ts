@@ -22,7 +22,6 @@
 
 import { NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { ValidadorUnico } from '@/core/domain/services/ValidadorUnico';
 import { EuVouOrchestratorSimplificado } from '@/core/domain/services/EuVouOrchestratorSimplificado';
 
 interface ParticipationRequest {
@@ -42,12 +41,12 @@ interface ParticipationRequest {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    
+
     const action = searchParams.get('action') || 'list';
     const operationId = searchParams.get('operationId');
     const membroId = searchParams.get('membroId');
     const participationId = searchParams.get('participationId');
-    
+
     const filters = {
       startDate: searchParams.get('startDate'),
       endDate: searchParams.get('endDate'),
@@ -64,28 +63,28 @@ export async function GET(request: NextRequest) {
           return Response.json({ success: false, error: 'operationId and membroId required for position' }, { status: 400 });
         }
         return await handleGetPosition(operationId, membroId);
-      
+
       case 'list':
         if (!membroId) {
           return Response.json({ success: false, error: 'membroId required for list action' }, { status: 400 });
         }
         return await handleListParticipations(membroId, filters);
-      
+
       case 'manage':
         if (!operationId) {
           return Response.json({ success: false, error: 'operationId required for manage action' }, { status: 400 });
         }
         return await handleManageParticipations(operationId, filters);
-      
+
       default:
         return Response.json({ success: false, error: `Unknown GET action: ${action}` }, { status: 400 });
     }
 
   } catch (error) {
     console.error('🚨 [UNIFIED-PARTICIPATIONS] GET Error:', error);
-    return Response.json({ 
-      success: false, 
-      error: 'Internal server error' 
+    return Response.json({
+      success: false,
+      error: 'Internal server error'
     }, { status: 500 });
   }
 }
@@ -104,34 +103,34 @@ export async function POST(request: NextRequest) {
           return Response.json({ success: false, error: 'operationId and membroId required for join' }, { status: 400 });
         }
         return await handleJoinOperation(operationId, membroId, data);
-      
+
       case 'cancel':
         if (!participationId && (!operationId || !membroId)) {
           return Response.json({ success: false, error: 'participationId or (operationId + membroId) required for cancel' }, { status: 400 });
         }
         return await handleCancelParticipation(participationId, operationId, membroId, data);
-      
+
       case 'approve':
         if (!participationId) {
           return Response.json({ success: false, error: 'participationId required for approve' }, { status: 400 });
         }
         return await handleApproveParticipation(participationId, data);
-      
+
       case 'reject':
         if (!participationId) {
           return Response.json({ success: false, error: 'participationId required for reject' }, { status: 400 });
         }
         return await handleRejectParticipation(participationId, data);
-      
+
       default:
         return Response.json({ success: false, error: `Unknown POST action: ${action}` }, { status: 400 });
     }
 
   } catch (error) {
     console.error('🚨 [UNIFIED-PARTICIPATIONS] POST Error:', error);
-    return Response.json({ 
-      success: false, 
-      error: 'Internal server error' 
+    return Response.json({
+      success: false,
+      error: 'Internal server error'
     }, { status: 500 });
   }
 }
@@ -142,38 +141,93 @@ async function handleJoinOperation(operationId: string, membroId: string, data?:
   console.log(`🎯 [JOIN-OPERATION] 🎯 Membro: ${membroId}, Operação: ${operationId}`);
   console.log(`🎯 [JOIN-OPERATION] ⏰ Timestamp: ${new Date().toISOString()}`);
   console.log(`🎯 [JOIN-OPERATION] 🔥 UNIFIED handleJoinOperation foi chamada!`);
-  
+
   // TEMP-LOG-BANCO-OPT: Monitorar performance crítica do "Eu Vou"
   const euVouStartTime = performance.now();
   console.log(`TEMP-LOG-BANCO-OPT: [EU-VOU] Iniciando processo às ${new Date().toISOString()}`);
   console.log(`TEMP-LOG-BANCO-OPT: [EU-VOU] Params: operationId=${operationId}, membroId=${membroId}`);
 
   try {
+    // ✅ ISOLAMENTO POR REGIONAL: Verificar se membro pode participar da operação
+    console.log(`🔒 [ISOLAMENTO] Verificando se membro ${membroId} pode participar da operação ${operationId}`);
+
+    // Buscar regional do membro
+    const { data: membro } = await supabase
+      .from('servidor')
+      .select('regional_id, nome')
+      .eq('id', membroId)
+      .eq('ativo', true)
+      .single();
+
+    if (!membro) {
+      console.log(`❌ [ISOLAMENTO] Membro ${membroId} não encontrado ou inativo`);
+      return Response.json({
+        success: false,
+        error: 'Membro não encontrado ou inativo'
+      }, { status: 404 });
+    }
+
+    // Buscar regional da operação
+    const { data: operacao } = await supabase
+      .from('operacao')
+      .select(`
+        id,
+        janela:janela_operacional!inner(
+          regional_id,
+          regional:regional_id(nome)
+        )
+      `)
+      .eq('id', operationId)
+      .eq('ativa', true)
+      .single();
+
+    if (!operacao) {
+      console.log(`❌ [ISOLAMENTO] Operação ${operationId} não encontrada ou inativa`);
+      return Response.json({
+        success: false,
+        error: 'Operação não encontrada ou inativa'
+      }, { status: 404 });
+    }
+
+    // Verificar se as regionais coincidem
+    const operacaoRegionalId = (operacao as any).janela.regional_id;
+    const operacaoRegionalNome = (operacao as any).janela.regional?.nome;
+
+    if (membro.regional_id !== operacaoRegionalId) {
+      console.log(`🚨 [ISOLAMENTO] BLOQUEADO! Membro ${membro.nome} (Regional ${membro.regional_id}) tentou participar de operação da Regional ${operacaoRegionalId} (${operacaoRegionalNome})`);
+      return Response.json({
+        success: false,
+        error: 'Você só pode participar de operações da sua regional'
+      }, { status: 403 });
+    }
+
+    console.log(`✅ [ISOLAMENTO] Permitido! Membro ${membro.nome} pode participar da operação (mesma regional: ${membro.regional_id})`);
+
     // 🔄 USANDO O ORQUESTRADOR SIMPLIFICADO (nova arquitetura)
     console.log(`🎯 [JOIN-OPERATION] 📡 Instanciando EuVouOrchestratorSimplificado...`);
-    
+
     const orchestrator = new EuVouOrchestratorSimplificado();
-    
+
     console.log(`🎯 [JOIN-OPERATION] 🎯 Chamando orchestrator.executar(${operationId}, ${membroId})`);
-    
+
     // TEMP-LOG-BANCO-OPT: Medir tempo do orquestrador (inclui validações + insert/update)
     const orchestratorStartTime = performance.now();
     console.log(`TEMP-LOG-BANCO-OPT: [EU-VOU] Executando orchestrator.executar...`);
-    
+
     const resultado = await orchestrator.executar(parseInt(operationId), parseInt(membroId));
-    
+
     const orchestratorTime = performance.now() - orchestratorStartTime;
     console.log(`TEMP-LOG-BANCO-OPT: [EU-VOU] Orchestrator executado em ${orchestratorTime.toFixed(2)}ms`);
     console.log(`🎯 [JOIN-OPERATION] 📊 Resultado do orchestrator:`, resultado);
 
     if (resultado.sucesso) {
       console.log(`🎯 [JOIN-OPERATION] ✅ SUCESSO! UNIFIED EU VOU realizado.`);
-      
+
       // TEMP-LOG-BANCO-OPT: Log do tempo total do "Eu Vou" (crítico para UX)
       const euVouTotalTime = performance.now() - euVouStartTime;
       console.log(`TEMP-LOG-BANCO-OPT: [EU-VOU] ✅ SUCESSO TOTAL em ${euVouTotalTime.toFixed(2)}ms`);
       console.log(`TEMP-LOG-BANCO-OPT: [EU-VOU] Tipo ação: ${resultado.tipoAcao}, Estado: ${resultado.dadosParticipacao?.estado_visual}`);
-      
+
       return Response.json({
         success: true,
         data: {
@@ -193,12 +247,12 @@ async function handleJoinOperation(operationId: string, membroId: string, data?:
       });
     } else {
       console.log(`🎯 [JOIN-OPERATION] ❌ FALHA: ${resultado.mensagem}`);
-      
+
       // TEMP-LOG-BANCO-OPT: Log de erro com tempo para análise
       const euVouErrorTime = performance.now() - euVouStartTime;
       console.log(`TEMP-LOG-BANCO-OPT: [EU-VOU] ❌ FALHA em ${euVouErrorTime.toFixed(2)}ms: ${resultado.mensagem}`);
       console.log(`TEMP-LOG-BANCO-OPT: [EU-VOU] Código erro: ${resultado.codigoErro}`);
-      
+
       return Response.json({
         success: false,
         error: resultado.mensagem,
@@ -211,7 +265,7 @@ async function handleJoinOperation(operationId: string, membroId: string, data?:
 
   } catch (error) {
     console.error('🚨 [JOIN-OPERATION] Erro interno:', error);
-    
+
     return Response.json({
       success: false,
       error: 'Erro interno do servidor',
@@ -253,8 +307,8 @@ async function handleCancelParticipation(participationId?: string, operationId?:
     // Soft delete the participation
     const { data: participacaoCancelada, error } = await supabase
       .from('participacao')
-      .update({ 
-        ativa: false, 
+      .update({
+        ativa: false,
         data_cancelamento: new Date().toISOString(),
         motivo_cancelamento: data?.motivo || 'Cancelamento via sistema'
       })
@@ -296,9 +350,9 @@ async function handleCancelParticipation(participationId?: string, operationId?:
 
   } catch (error) {
     console.error('🚨 [CANCEL-PARTICIPATION] Error:', error);
-    return Response.json({ 
-      success: false, 
-      error: 'Internal server error' 
+    return Response.json({
+      success: false,
+      error: 'Internal server error'
     }, { status: 500 });
   }
 }
@@ -318,9 +372,9 @@ async function handleGetPosition(operationId: string, membroId: string) {
       .single();
 
     if (participacaoError || !minhaParticipacao) {
-      return Response.json({ 
-        success: false, 
-        error: 'Participation not found' 
+      return Response.json({
+        success: false,
+        error: 'Participation not found'
       }, { status: 404 });
     }
 
@@ -339,7 +393,7 @@ async function handleGetPosition(operationId: string, membroId: string) {
 
     // Calculate position
     const minhaDataParticipacao = new Date(minhaParticipacao.data_participacao).getTime();
-    const posicaoAtual = todasParticipacoes.findIndex(p => 
+    const posicaoAtual = todasParticipacoes.findIndex(p =>
       new Date(p.data_participacao).getTime() === minhaDataParticipacao
     ) + 1;
 
@@ -368,9 +422,9 @@ async function handleGetPosition(operationId: string, membroId: string) {
 
   } catch (error) {
     console.error('🚨 [GET-POSITION] Error:', error);
-    return Response.json({ 
-      success: false, 
-      error: 'Internal server error' 
+    return Response.json({
+      success: false,
+      error: 'Internal server error'
     }, { status: 500 });
   }
 }
@@ -400,7 +454,7 @@ async function handleListParticipations(membroId: string, filters: any) {
     // Apply date filters
     if (filters.startDate && filters.endDate) {
       query = query.gte('operacao.data_operacao', filters.startDate)
-                   .lte('operacao.data_operacao', filters.endDate);
+        .lte('operacao.data_operacao', filters.endDate);
     }
 
     // Apply status filters
@@ -434,9 +488,9 @@ async function handleListParticipations(membroId: string, filters: any) {
 
   } catch (error) {
     console.error('🚨 [LIST-PARTICIPATIONS] Error:', error);
-    return Response.json({ 
-      success: false, 
-      error: 'Internal server error' 
+    return Response.json({
+      success: false,
+      error: 'Internal server error'
     }, { status: 500 });
   }
 }
@@ -492,9 +546,9 @@ async function handleManageParticipations(operationId: string, filters: any) {
 
   } catch (error) {
     console.error('🚨 [MANAGE-PARTICIPATIONS] Error:', error);
-    return Response.json({ 
-      success: false, 
-      error: 'Internal server error' 
+    return Response.json({
+      success: false,
+      error: 'Internal server error'
     }, { status: 500 });
   }
 }
@@ -549,24 +603,24 @@ async function handleApproveParticipation(participationId: string, data?: any) {
     // 🔍 STEP 2: Verificar se já está confirmado
     if (participacaoExistente.estado_visual === 'CONFIRMADO') {
       console.log(`⚠️ [APPROVE-PARTICIPATION] Already confirmed`);
-      return Response.json({ 
-        success: false, 
-        error: 'Participation is already confirmed' 
+      return Response.json({
+        success: false,
+        error: 'Participation is already confirmed'
       }, { status: 400 });
     }
 
     // 🔍 STEP 3: Verificar se a participação está ativa
     if (!participacaoExistente.ativa) {
       console.log(`⚠️ [APPROVE-PARTICIPATION] Participation is not active`);
-      return Response.json({ 
-        success: false, 
-        error: 'Cannot approve inactive participation' 
+      return Response.json({
+        success: false,
+        error: 'Cannot approve inactive participation'
       }, { status: 400 });
     }
 
     // 🔍 STEP 4: Verificar limite da operação
     const limiteOperacao = participacaoExistente.operacao?.limite_participantes || 0;
-    
+
     const { data: participacoesConfirmadas, error: countError } = await supabase
       .from('participacao')
       .select('id')
@@ -588,20 +642,20 @@ async function handleApproveParticipation(participationId: string, data?: any) {
 
     if (confirmadosAtual >= limiteOperacao) {
       console.log(`⚠️ [APPROVE-PARTICIPATION] Operation limit reached`);
-      return Response.json({ 
-        success: false, 
-        error: `Operation limit reached (${confirmadosAtual}/${limiteOperacao})` 
+      return Response.json({
+        success: false,
+        error: `Operation limit reached (${confirmadosAtual}/${limiteOperacao})`
       }, { status: 400 });
     }
 
     // 🔍 STEP 5: Tentar atualizar a participação
     console.log(`✅ [APPROVE-PARTICIPATION] Attempting to update participation...`);
-    
+
     const updateData = {
       estado_visual: 'CONFIRMADO'
       // Removido: data_confirmacao e confirmado_por (campos não existem na tabela)
     };
-    
+
     console.log(`✅ [APPROVE-PARTICIPATION] Update data:`, updateData);
 
     const { data: participacaoAtualizada, error: updateError } = await supabase
@@ -617,9 +671,9 @@ async function handleApproveParticipation(participationId: string, data?: any) {
 
     if (updateError) {
       console.error('🚨 [APPROVE-PARTICIPATION] Update error:', updateError);
-      return Response.json({ 
-        success: false, 
-        error: `Failed to approve participation: ${updateError.message}` 
+      return Response.json({
+        success: false,
+        error: `Failed to approve participation: ${updateError.message}`
       }, { status: 500 });
     }
 
@@ -632,18 +686,18 @@ async function handleApproveParticipation(participationId: string, data?: any) {
     // 🔍 STEP 6: Tentar registrar o evento
     try {
       console.log(`✅ [APPROVE-PARTICIPATION] Attempting to log event...`);
-      
+
       const { data: evento, error: eventoError } = await supabase
-      .from('evento_operacao')
-      .insert({
-        operacao_id: participacaoAtualizada.operacao.id,
-        membro_id: participacaoAtualizada.membro_id,
-        tipo_evento: 'PARTICIPACAO_CONFIRMADA',
-        data_evento: new Date().toISOString(),
-        detalhes: {
-          participacao_id: participationId,
-          confirmado_por: data?.supervisorId
-        }
+        .from('evento_operacao')
+        .insert({
+          operacao_id: participacaoAtualizada.operacao.id,
+          membro_id: participacaoAtualizada.membro_id,
+          tipo_evento: 'PARTICIPACAO_CONFIRMADA',
+          data_evento: new Date().toISOString(),
+          detalhes: {
+            participacao_id: participationId,
+            confirmado_por: data?.supervisorId
+          }
         })
         .select()
         .single();
@@ -670,9 +724,9 @@ async function handleApproveParticipation(participationId: string, data?: any) {
 
   } catch (error) {
     console.error('🚨 [APPROVE-PARTICIPATION] General error:', error);
-    return Response.json({ 
-      success: false, 
-      error: `Internal server error: ${error instanceof Error ? error.message : 'Unknown error'}` 
+    return Response.json({
+      success: false,
+      error: `Internal server error: ${error instanceof Error ? error.message : 'Unknown error'}`
     }, { status: 500 });
   }
 }
@@ -684,7 +738,7 @@ async function handleRejectParticipation(participationId: string, data?: any) {
   try {
     const { data: participacaoRejeitada, error } = await supabase
       .from('participacao')
-      .update({ 
+      .update({
         ativa: false,
         data_rejeicao: new Date().toISOString(),
         rejeitado_por: data?.supervisorId || null,
@@ -727,9 +781,9 @@ async function handleRejectParticipation(participationId: string, data?: any) {
 
   } catch (error) {
     console.error('🚨 [REJECT-PARTICIPATION] Error:', error);
-    return Response.json({ 
-      success: false, 
-      error: 'Internal server error' 
+    return Response.json({
+      success: false,
+      error: 'Internal server error'
     }, { status: 500 });
   }
 } 

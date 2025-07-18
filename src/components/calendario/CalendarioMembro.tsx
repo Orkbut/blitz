@@ -46,7 +46,22 @@ export const CalendarioMembro: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [membros, setMembros] = useState<Array<{ id: number, nome: string, matricula: string }>>([]);
-  const [membroAtual, setMembroAtual] = useState<string>('1');
+  const [membroAtual, setMembroAtual] = useState<string>(() => {
+    // ✅ CORREÇÃO: Inicializar com ID do membro logado
+    if (typeof window !== 'undefined') {
+      const membroAuth = localStorage.getItem('membroAuth');
+      if (membroAuth) {
+        try {
+          const dados = JSON.parse(membroAuth);
+          return dados.id?.toString() || '1';
+        } catch {
+          return '1';
+        }
+      }
+      return localStorage.getItem('membroId') || '1';
+    }
+    return '1';
+  });
   const [loading, setLoading] = useState<number | null>(null);
 
   // ✅ NOVO: Estados próprios para fetch (padrão da nova arquitetura)
