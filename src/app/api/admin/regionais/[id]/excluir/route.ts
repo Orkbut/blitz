@@ -11,7 +11,9 @@ export async function DELETE(
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const regionalId = parseInt(params.id);
+    // ✅ CORREÇÃO: Await params para Next.js 15+
+    const resolvedParams = await params;
+    const regionalId = parseInt(resolvedParams.id);
 
     if (!regionalId) {
       return NextResponse.json({

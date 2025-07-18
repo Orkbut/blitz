@@ -42,8 +42,7 @@ export async function GET(
       throw errorEventos;
     }
 
-    console.log(`📊 [HISTÓRICO-API] ✅ Eventos encontrados:`, eventos?.length || 0);
-    console.log(`📊 [HISTÓRICO-API] 📋 Lista de eventos:`, JSON.stringify(eventos, null, 2));
+
 
     // 🎨 TRANSFORMAR EVENTOS PARA O FORMATO DO FRONTEND
     const eventosFormatados: EventoHistorico[] = eventos?.map(evento => ({
@@ -111,9 +110,7 @@ export async function GET(
     };
 
 
-    console.log(`📊 [HISTÓRICO-API] Total de eventos: ${eventosFormatados.length}`);
-    console.log(`📊 [HISTÓRICO-API] Posição atual do solicitante: ${posicaoAtual || 'Não participando'}`);
-    console.log(`📊 [HISTÓRICO-API] 📋 Resposta completa:`, JSON.stringify(response, null, 2));
+
 
     return NextResponse.json(response);
 

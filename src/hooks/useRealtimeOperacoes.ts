@@ -33,8 +33,6 @@ export const useRealtimeOperacoes = ({
   forceRefreshTriggers = true,
   isVisible = true
 }: UseRealtimeOperacoesParams) => {
-  console.log(`[TEMP-LOG-REALTIME] 🚀 === HOOK useRealtimeOperacoes INICIALIZADO ===`);
-  console.log(`[TEMP-LOG-REALTIME] 📋 Parâmetros: operacaoIds=${operacaoIds}, enabled=${enabled}, isVisible=${isVisible}`);
   
   const channelRef = useRef<RealtimeChannel | null>(null);
   const isSubscribedRef = useRef<boolean>(false); // 🚨 PREVENIR MÚLTIPLAS SUBSCRIPTIONS
@@ -87,7 +85,7 @@ export const useRealtimeOperacoes = ({
           });
         }
       } catch (error) {
-        console.error('[Realtime Polling] Erro:', error);
+        // Erro silencioso
       }
     }, 5000);
 
@@ -106,7 +104,7 @@ export const useRealtimeOperacoes = ({
         try {
           channelRef.current.unsubscribe();
         } catch (error) {
-          console.error('[Realtime] Erro ao limpar:', error);
+          // Erro silencioso
         }
         channelRef.current = null;
         isSubscribedRef.current = false;
@@ -133,7 +131,7 @@ export const useRealtimeOperacoes = ({
         try {
           channelRef.current.unsubscribe();
         } catch (error) {
-          console.error('[Realtime] Erro ao desconectar canal anterior:', error);
+          // Erro silencioso
         }
         channelRef.current = null;
         isSubscribedRef.current = false;
@@ -190,7 +188,7 @@ export const useRealtimeOperacoes = ({
                 }
               }
             } catch (error) {
-              console.error('[Realtime] Erro no handler de participação:', error);
+              // Erro silencioso
             }
           }
         )
@@ -223,7 +221,7 @@ export const useRealtimeOperacoes = ({
                 if (onUpdate) onUpdate(operacaoId, `OPERACAO_${payload.eventType}`);
               }
             } catch (error) {
-              console.error('[Realtime] Erro no handler de operação:', error);
+              // Erro silencioso
             }
           }
         )
@@ -247,7 +245,7 @@ export const useRealtimeOperacoes = ({
                 }, 200);
               }
             } catch (error) {
-              console.error('[Realtime] Erro no handler de justificativa:', error);
+              // Erro silencioso
             }
           }
         )
@@ -270,7 +268,7 @@ export const useRealtimeOperacoes = ({
                 }, 100);
               }
             } catch (error) {
-              console.error('[Realtime] Erro no handler de histórico:', error);
+              // Erro silencioso
             }
           }
         )
@@ -284,7 +282,6 @@ export const useRealtimeOperacoes = ({
 
       channelRef.current = channel;
     } catch (error) {
-      console.error('[Realtime] Erro ao configurar subscription:', error);
       isSubscribedRef.current = false;
     }
 
@@ -293,7 +290,7 @@ export const useRealtimeOperacoes = ({
         try {
           channelRef.current.unsubscribe();
         } catch (error) {
-          console.error('[Realtime] Erro ao desconectar canal:', error);
+          // Erro silencioso
         }
         channelRef.current = null;
       }
@@ -324,6 +321,6 @@ export const triggerRealtimeRefresh = async (operacaoIds: number[], eventType: s
     }
     
   } catch (error) {
-    console.error('[Realtime Force] Erro ao forçar refresh:', error);
+    // Erro silencioso
   }
 }; 

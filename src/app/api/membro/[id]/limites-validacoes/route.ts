@@ -6,7 +6,9 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const servidorId = parseInt(params.id);
+    // ✅ CORREÇÃO: Await params para Next.js 15+
+    const resolvedParams = await params;
+    const servidorId = parseInt(resolvedParams.id);
 
     if (isNaN(servidorId)) {
       return NextResponse.json({

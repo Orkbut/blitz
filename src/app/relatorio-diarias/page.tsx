@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { MultiDateCalendar } from '@/components/supervisor/MultiDateCalendar';
 
 interface EstatisticasServidor {
   servidorId: number;
@@ -41,6 +42,13 @@ interface RelatorioResponse {
 export default function RelatorioDiariasPage() {
   const [relatorio, setRelatorio] = useState<RelatorioResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  
+  // ✅ NOVO: Estados para filtro de período
+  const [filtroAtivo, setFiltroAtivo] = useState(false);
+  const [dataInicio, setDataInicio] = useState('');
+  const [dataFim, setDataFim] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDates, setSelectedDates] = useState<string[]>([]);
 
   // Carregar relatório automaticamente
   useEffect(() => {
@@ -50,7 +58,21 @@ export default function RelatorioDiariasPage() {
   const carregarRelatorio = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/relatorio-diarias');
+      
+      // ✅ NOVO: Construir URL com filtros de período se ativo
+      let url = '/api/relatorio-diarias';
+      const params = new URLSearchParams();
+      
+      if (filtroAtivo && dataInicio && dataFim) {
+        params.append('data_inicio', dataInicio);
+        params.append('data_fim', dataFim);
+      }
+      
+      if (params.toString()) {
+        url += '?' + params.toString();
+      }
+      
+      const response = await fetch(url);
       const data = await response.json();
       
       if (data.success) {
@@ -71,21 +93,83 @@ export default function RelatorioDiariasPage() {
 
   const baixarRelatorioTexto = async () => {
     try {
-      const response = await fetch('/api/relatorio-diarias?formato=texto');
+      // ✅ NOVO: Aplicar filtros também no download
+      let url = '/api/relatorio-diarias?formato=texto';
+      
+      if (filtroAtivo && dataInicio && dataFim) {
+        url += `&data_inicio=${dataInicio}&data_fim=${dataFim}`;
+      }
+      
+      const response = await fetch(url);
       const texto = await response.text();
       
       const blob = new Blob([texto], { type: 'text/plain; charset=utf-8' });
-      const url = window.URL.createObjectURL(blob);
+      const urlBlob = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = url;
-      link.download = `relatorio-diarias-${new Date().toISOString().split('T')[0]}.txt`;
+      link.href = urlBlob;
+      
+      // ✅ NOVO: Nome do arquivo com período se filtrado
+      let nomeArquivo = `relatorio-diarias-${new Date().toISOString().split('T')[0]}`;
+      if (filtroAtivo && dataInicio && dataFim) {
+        nomeArquivo += `-periodo-${dataInicio}-a-${dataFim}`;
+      }
+      link.download = `${nomeArquivo}.txt`;
+      
       link.click();
-      window.URL.revokeObjectURL(url);
+      window.URL.revokeObjectURL(urlBlob);
     } catch (error) {
       console.error('❌ Erro ao baixar relatório:', error);
       alert('Erro ao baixar relatório');
     }
   };
+
+  // ✅ NOVO: Funções para o filtro de período
+  const formatarDataBR = (dataISO: string): string => {
+    if (!dataISO) return '';
+    const [ano, mes, dia] = dataISO.split('-');
+    return `${dia}/${mes}/${ano}`;
+  };
+
+  const formatarPeriodoSelecionado = (): string => {
+    if (!dataInicio && !dataFim) return '';
+    if (dataInicio && dataFim) {
+      return `${formatarDataBR(dataInicio)} - ${formatarDataBR(dataFim)}`;
+    }
+    if (dataInicio) return `A partir de ${formatarDataBR(dataInicio)}`;
+    if (dataFim) return `Até ${formatarDataBR(dataFim)}`;
+    return '';
+  };
+
+  const aplicarFiltroPeriodo = () => {
+    if (selectedDates.length >= 2) {
+      // Pegar primeira e última data do intervalo selecionado
+      const datesOrdenadas = [...selectedDates].sort();
+      setDataInicio(datesOrdenadas[0]);
+      setDataFim(datesOrdenadas[datesOrdenadas.length - 1]);
+      setFiltroAtivo(true);
+    } else if (selectedDates.length === 1) {
+      // Se só uma data, usar como início e fim
+      setDataInicio(selectedDates[0]);
+      setDataFim(selectedDates[0]);
+      setFiltroAtivo(true);
+    }
+    setShowDatePicker(false);
+    // Recarregar relatório será automático via useEffect em carregarRelatorio
+  };
+
+  const limparFiltro = () => {
+    setFiltroAtivo(false);
+    setDataInicio('');
+    setDataFim('');
+    setSelectedDates([]);
+  };
+
+  // ✅ NOVO: Recarregar quando filtro mudar
+  useEffect(() => {
+    if (filtroAtivo || (!filtroAtivo && relatorio)) {
+      carregarRelatorio();
+    }
+  }, [filtroAtivo, dataInicio, dataFim]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -100,6 +184,11 @@ export default function RelatorioDiariasPage() {
               </h1>
               <p className="text-gray-600 mt-2">
                 Baseado na mesma lógica da tabela da Diretoria • Apenas participações confirmadas e ativas
+                {filtroAtivo && (
+                  <span className="ml-2 text-blue-600 font-medium">
+                    • Filtrado: {formatarPeriodoSelecionado()}
+                  </span>
+                )}
               </p>
             </div>
             <div className="flex gap-3">
@@ -125,6 +214,137 @@ export default function RelatorioDiariasPage() {
             </div>
           </div>
         </div>
+
+        {/* ✅ NOVO: Seção de Filtros - Design mais discreto e integrado */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-4">
+          <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 rounded-t-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center">
+                  🔍
+                </div>
+                <h3 className="text-sm font-medium text-gray-900">Filtros</h3>
+              </div>
+              {filtroAtivo && (
+                <button
+                  onClick={limparFiltro}
+                  className="text-xs text-gray-500 hover:text-red-600 transition-colors"
+                >
+                  Limpar
+                </button>
+              )}
+            </div>
+          </div>
+          
+          <div className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={formatarPeriodoSelecionado()}
+                    onClick={() => setShowDatePicker(true)}
+                    readOnly
+                    placeholder="Selecionar período de análise..."
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg cursor-pointer focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:bg-gray-50 transition-colors"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {!filtroAtivo && (
+                <button
+                  onClick={() => setShowDatePicker(true)}
+                  className="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Filtrar
+                </button>
+              )}
+            </div>
+
+            {filtroAtivo && (
+              <div className="mt-3 flex items-center gap-2 text-xs">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <span className="text-gray-600">
+                  Filtro ativo: <strong className="text-blue-600">{formatarPeriodoSelecionado()}</strong>
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ✅ NOVO: Modal do Calendário - Estilo similar aos outros modais */}
+        {showDatePicker && (
+          <>
+            {/* Backdrop */}
+            <div 
+              className="fixed inset-0 bg-black bg-opacity-50 z-50 backdrop-blur-sm"
+              onClick={() => setShowDatePicker(false)}
+              style={{
+                background: 'linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.6) 100%)'
+              }}
+            />
+            
+            {/* Modal Container */}
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <div 
+                className="bg-white rounded-2xl shadow-2xl border border-gray-200 max-w-sm w-full"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+                }}
+              >
+                {/* Header */}
+                <div className="px-6 py-4 border-b border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                        📅
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        Selecionar Período
+                      </h3>
+                    </div>
+                    <button
+                      onClick={() => setShowDatePicker(false)}
+                      className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                    >
+                      <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Calendar */}
+                <div className="p-6">
+                  <MultiDateCalendar
+                    selectedDates={selectedDates}
+                    onDatesChange={setSelectedDates}
+                    rangeMode={true}
+                    onApply={aplicarFiltroPeriodo}
+                    onCancel={() => {
+                      setShowDatePicker(false);
+                      setSelectedDates([]);
+                    }}
+                    className="w-full"
+                  />
+                </div>
+
+                {/* Footer */}
+                <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
+                  <p className="text-xs text-gray-600 text-center">
+                    💡 <strong>Dica:</strong> Clique numa data para filtrar um dia específico, ou selecione um intervalo (data inicial → data final)
+                  </p>
+                </div>
+              </div>
+            </div>
+                      </>
+          )}
 
         {/* Loading */}
         {loading && (

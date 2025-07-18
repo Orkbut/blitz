@@ -59,12 +59,7 @@ export class CalculadorDiariasServidor {
     participacoes: ParticipacaoServidor[]
   ): EstatisticasServidor[] {
     
-    console.log('🔍 Calculando estatísticas de diárias...');
-    console.log('📊 Operações recebidas:', operacoes.length);
-    console.log('👥 Participações recebidas:', participacoes.length);
-    
     if (!operacoes || operacoes.length === 0 || !participacoes || participacoes.length === 0) {
-      console.log('❌ Dados insuficientes para calcular estatísticas');
       return [];
     }
 
@@ -77,10 +72,7 @@ export class CalculadorDiariasServidor {
       return isAtiva && isConfirmada && hasOperacao;
     });
 
-    console.log('✅ Participações confirmadas ATIVAS:', participacoesConfirmadas.length);
-
     if (participacoesConfirmadas.length === 0) {
-      console.log('❌ Nenhuma participação confirmada ATIVA encontrada!');
       return [];
     }
 
@@ -102,7 +94,7 @@ export class CalculadorDiariasServidor {
       return acc;
     }, {} as Record<number, { nome: string; matricula: string; participacoes: ParticipacaoServidor[] }>);
 
-    console.log('👤 Servidores com participações:', Object.keys(participacoesPorServidor).length);
+
 
     // Calcular estatísticas para cada servidor
     const estatisticas: EstatisticasServidor[] = [];
@@ -145,7 +137,7 @@ export class CalculadorDiariasServidor {
       // Total de diárias = diárias completas + (meias diárias / 2)
       const totalDiariasEquivalentes = totalDiariasCompletas + (totalMeiasDiarias * 0.5);
 
-      console.log(`📊 ${dados.nome}: ${totalDiariasCompletas} completas + ${totalMeiasDiarias} meias = ${totalDiariasEquivalentes} total`);
+
 
       estatisticas.push({
         servidorId,
@@ -162,8 +154,6 @@ export class CalculadorDiariasServidor {
     // Ordenar por total de diárias (maior para menor)
     estatisticas.sort((a, b) => b.totalDiariasEquivalentes - a.totalDiariasEquivalentes);
 
-    console.log('📈 Estatísticas calculadas para', estatisticas.length, 'servidores');
-    
     return estatisticas;
   }
 

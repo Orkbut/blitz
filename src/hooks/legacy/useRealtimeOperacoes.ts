@@ -33,18 +33,6 @@ import { useRealtimeOperacoes as useRealtimeOperacoesNovo } from '@/hooks/useRea
  * Este wrapper será removido em 2 sprints.
  */
 export const useRealtimeOperacoes = (params: any) => {
-  console.warn(`
-    ⚠️ DEPRECATED: useRealtimeOperacoes (legacy)
-    📦 Migre para: import { useRealtimeOperacoes } from '@/hooks/useRealtime'
-    🗓️ Remoção prevista: 2 sprints
-    
-    A nova implementação oferece:
-    ✅ 89% menos código
-    ✅ Rate limiting automático  
-    ✅ Channel pooling
-    ✅ Error handling oficial
-  `);
-  
   // Mapear parâmetros antigos para novos se necessário
   const mappedParams = {
     operacaoIds: params.operacaoIds || [],

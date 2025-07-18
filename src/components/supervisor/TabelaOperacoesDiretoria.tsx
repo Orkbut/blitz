@@ -57,12 +57,7 @@ export default function TabelaOperacoesDiretoria({
   
   // 🎯 NOVA LÓGICA: Calcular PORTARIA MOR baseada nas participações confirmadas
   const portariasMor = useMemo(() => {
-    console.log('🔍 Calculando PORTARIA MOR...');
-    console.log('📊 Operações recebidas:', operacoes.length);
-    console.log('👥 Participações recebidas:', participacoes.length);
-    
     if (!operacoes || operacoes.length === 0 || !participacoes || participacoes.length === 0) {
-      console.log('❌ Dados insuficientes para calcular PORTARIA MOR');
       return [];
     }
 
@@ -75,18 +70,7 @@ export default function TabelaOperacoesDiretoria({
       return isAtiva && isConfirmada && hasOperacao;
     });
 
-    console.log('✅ Total participações recebidas:', participacoes.length);
-    console.log('✅ Participações confirmadas ATIVAS:', participacoesConfirmadas.length);
-    console.log('🔍 Estados das participações:', participacoes.map(p => ({
-      membro_id: p.membro_id,
-      operacao_id: p.operacao_id, 
-      ativa: p.ativa,
-      estado: p.estado_visual,
-      data: p.data_operacao
-    })));
-
     if (participacoesConfirmadas.length === 0) {
-      console.log('❌ Nenhuma participação confirmada ATIVA encontrada!');
       return [];
     }
 
@@ -108,24 +92,11 @@ export default function TabelaOperacoesDiretoria({
       return acc;
     }, {} as Record<number, ServidorComParticipacoes>);
 
-    console.log('👤 Servidores com participações:', Object.keys(participacoesPorServidor).length);
-
     // Calcular PORTARIA MOR para cada servidor
     const portarias: PortariaMor[] = [];
 
     Object.entries(participacoesPorServidor).forEach(([servidorIdStr, dados]: [string, ServidorComParticipacoes]) => {
       const servidorId = Number(servidorIdStr);
-      
-      // Log detalhado para Douglas Santos
-      if (servidorId === 1) {
-        console.log(`🔍 DOUGLAS SANTOS - Participações recebidas:`, dados.participacoes.length);
-        console.log(`🔍 DOUGLAS SANTOS - Detalhes:`, dados.participacoes.map(p => ({
-          operacao_id: p.operacao_id,
-          data_operacao: p.data_operacao,
-          estado_visual: p.estado_visual,
-          ativa: p.ativa
-        })));
-      }
       
       // Buscar operações deste servidor
       const operacoesDoServidor = dados.participacoes.map(p => {
@@ -137,10 +108,7 @@ export default function TabelaOperacoesDiretoria({
         };
       }).filter(p => p.data_operacao);
       
-      // Log para Douglas Santos
-      if (servidorId === 1) {
-        console.log(`🔍 DOUGLAS SANTOS - Operações processadas:`, operacoesDoServidor.map(op => op.data_operacao));
-      }
+
 
       // Ordenar por data
       operacoesDoServidor.sort((a, b) => 
@@ -192,20 +160,7 @@ export default function TabelaOperacoesDiretoria({
         
         const periodo = `${dataInicioCorreta.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} a ${dataRetorno.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
         
-        // 🚨 LOG ESPECÍFICO PARA DOUGLAS SANTOS
-        if (servidorId === 1) {
-          console.log(`🚨 DOUGLAS SANTOS - PORTARIA MOR:`, {
-            diasOperacao,
-            periodo,
-            sequencia: sequenciaStr,
-            dataInicio: dataInicioCorreta.toLocaleDateString('pt-BR'),
-            dataRetorno: dataRetorno.toLocaleDateString('pt-BR'),
-            dataInicioISO: dataInicioCorreta.toISOString(),
-            dataRetornoISO: dataRetorno.toISOString(),
-            ultimaDataOperacao: ultimaDataOperacao.toISOString(),
-            diasOperacaoDetalhado: diasOperacao.map(d => ({ original: d, parsed: new Date(d).toISOString() }))
-          });
-        }
+
         
         // Criar chave de agrupamento baseada na sequência e período
         const chaveAgrupamento = `${sequenciaStr}_${periodo}`;
@@ -223,17 +178,12 @@ export default function TabelaOperacoesDiretoria({
       });
     });
 
-    console.log('🏛️ PORTARIA MOR calculadas:', portarias.length);
-    console.log('📋 Exemplo de PORTARIA MOR:', portarias[0]);
-
     return portarias;
   }, [operacoes, participacoes]);
 
   // Processar dados para a tabela baseado nas PORTARIA MOR
   const dadosProcessados = useMemo(() => {
     if (portariasMor.length === 0) return [];
-
-    console.log('🔄 Processando dados da tabela...');
 
     // Agrupar PORTARIA MOR por chave de agrupamento (mesmo período + sequência)
     const grupos = portariasMor.reduce((acc, portaria) => {
@@ -248,8 +198,6 @@ export default function TabelaOperacoesDiretoria({
       acc[portaria.chaveAgrupamento].servidores.push(portaria);
       return acc;
     }, {} as Record<string, { periodo: string; sequencia: string; servidores: PortariaMor[] }>);
-
-    console.log('📊 Grupos de PORTARIA MOR:', Object.keys(grupos).length);
 
     // Converter para formato da tabela
     const dadosTabela: ServidorOperacao[] = [];
@@ -272,8 +220,6 @@ export default function TabelaOperacoesDiretoria({
           });
         });
     });
-
-    console.log('📈 Dados processados para tabela:', dadosTabela.length);
 
     return dadosTabela;
   }, [portariasMor]);

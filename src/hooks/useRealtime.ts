@@ -108,9 +108,7 @@ export const useRealtime = ({
   
   // 🐛 LOG FUNCTION
   const log = useCallback((message: string, data?: any) => {
-    if (debug) {
-      console.log(`[useRealtime:${channelId}] ${message}`, data || '');
-    }
+    // Log silencioso
   }, [debug, channelId]);
   
   // 🎯 CALLBACK HANDLERS ESTÁVEIS
@@ -129,7 +127,7 @@ export const useRealtime = ({
       try {
         onDatabaseChangeRef.current(event);
       } catch (error) {
-        console.error(`[useRealtime:${channelId}] ❌ Erro no callback onDatabaseChange:`, error);
+        // Erro silencioso
       }
     }
   }, [log, channelId]);
@@ -153,7 +151,7 @@ export const useRealtime = ({
       try {
         onConnectionChangeRef.current(status, error);
       } catch (error) {
-        console.error(`[useRealtime:${channelId}] ❌ Erro no callback onConnectionChange:`, error);
+        // Erro silencioso
       }
     }
   }, [log, channelId]);

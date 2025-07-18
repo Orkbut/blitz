@@ -55,7 +55,6 @@ export class SupabaseOperacaoRepository {
         regional_id: op.janela_operacional.regional_id
       })) || [];
     } catch (error) {
-      console.error('Erro ao buscar operações:', error);
       return [];
     }
   }
@@ -88,7 +87,6 @@ export class SupabaseOperacaoRepository {
         regional_id: operacao.janela_operacional.regional_id
       };
     } catch (error) {
-      console.error('Erro ao buscar operação por ID:', error);
       return null;
     }
   }
@@ -105,7 +103,6 @@ export class SupabaseOperacaoRepository {
       if (error) throw error;
       return count || 0;
     } catch (error) {
-      console.error('Erro ao contar participantes:', error);
       return 0;
     }
   }
@@ -123,7 +120,6 @@ export class SupabaseOperacaoRepository {
       if (error && error.code !== 'PGRST116') throw error; // PGRST116 é "not found"
       return !!data;
     } catch (error) {
-      console.error('Erro ao verificar participação:', error);
       return false;
     }
   }

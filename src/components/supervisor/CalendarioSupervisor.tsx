@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, startOfWeek, endOfWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 import { JanelaOperacional } from '@/shared/types';
 import { useRealtimeCentralized } from '@/hooks/useRealtimeCentralized';
-import { getSupervisorHeaders } from '@/lib/auth-utils';
+import { getSupervisorHeaders, formatarDataBR, formatarPeriodoJanela, obterDataAtualIguatu } from '@/lib/auth-utils';
 
 interface Operacao {
   id: number;
@@ -41,19 +41,19 @@ interface Operacao {
 import styles from '../calendario/Calendario.module.css';
 
 interface CalendarioSupervisorProps {
-  onOperacaoClick: (operacao: Operacao) => void;
+  onOperacaoClick: (operacoes: Operacao[]) => void; // ✅ CORRIGIDO: Aceita array de operações
   onNovaJanela?: () => void;
   onNovaOperacao?: () => void;
   onRefresh?: () => void;
   loading?: boolean;
 }
 
-export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({ 
-  onOperacaoClick, 
-  onNovaJanela, 
-  onNovaOperacao, 
-  onRefresh, 
-  loading: externalLoading = false 
+export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
+  onOperacaoClick,
+  onNovaJanela,
+  onNovaOperacao,
+  onRefresh,
+  loading: externalLoading = false
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [janelas, setJanelas] = useState<JanelaOperacional[]>([]);
@@ -61,55 +61,12 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
   const [operacoes, setOperacoes] = useState<Operacao[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // ✅ FUNÇÃO: Obter dados do usuário logado
-  const getUserData = () => {
-    try {
-      const supervisorAuth = localStorage.getItem('supervisorAuth');
-      if (supervisorAuth) {
-        const userData = JSON.parse(supervisorAuth);
-        return {
-          nome: userData.nome,
-          matricula: userData.matricula,
-          regionalId: userData.regionalId
-        };
-      }
-    } catch (error) {
-      console.error('Erro ao obter dados do usuário:', error);
-    }
-    return null;
-  };
 
-  const userData = getUserData();
 
-  // ✅ FUNÇÃO: Logout
-  const handleLogout = () => {
-    if (confirm('Deseja realmente sair do sistema?')) {
-      localStorage.removeItem('supervisorAuth');
-      localStorage.removeItem('membroId');
-      window.location.href = '/';
-    }
-  };
+
 
   // Garantir que operacoes seja sempre um array válido
   const operacoesSeguras = Array.isArray(operacoes) ? operacoes : [];
-
-  // 🚀 REALTIME CENTRALIZADO: Hook específico para calendário supervisor
-  useRealtimeCentralized({
-    enabled: true,
-    debug: false, // ✅ CORRIGIDO: Debug desativado - sistema deve funcionar sem logs
-    onOperacaoChange: (payload) => {
-      // Realtime operation change logging removed for performance
-      if (janelaSelecionada) {
-        carregarOperacoes();
-      }
-    },
-    onParticipacaoChange: (payload) => {
-      // Realtime participation change logging removed for performance
-      if (janelaSelecionada) {
-        carregarOperacoes();
-      }
-    }
-  });
 
   // Carregar janelas disponíveis
   useEffect(() => {
@@ -123,8 +80,6 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
     }
   }, [janelaSelecionada]);
 
-
-
   const carregarJanelas = async () => {
     try {
       // ✅ ISOLAMENTO POR REGIONAL: Usar headers com contexto do supervisor
@@ -132,7 +87,7 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
         headers: getSupervisorHeaders()
       });
       const result = await response.json();
-      
+
       if (result.success) {
         setJanelas(result.data);
         // Selecionar primeira janela ativa se não houver seleção
@@ -142,60 +97,78 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
         }
       }
     } catch (error) {
-      console.error('Erro ao carregar janelas:', error);
+      // Erro silencioso
     }
   };
 
-  const carregarOperacoes = async () => {
+  const carregarOperacoes = useCallback(async () => {
     if (!janelaSelecionada) return;
-    
+
     setLoading(true);
     try {
       // Usar a mesma API que a página do supervisor usa
-      const response = await fetch('/api/unified/operacoes?portal=supervisor');
+      const response = await fetch('/api/unified/operacoes?portal=supervisor', {
+        headers: getSupervisorHeaders() // 🚨 ISOLAMENTO REGIONAL: Incluir contexto do supervisor
+      });
       const result = await response.json();
-      
+
       if (result.success) {
         let operacoesData = Array.isArray(result.data) ? result.data : [];
-        
-        // Filtrar APENAS por janela selecionada (mostrar todas as operações da janela)
-        if (janelaSelecionada) {
-          operacoesData = operacoesData.filter((op: any) => op.janela_id === janelaSelecionada);
-        }
-        
-        setOperacoes(operacoesData);
+
+        // Filtrar pela janela selecionada
+        const operacoesFiltradas = operacoesData.filter((op: any) =>
+          op.janela_id === janelaSelecionada
+        );
+
+        setOperacoes(operacoesFiltradas);
       } else {
-        console.error('Erro na API:', result.error);
         setOperacoes([]);
       }
     } catch (error) {
-      console.error('Erro ao carregar operações:', error);
       setOperacoes([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [janelaSelecionada]);
 
-  // Gerar dias do calendário baseado na janela operacional selecionada
+  // 🔇 NOVO: Versão silenciosa para reload de garantia (sem loading visual)
+  const carregarOperacoesSilencioso = useCallback(async () => {
+    if (!janelaSelecionada) return;
+
+    try {
+      const response = await fetch('/api/unified/operacoes?portal=supervisor', {
+        headers: getSupervisorHeaders()
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        let operacoesData = Array.isArray(result.data) ? result.data : [];
+
+        const operacoesFiltradas = operacoesData.filter((op: any) =>
+          op.janela_id === janelaSelecionada
+        );
+
+        setOperacoes(operacoesFiltradas);
+      }
+    } catch (error) {
+      // Erro silencioso
+    }
+  }, [janelaSelecionada]);
+
+  // ✅ CORRIGIDO: Calcular período de visualização mais restrito
   const calcularPeriodoVisualizacao = () => {
     if (!janelaSelecionada) {
-      // Se não há janela selecionada, mostrar mês atual
-      const monthStart = startOfMonth(currentDate);
-      const monthEnd = endOfMonth(currentDate);
       return {
-        start: startOfWeek(monthStart, { weekStartsOn: 1 }),
-        end: endOfWeek(monthEnd, { weekStartsOn: 1 })
+        start: new Date(),
+        end: new Date()
       };
     }
 
     const janelaAtual = janelas.find(j => j.id === janelaSelecionada);
     if (!janelaAtual) {
-      // Fallback se janela não encontrada
-      const monthStart = startOfMonth(currentDate);
-      const monthEnd = endOfMonth(currentDate);
       return {
-        start: startOfWeek(monthStart, { weekStartsOn: 1 }),
-        end: endOfWeek(monthEnd, { weekStartsOn: 1 })
+        start: new Date(),
+        end: new Date()
       };
     }
 
@@ -203,20 +176,102 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
     const dataInicio = new Date(janelaAtual.dataInicio);
     const dataFim = new Date(janelaAtual.dataFim);
 
-    // Ajustar para mostrar semana completa
-    // Se começa na terça, mostrar desde segunda
-    // Se termina na quinta, mostrar até domingo
-    const inicioVisualizacao = startOfWeek(dataInicio, { weekStartsOn: 1 });
-    const fimVisualizacao = endOfWeek(dataFim, { weekStartsOn: 1 });
-
+    // ✅ NOVO: Mostrar apenas as semanas que contém as datas da janela
+    // Não mostrar semanas inteiras extras se não há operações nelas
     return {
-      start: inicioVisualizacao,
-      end: fimVisualizacao
+      start: dataInicio,
+      end: dataFim
     };
   };
 
+  // 🚀 REALTIME GRANULAR RESTAURADO: A solução que funcionava
+  useRealtimeCentralized({
+    enabled: true,
+    debug: false,
+    onOperacaoChange: useCallback((payload: any) => {
+      // ✅ REALTIME VERDADEIRO: Atualizar apenas o item modificado (não recarregar tudo)
+      if (janelaSelecionada && payload.new?.janela_id === janelaSelecionada) {
+
+        // ✅ EVENTO UPDATE DA OPERAÇÃO: ATUALIZA TODOS OS DADOS DO BACKEND
+        if (payload.eventType === 'UPDATE') {
+          const operacaoId = payload.new.id;
+
+          // ✅ CORREÇÃO CRÍTICA: Não atualizar campos calculados que não vêm no payload
+          // Os campos participantes_confirmados e total_solicitacoes são calculados pela API
+          // e não existem na tabela operacao, portanto não vêm no evento UPDATE
+          
+          setOperacoes(prevOperacoes => {
+            const operacoesArray = Array.isArray(prevOperacoes) ? prevOperacoes : [];
+            return operacoesArray.map(op =>
+              op.id === operacaoId ? {
+                ...op,
+                // ✅ ATUALIZAR: Apenas campos que realmente vêm da tabela operacao
+                ativa: payload.new.ativa,
+                excluida_temporariamente: payload.new.excluida_temporariamente,
+                updated_at: payload.new.updated_at,
+                status: payload.new.status,
+                limite_participantes: payload.new.limite_participantes,
+                modalidade: payload.new.modalidade,
+                tipo: payload.new.tipo,
+                turno: payload.new.turno,
+                horario: payload.new.horario,
+                data_operacao: payload.new.data_operacao
+                // ❌ NÃO ATUALIZAR: participantes_confirmados e total_solicitacoes
+                // Esses campos são calculados pela API e serão atualizados no reload silencioso
+              } : op
+            );
+          });
+
+          return; // Processado com sucesso
+        }
+
+        setOperacoes(prevOperacoes => {
+          const operacoesArray = Array.isArray(prevOperacoes) ? prevOperacoes : [];
+
+          if (payload.eventType === 'INSERT') {
+            // ✅ INSERIR: Adicionar nova operação
+            return [...operacoesArray, payload.new];
+          } else if (payload.eventType === 'DELETE') {
+            // ✅ DELETAR: Remover operação
+            return operacoesArray.filter(op => op.id !== payload.old.id);
+          }
+          return operacoesArray;
+        });
+      }
+    }, [janelaSelecionada]),
+    onParticipacaoChange: useCallback((payload: any) => {
+      const operacaoId = payload.new?.operacao_id || payload.old?.operacao_id;
+
+      // 🚨 SOLUÇÃO ROBUSTA: Se operacao_id está undefined, forçar reload completo
+      if (!operacaoId) {
+        setTimeout(() => {
+          carregarOperacoesSilencioso();
+        }, 500);
+        return;
+      }
+
+      if (janelaSelecionada) {
+        // 🚀 SOLUÇÃO ROBUSTA: Reload garantido com timeout menor
+        setTimeout(() => {
+          carregarOperacoesSilencioso();
+        }, 500);
+      }
+    }, [janelaSelecionada, carregarOperacoesSilencioso]),
+  });
+
   const { start: calendarStart, end: calendarEnd } = calcularPeriodoVisualizacao();
-  const dias = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+
+  // ✅ CORRIGIDO: Calcular dias incluindo semanas completas apenas quando necessário
+  const dias = useMemo(() => {
+    if (!janelaSelecionada) return [];
+
+    // Para uma visualização adequada, expandir para incluir semanas completas
+    // mas apenas as semanas que realmente contêm dias da janela
+    const weekStart = startOfWeek(calendarStart, { weekStartsOn: 1 });
+    const weekEnd = endOfWeek(calendarEnd, { weekStartsOn: 1 });
+
+    return eachDayOfInterval({ start: weekStart, end: weekEnd });
+  }, [calendarStart, calendarEnd, janelaSelecionada]);
 
   // Agrupar operações por dia
   const operacoesPorDia = operacoesSeguras.reduce((acc, op: Operacao) => {
@@ -239,399 +294,353 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
       return 'Janela não encontrada';
     }
 
-    // Sempre mostrar as datas da janela operacional no formato solicitado
-    const dataInicio = new Date(janelaAtual.dataInicio);
-    const dataFim = new Date(janelaAtual.dataFim);
-
-    return `📅 ${format(dataInicio, 'dd/MM/yyyy')} - ${format(dataFim, 'dd/MM/yyyy')}`;
+    // Usar função centralizada com timezone correto de Iguatu-CE
+    return formatarPeriodoJanela(janelaAtual.dataInicio, janelaAtual.dataFim);
   };
 
   // Determinar se uma operação é viável
   const isOperacaoViavel = (operacao: Operacao) => {
     const confirmados = operacao.participantes_confirmados || 0;
     const limite = operacao.limite_participantes;
-    
+
     // Operação é viável quando tem pelo menos 50% das confirmações necessárias
     // ou um mínimo de 3 confirmados (para operações menores)
     const minimoViabilidade = Math.max(3, Math.ceil(limite * 0.5));
     const viavel = confirmados >= minimoViabilidade;
-    
+
     // Operation viability logging removed for performance
-    
+
     return viavel;
   };
 
-  // Renderizar barrinhas de status
-  const renderStatusBars = (operacao: Operacao) => {
-    const confirmados = operacao.participantes_confirmados || 0;
-    const solicitacoes = (operacao as any).total_solicitacoes || 0; // ✅ CORRIGIDO: usar total_solicitacoes para mostrar todas as solicitações
-    const limite = operacao.limite_participantes;
+  // Renderizar barras de status melhoradas
 
-    // Status bars render logging removed for performance
-
-    const barData = [
-      { 
-        key: 'confirmados', 
-        label: 'Confirmados', 
-        value: confirmados, 
-        color: 'bg-green-600', 
-        textColor: 'text-green-900',
-        percentage: limite > 0 ? (confirmados / limite) * 100 : 0
-      },
-      { 
-        key: 'solicitacoes', 
-        label: 'Solicitações', 
-        value: solicitacoes, 
-        color: 'bg-amber-500', 
-        textColor: 'text-amber-900',
-        percentage: solicitacoes > 0 ? Math.min(100, (solicitacoes / limite) * 100) : 0
-      }
-    ];
-
-    return (
-      <div className="space-y-1.5 text-[11px]">
-        {barData.map((bar) => (
-          <div 
-            key={bar.key}
-            className="flex items-center gap-1.5 group relative"
-          >
-            <div className="w-full h-2 bg-gray-400 rounded-full flex-1 relative overflow-hidden shadow-inner border border-gray-500">
-              <div 
-                className={`h-full ${bar.color} rounded-full transition-all duration-300 shadow-sm`}
-                style={{ width: `${bar.percentage}%` }}
-            ></div>
-            </div>
-            <span className={`${bar.textColor} font-bold min-w-0 text-[11px] w-5 text-right bg-white/80 px-1 py-0.5 rounded text-center`}>
-              {bar.value}
-            </span>
-          </div>
-        ))}
-        </div>
-    );
-  };
 
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-green-50 to-emerald-50">
-      {/* Header Discreto do Usuário */}
-      {userData && (
-        <header className={styles.userHeader}>
-          <div className={styles.userHeaderContent}>
-            <div className={styles.userInfo}>
-              <div className={styles.userAvatar} style={{ background: '#16a34a' }}>
-                {userData.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
-              </div>
-              <div className={styles.userDetails}>
-                <span className={styles.userName}>{userData.nome}</span>
-                <span className={styles.userMatricula}>Mat. {userData.matricula} • Supervisor</span>
-              </div>
-            </div>
-            <button 
-              onClick={handleLogout}
-              className={styles.logoutButton}
-              title="Sair do sistema"
-            >
-              Sair
-            </button>
-          </div>
-        </header>
-      )}
+    <div className="bg-white min-h-screen">
+      {/* Container Principal Responsivo */}
+      <div className="w-full max-w-7xl mx-auto px-1 md:px-4">
+        <div className="bg-white rounded-none md:rounded-lg shadow-sm md:shadow-lg border-0 md:border border-gray-200 overflow-hidden">
+          {/* Cabeçalho integrado com período em destaque */}
+          <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-3 md:p-4">
+            <div className="space-y-3 md:space-y-0 md:flex md:items-center md:justify-between">
+              {/* Seção principal - janela e período */}
+              <div className="flex flex-col space-y-3 md:flex-row md:items-center md:space-y-0 md:space-x-6 flex-1">
+                {/* Seletor de janela melhorado */}
+                <div className="md:min-w-[320px]">
+                  <label className="block text-sm font-semibold text-white/90 mb-2">
+                    🗂️ Selecionar Janela Operacional
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={janelaSelecionada || ''}
+                      onChange={(e) => setJanelaSelecionada(Number(e.target.value) || null)}
+                      className="w-full px-4 py-3 bg-white/15 border-2 border-white/25 rounded-xl text-sm text-white focus:outline-none focus:ring-3 focus:ring-white/40 focus:border-white/50 transition-all hover:bg-white/20 appearance-none cursor-pointer"
+                      aria-label="Selecionar janela operacional"
+                    >
+                      <option value="" className="text-gray-900 bg-white">
+                        📋 Selecione uma janela para visualizar...
+                      </option>
+                      {janelas.map((janela) => {
+                        const periodoFormatado = formatarPeriodoJanela(janela.dataInicio, janela.dataFim);
 
-      {/* Container Principal */}
-      <div className="p-4">
-        <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden">
-          {/* Header Profissional */}
-          <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          {/* Título e Seleção de Janela */}
-          <div className="space-y-3">
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                📅
-              </div>
-              Calendário de Operações
-            </h2>
-            
-            <div className="flex items-center gap-3">
-              <label className="text-sm font-medium text-blue-100">Janela Operacional:</label>
-              <select
-                value={janelaSelecionada || ''}
-                onChange={(e) => setJanelaSelecionada(Number(e.target.value))}
-                className="px-4 py-2 bg-white/10 backdrop-blur border border-white/20 rounded-lg text-sm text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-white/30 focus:bg-white/20 transition-all"
-              >
-                <option value="" className="text-gray-900">Selecione uma janela</option>
-                {janelas.map((janela) => {
-                  const dataInicio = new Date(janela.dataInicio);
-                  const dataFim = new Date(janela.dataFim);
-                  const periodoFormatado = `📅 ${format(dataInicio, 'dd/MM/yyyy')} - ${format(dataFim, 'dd/MM/yyyy')}`;
-                  
-                  return (
-                    <option key={janela.id} value={janela.id} className="text-gray-900">
-                      {periodoFormatado}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-          </div>
-
-          {/* Ações e Período */}
-          <div className="flex flex-col sm:flex-row items-end gap-4">
-            {/* Botões de Ação */}
-            <div className="flex gap-2">
-              {onNovaJanela && (
-                <button
-                  onClick={onNovaJanela}
-                  className="px-4 py-2 bg-white/10 backdrop-blur border border-white/20 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-all duration-200 flex items-center gap-2"
-                >
-                  📅 Nova Janela
-                </button>
-              )}
-              
-              {onNovaOperacao && (
-                <button
-                  onClick={onNovaOperacao}
-                  className="px-4 py-2 bg-white/10 backdrop-blur border border-white/20 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-all duration-200 flex items-center gap-2"
-                >
-                  ➕ Nova Operação
-                </button>
-              )}
-              
-              {onRefresh && (
-                <button
-                  onClick={onRefresh}
-                  disabled={loading || externalLoading}
-                  className="px-3 py-2 bg-white/10 backdrop-blur border border-white/20 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading || externalLoading ? '⏳' : '🔄'}
-                </button>
-              )}
-            </div>
-
-            {/* Período de Visualização */}
-            <div className="bg-white/10 backdrop-blur border border-white/20 rounded-xl px-4 py-2">
-              <div className="text-sm font-medium text-blue-100">Período</div>
-              <div className="text-lg font-bold">
-                {formatarPeriodoVisualizacao()}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Grid do Calendário */}
-      {janelaSelecionada ? (
-        <div className="p-6">
-          {/* Indicadores de Mês - apenas meses da janela operacional */}
-          <div className="mb-6">
-            {(() => {
-              if (!janelaSelecionada) return null;
-              
-              const janelaAtual = janelas.find(j => j.id === janelaSelecionada);
-              if (!janelaAtual) return null;
-
-              const dataInicio = new Date(janelaAtual.dataInicio);
-              const dataFim = new Date(janelaAtual.dataFim);
-              
-              const mesesUnicos = new Set();
-              const indicadores: React.ReactElement[] = [];
-              
-              // Gerar apenas meses que fazem parte da janela operacional
-              let mesAtual = new Date(dataInicio.getFullYear(), dataInicio.getMonth(), 1);
-              const ultimoMes = new Date(dataFim.getFullYear(), dataFim.getMonth(), 1);
-              
-              while (mesAtual <= ultimoMes) {
-                const mesAno = format(mesAtual, 'yyyy-MM');
-                if (!mesesUnicos.has(mesAno)) {
-                  mesesUnicos.add(mesAno);
-                  const mesNome = format(mesAtual, 'MMMM yyyy', { locale: ptBR });
-                  
-                  indicadores.push(
-                    <div key={mesAno} className="inline-flex items-center gap-2 mr-4 mb-2">
-                      <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full shadow-sm"></div>
-                      <span className="text-sm font-semibold text-gray-700 capitalize">
-                        {mesNome}
-                      </span>
+                        return (
+                          <option key={janela.id} value={janela.id} className="text-gray-900 bg-white py-2">
+                            📅 Janela #{janela.id} • {periodoFormatado}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    {/* Seta customizada */}
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                      <svg className="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
                     </div>
-                  );
-                }
-                
-                // Avançar para o próximo mês
-                mesAtual.setMonth(mesAtual.getMonth() + 1);
-              }
-              
-              return indicadores.length > 1 ? (
-                <div className="flex flex-wrap items-center gap-2 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100">
-                  <span className="text-xs font-medium text-gray-600 mr-2">Meses:</span>
-                  {indicadores}
+                  </div>
                 </div>
-              ) : null;
-            })()}
+
+                {/* Período Destacado Principal - MAIOR E CENTRALIZADO */}
+                <div className="flex-1 flex justify-center md:justify-center">
+                  <div className="bg-gradient-to-r from-white/20 to-white/30 backdrop-blur rounded-lg px-6 py-4 border border-white/30 shadow-lg min-w-[320px] max-w-[500px]">
+                    <div className="text-center">
+                      <div className="text-sm font-medium text-white/90 mb-2">📅 Período Ativo</div>
+                      <div className="text-lg md:text-xl lg:text-2xl font-bold text-white tracking-wide">
+                        {formatarPeriodoVisualizacao()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Ações Responsivas */}
+              <div className="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
+                {onNovaJanela && (
+                  <button
+                    onClick={onNovaJanela}
+                    className="px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded text-xs md:text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                  >
+                    <span className="hidden md:inline">📅</span>
+                    <span className="md:hidden">📅</span>
+                    <span className="hidden sm:inline">Nova Janela</span>
+                    <span className="sm:hidden">Janela</span>
+                  </button>
+                )}
+
+                {onNovaOperacao && (
+                  <button
+                    onClick={onNovaOperacao}
+                    className="px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded text-xs md:text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                  >
+                    <span className="hidden md:inline">➕</span>
+                    <span className="md:hidden">➕</span>
+                    <span className="hidden sm:inline">Nova Operação</span>
+                    <span className="sm:hidden">Operação</span>
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* Grid do calendário */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-            <div className="grid grid-cols-7 gap-0 relative">
-              {dias.map((dia, index) => {
-                const dataFormatada = format(dia, 'yyyy-MM-dd');
-                const operacoesDia = operacoesPorDia[dataFormatada] || [];
-                const isToday_ = isToday(dia);
-                const temOperacoes = operacoesDia.length > 0;
-                
-                // Verificar se este dia está dentro do período da janela operacional ou é complemento de semana
-                const janelaAtual = janelas.find(j => j.id === janelaSelecionada);
-                let isDentroDoPeríodo = false;
-                
-                if (janelaAtual) {
-                  const dataInicio = new Date(janelaAtual.dataInicio);
-                  const dataFim = new Date(janelaAtual.dataFim);
-                  const diaAtual = new Date(dia.getFullYear(), dia.getMonth(), dia.getDate());
-                  
-                  isDentroDoPeríodo = diaAtual >= dataInicio && diaAtual <= dataFim;
-                }
-                
-                const isComplementoSemana = !isDentroDoPeríodo && !temOperacoes;
-                
-                // Determinar posição na semana para styling
-                const diaDaSemana = (dia.getDay() + 6) % 7; // 0=seg, 6=dom
-                const isInicioSemana = diaDaSemana === 0;
-                const isFimSemana = diaDaSemana === 6;
+          {/* Grid do Calendário */}
+          {janelaSelecionada ? (
+            <div className="p-1 sm:p-2 md:p-4 lg:p-6">
 
-                return (
-                  <div 
-                    key={dia.toISOString()} 
-                    data-calendar-day={format(dia, 'yyyy-MM-dd')}
-                    data-has-operations={operacoesDia.length > 0}
-                    className={`
-                      min-h-[160px] border-r border-b border-gray-200 relative group
-                      ${isInicioSemana ? 'border-l-0' : ''}
-                      ${isFimSemana ? 'border-r-0' : ''}
-                      ${temOperacoes ? 'cursor-pointer hover:bg-blue-50/50' : ''}
-                      ${isComplementoSemana ? 'bg-gray-50/50' : 'bg-white'}
-                      ${isDentroDoPeríodo && !temOperacoes ? 'bg-gray-50/30' : ''}
-                      ${isToday_ ? 'bg-gradient-to-br from-blue-100 to-blue-50 ring-2 ring-blue-400 ring-inset' : ''}
-                      transition-all duration-200
-                    `}
-                    onClick={() => operacoesDia.length > 0 && onOperacaoClick(operacoesDia[0])}
-                  >
-                    {/* Hachuras para dias de complemento de semana */}
-                    {isComplementoSemana && (
-                      <div 
-                        className="absolute inset-0 opacity-20"
-                        style={{
-                          backgroundImage: `repeating-linear-gradient(
-                            45deg,
-                            #e5e7eb 0px,
-                            #e5e7eb 1px,
-                            transparent 1px,
-                            transparent 10px
-                          )`
-                        }}
-                      />
-                    )}
-                    
-                    {/* Header do dia - COMPACTO */}
-                    <div className="p-2 border-b border-gray-100 relative z-10">
-                      <div className="flex items-center justify-between">
-                        <div className={`
-                          text-base font-bold
-                          ${isToday_ ? 'text-blue-700' : 
-                            temOperacoes ? 'text-gray-900' : 
-                            isComplementoSemana ? 'text-gray-300' :
-                            'text-gray-400'}
-                        `}>
-                          {format(dia, 'd')}
-                        </div>
-                        
-                        {/* Nome do dia da semana */}
-                        <div className={`
-                          text-[10px] font-medium uppercase tracking-wide
-                          ${isToday_ ? 'text-blue-600' : 
-                            temOperacoes ? 'text-gray-500' : 
-                            'text-gray-400'}
-                        `}>
-                          {format(dia, 'EEE', { locale: ptBR })}
-                        </div>
-                      </div>
-                      
-                      {/* Indicador de hoje */}
-                      {isToday_ && (
-                        <div className="absolute top-1 right-1">
-                          <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
-                        </div>
-                      )}
+
+              {/* Cabeçalho da semana - Ordem brasileira */}
+              <div className="bg-gradient-to-r from-slate-100 to-slate-200 border-b-2 border-slate-300">
+                <div className="grid grid-cols-7 gap-0">
+                  {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map((dia) => (
+                    <div key={dia} className="p-1.5 sm:p-2 md:p-3 text-center">
+                      <span className="text-[10px] sm:text-xs md:text-sm font-bold text-slate-600 uppercase tracking-wider">{dia}</span>
                     </div>
+                  ))}
+                </div>
+              </div>
 
-                    {/* Operações do dia - SEM TOOLTIP */}
-                    <div className="p-2 space-y-2 relative z-10">
-                      {operacoesDia.length > 0 && (
-                        <div className="space-y-2">
-                          {operacoesDia.map((operacao) => {
-                            const operacaoViavel = isOperacaoViavel(operacao);
-                            
-                            return (
+              {/* Grid do calendário profissional */}
+              <div className="bg-gradient-to-br from-white to-slate-50 overflow-x-auto">
+                <div className="grid grid-cols-7 gap-0 border-l-0 md:border-l border-slate-300 min-w-[320px]">
+                  {dias.map((dia, index) => {
+                    const dataFormatada = format(dia, 'yyyy-MM-dd');
+                    const operacoesDia = operacoesPorDia[dataFormatada] || [];
+                    const isToday_ = isToday(dia);
+                    const temOperacoes = operacoesDia.length > 0;
+
+                    // Verificar se este dia está dentro do período da janela operacional ou é complemento de semana
+                    const janelaAtual = janelas.find(j => j.id === janelaSelecionada);
+                    let isDentroDoPeríodo = false;
+
+                    if (janelaAtual) {
+                      const dataInicio = new Date(janelaAtual.dataInicio);
+                      const dataFim = new Date(janelaAtual.dataFim);
+                      const diaAtual = new Date(dia.getFullYear(), dia.getMonth(), dia.getDate());
+
+                      isDentroDoPeríodo = diaAtual >= dataInicio && diaAtual <= dataFim;
+                    }
+
+                    const isComplementoSemana = !isDentroDoPeríodo && !temOperacoes;
+
+                    // Determinar posição na semana para styling (Segunda = 0, Domingo = 6)
+                    const diaDaSemana = (dia.getDay() + 6) % 7; // 0=seg, 6=dom
+                    const isInicioSemana = diaDaSemana === 0;
+                    const isFimSemana = diaDaSemana === 6;
+
+                    return (
+                      <div
+                        key={dia.toISOString()}
+                        data-calendar-day={format(dia, 'yyyy-MM-dd')}
+                        data-has-operations={operacoesDia.length > 0}
+                        className={`
+                      min-h-[110px] sm:min-h-[140px] md:min-h-[180px] lg:min-h-[220px] border-r border-b md:border-r-2 md:border-b-2 border-slate-300 relative group transition-all duration-300
+                      ${temOperacoes ? 'cursor-pointer' : ''}
+                      ${isComplementoSemana
+                            ? 'bg-gradient-to-br from-slate-100 to-slate-200'
+                            : isDentroDoPeríodo
+                              ? 'bg-gradient-to-br from-white via-slate-50 to-blue-50 shadow-inner'
+                              : 'bg-gradient-to-br from-slate-50 to-slate-100'
+                          }
+                      ${isToday_ ? 'ring-2 ring-blue-500 ring-inset bg-gradient-to-br from-blue-50 to-blue-100' : ''}
+                      ${temOperacoes ? 'hover:shadow-lg hover:bg-gradient-to-br hover:from-blue-100 hover:to-blue-200' : ''}
+                      ${isInicioSemana ? 'border-l-2 border-l-slate-300' : ''}
+                      ${isFimSemana ? 'border-r-2 border-r-slate-300' : ''}
+                    `}
+                        onClick={() => temOperacoes && onOperacaoClick && onOperacaoClick(operacoesDia)}
+                      >
+                        {/* Data do dia */}
+                        <div className={`text-xs md:text-sm p-1 md:p-2 font-bold ${isToday_
+                          ? 'text-blue-700 bg-blue-200 rounded-md'
+                          : isComplementoSemana
+                            ? 'text-slate-400'
+                            : isDentroDoPeríodo
+                              ? 'text-slate-800'
+                              : 'text-slate-500'
+                          }`}>
+                          {format(dia, 'd')}
+                          {isToday_ && <span className="ml-1 text-xs">📍</span>}
+                        </div>
+
+                        {/* Operações do dia - Design simplificado e profissional */}
+                        {temOperacoes && (
+                          <div className="px-1 py-1 space-y-1">
+                            {operacoesDia.slice(0, 3).map((operacao) => (
                               <div
                                 key={operacao.id}
-                                className={`p-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border-l-4 hover:from-blue-100 hover:to-blue-200 transition-all duration-200 shadow-sm relative group ${
-                                  operacaoViavel 
-                                    ? 'border-green-500 ring-2 ring-green-200' 
-                                    : 'border-blue-500'
-                                }`}
-                                role="button"
-                                tabIndex={0}
-                                aria-label={`Operação ${operacao.modalidade} - ${operacao.turno} - ${format(new Date(operacao.data_operacao), 'dd/MM/yyyy')}. ${operacao.participantes_confirmados || 0} confirmados de ${operacao.limite_participantes}. ${operacaoViavel ? 'Operação viável.' : ''} Clique para gerenciar.`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onOperacaoClick(operacao);
-                                }}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    onOperacaoClick(operacao);
+                                onClick={() => onOperacaoClick([operacao])}
+                                className={`
+                              relative overflow-hidden rounded-md transition-all duration-200 
+                              hover:shadow-lg hover:scale-[1.02] cursor-pointer p-2
+                              ${operacao.modalidade === 'BLITZ'
+                                    ? 'bg-gradient-to-br from-red-50 via-red-50 to-red-100 border border-red-200 hover:border-red-300'
+                                    : 'bg-gradient-to-br from-amber-50 via-amber-50 to-amber-100 border border-amber-200 hover:border-amber-300'
                                   }
-                                }}
+                            `}
                               >
-                                {/* Modalidade e turno */}
-                                <div className="flex items-center justify-between mb-2">
-                                  <span className="text-sm font-bold text-blue-800">
-                                    {operacao.modalidade}
+                                {/* Header minimalista com apenas modalidade */}
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className="text-sm">
+                                    {operacao.modalidade === 'BLITZ' ? '🚨' : '⚖️'}
                                   </span>
-                                  <span className="text-xs font-medium text-blue-600 bg-white/70 px-2 py-1 rounded-md">
-                                    {operacao.turno}
+                                  <span className={`
+                                font-bold text-xs tracking-wide
+                                ${operacao.modalidade === 'BLITZ' ? 'text-red-700' : 'text-amber-700'}
+                              `}>
+                                    {operacao.modalidade}
                                   </span>
                                 </div>
 
-                                {/* Barrinhas de status */}
-                                {renderStatusBars(operacao)}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="p-8 text-center text-gray-500">
-          <div className="text-lg font-medium mb-2">📅 Selecione uma janela</div>
-          <p className="text-sm">Escolha uma janela operacional para visualizar as operações no calendário</p>
-        </div>
-      )}
+                                {/* Barras de status compactas */}
+                                <div className="space-y-1">
+                                  {(() => {
+                                    const confirmados = operacao.participantes_confirmados || 0;
+                                    const solicitacoes = (operacao as any).total_solicitacoes || 0;
+                                    const limite = operacao.limite_participantes;
 
-      {loading && (
-        <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-xl">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
-            <div className="text-sm text-gray-600">Carregando operações...</div>
-          </div>
-        </div>
-      )}
+                                    return (
+                                      <>
+                                        {/* Barra Confirmados */}
+                                        <div className="space-y-0.5">
+                                          <div className="flex items-center justify-between">
+                                            <span className="text-xs font-medium text-green-700 flex items-center gap-1">
+                                              <span className="text-[10px]">✅</span>
+                                              <span className="hidden sm:inline">Confirmados</span>
+                                              <span className="sm:hidden">Conf.</span>
+                                            </span>
+                                            <span className="text-xs font-bold text-green-800">
+                                              {confirmados}/{limite}
+                                            </span>
+                                          </div>
+                                          <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                            <div
+                                              className="h-full bg-gradient-to-r from-green-500 to-green-600 rounded-full transition-all duration-300"
+                                              style={{ width: `${limite > 0 ? Math.min(100, (confirmados / limite) * 100) : 0}%` }}
+                                            />
+                                          </div>
+                                        </div>
+
+                                        {/* Barra Solicitações - sempre visível */}
+                                        <div className="space-y-0.5">
+                                          <div className="flex items-center justify-between">
+                                            <span className="text-xs font-medium text-amber-700 flex items-center gap-1">
+                                              <span className="text-[10px]">⏳</span>
+                                              <span className="hidden sm:inline">Solicitações</span>
+                                              <span className="sm:hidden">Solic.</span>
+                                            </span>
+                                            <span className="text-xs font-bold text-amber-800">
+                                              {solicitacoes}
+                                            </span>
+                                          </div>
+                                          <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                            <div
+                                              className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-300"
+                                              style={{ width: `${solicitacoes > 0 ? Math.min(100, (solicitacoes / limite) * 100) : 0}%` }}
+                                            />
+                                          </div>
+                                        </div>
+                                      </>
+                                    );
+                                  })()}
+                                </div>
+
+                                {/* Efeito hover sutil */}
+                                <div className="absolute inset-0 bg-white opacity-0 hover:opacity-5 transition-opacity duration-200 pointer-events-none rounded-md"></div>
+                              </div>
+                            ))}
+
+                            {/* Indicador de mais operações - design minimalista */}
+                            {operacoesDia.length > 3 && (
+                              <div className="bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-md p-1.5 text-center transition-all duration-200 hover:shadow-sm cursor-pointer">
+                                <div className="flex items-center justify-center gap-1">
+                                  <span className="text-slate-600 font-bold text-xs">
+                                    +{operacoesDia.length - 3}
+                                  </span>
+                                  <span className="text-slate-500 text-[10px] font-medium">
+                                    mais
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Indicador melhorado para dias sem operações dentro do período */}
+                        {!temOperacoes && isDentroDoPeríodo && (
+                          <div className="absolute bottom-3 left-3 right-3">
+                            <div className="bg-gradient-to-r from-emerald-50 to-green-100 border border-emerald-200 rounded-lg p-2 text-center shadow-sm">
+                              <div className="flex items-center justify-center space-x-2">
+                                <span className="text-emerald-600 text-sm">📅</span>
+                                <span className="text-emerald-700 text-xs font-medium">
+                                  Disponível
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          ) : (
+            // ✅ MELHORADO: Tela de estado vazio mais informativa e atrativa
+            <div className="flex flex-col items-center justify-center py-16 px-8 text-center">
+              <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mb-6 shadow-lg">
+                <span className="text-4xl">📅</span>
+              </div>
+
+              <h3 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">
+                Selecione uma Janela Operacional
+              </h3>
+
+              <p className="text-gray-600 mb-6 max-w-md leading-relaxed">
+                Para visualizar as operações no calendário, você precisa primeiro selecionar uma janela operacional no seletor acima.
+              </p>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-lg">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0">
+                    <span className="text-blue-500 text-lg">💡</span>
+                  </div>
+                  <div className="text-sm text-blue-700">
+                    <p className="font-medium mb-1">Dica:</p>
+                    <p>Use o seletor <strong>🗂️ Selecionar Janela Operacional</strong> no cabeçalho azul para escolher o período que deseja visualizar.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {loading && (
+            <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-xl">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                <div className="text-sm text-gray-600">Carregando operações...</div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

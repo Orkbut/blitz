@@ -51,7 +51,6 @@ export const useSmartPolling = ({
     if (!enabled) return;
 
     const currentInterval = getCurrentInterval();
-    console.log(`[SmartPolling] Intervalo ajustado para ${currentInterval}ms`);
 
     // Executar callback imediatamente se mudou para estado ativo
     if (currentInterval <= activeInterval) {
@@ -83,7 +82,6 @@ export const useSmartPolling = ({
       
       // Se mudou o estado de atividade
       if (wasActive !== isUserActiveRef.current) {
-        console.log(`[SmartPolling] Usuário ${isUserActiveRef.current ? 'ativo' : 'inativo'}`);
         resetInterval();
       }
     }, 5000); // Verificar a cada 5s
@@ -113,7 +111,6 @@ export const useSmartPolling = ({
       isDocumentVisibleRef.current = !document.hidden;
       
       if (wasVisible !== isDocumentVisibleRef.current) {
-        console.log(`[SmartPolling] Tab ${isDocumentVisibleRef.current ? 'visível' : 'em background'}`);
         resetInterval();
       }
     };

@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     const orchestrator = new EuVouOrchestrator();
     const resultado = await orchestrator.executar(membroId, operacaoId);
     
-    console.log(`[TEMP-LOG-API-EU-VOU] 📊 RESULTADO ORCHESTRATOR: ${JSON.stringify(resultado)}`);
+
 
     // 3. ✅ PROCESSAR RESULTADO E RETORNAR
     if (resultado.sucesso) {

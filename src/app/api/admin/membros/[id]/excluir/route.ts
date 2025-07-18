@@ -11,7 +11,9 @@ export async function DELETE(
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const membroId = parseInt(params.id);
+    // ✅ CORREÇÃO: Await params para Next.js 15+
+    const resolvedParams = await params;
+    const membroId = parseInt(resolvedParams.id);
 
     if (isNaN(membroId)) {
       return NextResponse.json({
@@ -33,6 +35,17 @@ export async function DELETE(
         error: 'Membro não encontrado'
       }, { status: 404 });
     }
+
+    // ✅ CORREÇÃO: Pegar ID do admin que está fazendo a exclusão (será o primeiro admin encontrado para simplificar)
+    const { data: adminExcluindo } = await supabase
+      .from('servidor')
+      .select('id')
+      .eq('is_admin_global', true)
+      .eq('ativo', true)
+      .limit(1)
+      .single();
+
+    const adminId = adminExcluindo?.id || 6; // Fallback para o admin principal
 
     // Verificar se há participações ativas que impediriam a exclusão
     const { data: participacoesAtivas, error: participacoesError } = await supabase
@@ -80,6 +93,73 @@ export async function DELETE(
       }, { status: 400 });
     }
 
+    // ✅ CORREÇÃO CRÍTICA: Resolver problema de foreign key
+    // Se o membro sendo excluído tem registros no histórico, transferir para outro admin
+    
+    // Buscar outro admin que não seja o que está sendo excluído
+    const { data: outroAdmin } = await supabase
+      .from('servidor')
+      .select('id')
+      .eq('is_admin_global', true)
+      .eq('ativo', true)
+      .neq('id', membroId) // DIFERENTE do que está sendo excluído
+      .limit(1)
+      .single();
+
+    let adminResponsavel = adminId;
+    
+    // ✅ CORREÇÃO: Permitir exclusão do último admin (removida validação restritiva)
+    // Se o admin que está sendo excluído é o único admin, usar um ID fictício para o histórico
+    if (membroId === adminId) {
+      if (outroAdmin) {
+        adminResponsavel = outroAdmin.id;
+      } else {
+        // ✅ MUDANÇA: Usar ID fictício ao invés de bloquear exclusão
+        // Isso permite que o último admin se exclua se necessário
+        adminResponsavel = 1; // ID fictício para histórico
+      }
+    }
+
+    // Transferir registros do histórico onde o membro sendo excluído é usuario_id
+    const { error: transferirHistoricoError } = await supabase
+      .from('historico_modificacao')
+      .update({ usuario_id: adminResponsavel })
+      .eq('usuario_id', membroId);
+
+    if (transferirHistoricoError) {
+      console.error('Erro ao transferir histórico:', transferirHistoricoError);
+      // Não falha a operação, mas loga
+    }
+
+    // ✅ CORREÇÃO: Registrar no histórico ANTES da exclusão
+    const { error: historicoError } = await supabase
+      .from('historico_modificacao')
+      .insert({
+        entidade: 'servidor',
+        entidade_id: membroId,
+        acao: 'EXCLUSAO_ADMINISTRATIVA',
+        dados_anteriores: {
+          id: membro.id,
+          matricula: membro.matricula,
+          nome: membro.nome,
+          perfil: membro.perfil,
+          regional_id: membro.regional_id
+        },
+        dados_novos: {
+          excluido: true,
+          data_exclusao: new Date().toISOString(),
+          motivo: 'Exclusão administrativa via portal admin',
+          admin_responsavel: adminResponsavel
+        },
+        usuario_id: adminResponsavel, // ✅ CORREÇÃO: Usar admin válido diferente
+        data_modificacao: new Date().toISOString()
+      });
+
+    if (historicoError) {
+      console.error('Erro ao registrar histórico de exclusão:', historicoError);
+      // Não falha a operação por erro de histórico, mas loga o problema
+    }
+
     // Exclusão segura - primeiro inativar, depois excluir referências
     
     // 1. Inativar participações históricas (manter histórico mas inativar)
@@ -120,6 +200,7 @@ export async function DELETE(
       matricula: membro.matricula,
       nome: membro.nome,
       perfil: membro.perfil,
+      adminResponsavel: adminResponsavel, // ✅ USAR O ADMIN CORRETO
       timestamp: new Date().toISOString()
     });
 

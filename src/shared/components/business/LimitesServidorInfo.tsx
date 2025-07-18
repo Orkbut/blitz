@@ -46,7 +46,6 @@ export function LimitesServidorInfo({
         throw new Error(data.error || 'Erro desconhecido');
       }
     } catch (err) {
-      console.error('Erro ao carregar limites:', err);
       setError(err instanceof Error ? err.message : 'Erro desconhecido');
     } finally {
       setLoading(false);

@@ -73,9 +73,7 @@ interface ContextoValidacao {
 export class ValidadorUnico {
   
   constructor() {
-    console.log(`🎯 [VALIDADOR-UNICO] 🚨 ======= VALIDADOR ÚNICO INICIALIZADO =======`);
-    console.log(`🎯 [VALIDADOR-UNICO] ⏰ Timestamp: ${new Date().toISOString()}`);
-    console.log(`🎯 [VALIDADOR-UNICO] 🔄 Substitui ValidadorParticipacao + lógica do EuVouOrchestrator`);
+    // Validador único inicializado
   }
 
   /**
@@ -92,52 +90,25 @@ export class ValidadorUnico {
     tipo: 'SOLICITACAO' | 'CONFIRMACAO' | 'CANCELAMENTO' | 'APROVACAO' = 'SOLICITACAO'
   ): Promise<ResultadoValidacao> {
     
-    console.log(`🎯 [VALIDADOR-UNICO] 🚨 ======= VALIDAÇÃO INICIADA =======`);
-    console.log(`🎯 [VALIDADOR-UNICO] 🎯 Operação: ${operacaoId}, Membro: ${membroId}, Tipo: ${tipo}`);
-    console.log(`🎯 [VALIDADOR-UNICO] ⏰ Timestamp: ${new Date().toISOString()}`);
-
     try {
       // 1️⃣ CARREGAMENTO DE DADOS (unificado)
-      console.log(`🎯 [VALIDADOR-UNICO] 📡 Carregando dados unificados...`);
-      
       const contexto = await this.carregarContextoCompleto(operacaoId, membroId, tipo);
-      
-      console.log(`🎯 [VALIDADOR-UNICO] 📊 Contexto carregado:`, {
-        operacao_status: contexto.operacao.status,
-        membro_nome: contexto.membro.nome,
-        participacoes_existentes: contexto.todas_participacoes?.length || 0,
-        ja_participando: !!contexto.participacao_existente
-      });
 
       // 2️⃣ VALIDAÇÕES BÁSICAS (unificadas)
-      console.log(`🎯 [VALIDADOR-UNICO] 🔍 Executando validações básicas...`);
-      
       const validacaoBasica = await this.executarValidacoesBasicas(contexto);
       if (!validacaoBasica.valido) {
-        console.log(`🎯 [VALIDADOR-UNICO] ❌ Falha na validação básica: ${validacaoBasica.mensagem}`);
         return validacaoBasica;
       }
 
       // 3️⃣ CÁLCULO DE ESTRATÉGIA (nova lógica unificada)
-      console.log(`🎯 [VALIDADOR-UNICO] ⚡ Calculando estratégia de participação...`);
-      
       const estrategia = await this.calcularEstrategia(contexto);
-      
-      console.log(`🎯 [VALIDADOR-UNICO] 📊 Estratégia calculada: ${estrategia.estrategia}`);
-      console.log(`🎯 [VALIDADOR-UNICO] 💬 Mensagem: ${estrategia.mensagem}`);
 
       // 4️⃣ VALIDAÇÕES ESPECÍFICAS POR ESTRATÉGIA
-      console.log(`🎯 [VALIDADOR-UNICO] 🔬 Validações específicas para: ${estrategia.estrategia}`);
-      
       const validacaoEspecifica = await this.validarEstrategia(contexto, estrategia);
-      
-      console.log(`🎯 [VALIDADOR-UNICO] ✅ Validação concluída com sucesso!`);
-      console.log(`🎯 [VALIDADOR-UNICO] 🏁 Resultado final:`, validacaoEspecifica);
 
       return validacaoEspecifica;
 
     } catch (error) {
-      console.error('🚨 [VALIDADOR-UNICO] Erro interno:', error);
       
       return {
         valido: false,
@@ -160,7 +131,7 @@ export class ValidadorUnico {
     tipo: string
   ): Promise<ContextoValidacao> {
     
-    console.log(`📊 [CARREGAR-CONTEXTO] Operação: ${operacaoId}, Membro: ${membroId}`);
+
 
     // Carregar operação
     const { data: operacao, error: operacaoError } = await supabase
@@ -224,7 +195,7 @@ export class ValidadorUnico {
    */
   private async executarValidacoesBasicas(contexto: ContextoValidacao): Promise<ResultadoValidacao> {
     
-    console.log(`🔍 [VALIDACOES-BASICAS] Iniciando...`);
+
 
     // Validação 1: Operação ativa
     if (!contexto.operacao.ativa) {
@@ -287,7 +258,7 @@ export class ValidadorUnico {
       };
     }
 
-    console.log(`🔍 [VALIDACOES-BASICAS] ✅ Todas as validações básicas aprovadas`);
+
     
     return {
       valido: true,
@@ -306,8 +277,6 @@ export class ValidadorUnico {
    */
   private async calcularEstrategia(contexto: ContextoValidacao): Promise<ResultadoValidacao> {
     
-    console.log(`⚡ [CALCULAR-ESTRATEGIA] Status operação: ${contexto.operacao.status}`);
-
     // Calcular estatísticas atuais
     const participacoesConfirmadas = contexto.todas_participacoes.filter(p => 
       ['CONFIRMADO', 'ADICIONADO_SUP'].includes(p.estado_visual)
@@ -315,11 +284,6 @@ export class ValidadorUnico {
     
     const vagasDisponiveis = Math.max(0, contexto.operacao.limite_participantes - participacoesConfirmadas.length);
     const posicaoFilaEstimada = contexto.todas_participacoes.length + 1;
-
-    console.log(`⚡ [CALCULAR-ESTRATEGIA] 📊 Estatísticas:`);
-    console.log(`   - Confirmados: ${participacoesConfirmadas.length}/${contexto.operacao.limite_participantes}`);
-    console.log(`   - Vagas disponíveis: ${vagasDisponiveis}`);
-    console.log(`   - Posição fila estimada: ${posicaoFilaEstimada}`);
 
     const dadosCalculados = {
       participacoes_confirmadas: participacoesConfirmadas.length,
@@ -341,8 +305,7 @@ export class ValidadorUnico {
       if (vagasDisponiveis > 0) {
         dadosCalculados.pode_confirmar_diretamente = true;
         
-        console.log(`⚡ [CALCULAR-ESTRATEGIA] ✅ ESTRATÉGIA: CONFIRMACAO_DIRETA`);
-        console.log(`   - Motivo: Operação ATIVA + ${vagasDisponiveis} vaga(s) disponível(is)`);
+
         
         return {
           valido: true,
@@ -351,9 +314,6 @@ export class ValidadorUnico {
           dadosCalculados
         };
       } else {
-        console.log(`⚡ [CALCULAR-ESTRATEGIA] 📋 ESTRATÉGIA: ADICIONAR_FILA`);
-        console.log(`   - Motivo: Operação ATIVA mas sem vagas (${participacoesConfirmadas.length}/${contexto.operacao.limite_participantes})`);
-        
         return {
           valido: true,
           estrategia: 'ADICIONAR_FILA',
@@ -366,8 +326,7 @@ export class ValidadorUnico {
       // Operação AGUARDANDO_SOLICITACOES: SEMPRE vai para fila
       // Mesmo que haja vagas, respeita o processo de solicitação
       
-      console.log(`⚡ [CALCULAR-ESTRATEGIA] 📋 ESTRATÉGIA: ADICIONAR_FILA`);
-      console.log(`   - Motivo: Operação AGUARDANDO_SOLICITACOES (sempre fila, independente de vagas)`);
+
       
       return {
         valido: true,
@@ -378,8 +337,6 @@ export class ValidadorUnico {
     } 
     else {
       // Outros status (FINALIZADA, CANCELADA, etc.)
-      console.log(`⚡ [CALCULAR-ESTRATEGIA] ❌ ESTRATÉGIA: REJEITADO`);
-      console.log(`   - Motivo: Status inválido: ${contexto.operacao.status}`);
       
       return {
         valido: false,
@@ -401,7 +358,7 @@ export class ValidadorUnico {
     resultadoEstrategia: ResultadoValidacao
   ): Promise<ResultadoValidacao> {
     
-    console.log(`🔬 [VALIDAR-ESTRATEGIA] Estratégia: ${resultadoEstrategia.estrategia}`);
+
 
     switch (resultadoEstrategia.estrategia) {
       case 'CONFIRMACAO_DIRETA':
@@ -426,8 +383,6 @@ export class ValidadorUnico {
     resultado: ResultadoValidacao
   ): Promise<ResultadoValidacao> {
     
-    console.log(`✅ [VALIDAR-CONFIRMACAO] Validando confirmação direta...`);
-
     // Validação adicional: verificar se realmente há vagas
     // (proteção contra condições de corrida)
     const participacoesConfirmadas = contexto.todas_participacoes.filter(p => 
@@ -437,8 +392,6 @@ export class ValidadorUnico {
     const vagasAtuais = Math.max(0, contexto.operacao.limite_participantes - participacoesConfirmadas.length);
 
     if (vagasAtuais <= 0) {
-      console.log(`✅ [VALIDAR-CONFIRMACAO] ⚠️ Condição de corrida detectada - sem vagas`);
-      
       // Mudar estratégia para fila
       return {
         valido: true,
@@ -450,8 +403,6 @@ export class ValidadorUnico {
         }
       };
     }
-
-    console.log(`✅ [VALIDAR-CONFIRMACAO] ✅ Confirmação direta validada com sucesso`);
     
     return {
       ...resultado,
@@ -468,8 +419,6 @@ export class ValidadorUnico {
     resultado: ResultadoValidacao
   ): Promise<ResultadoValidacao> {
     
-    console.log(`📋 [VALIDAR-FILA] Validando adição à fila...`);
-
     // Validação: verificar se a fila não está muito grande
     const tamanhoFilaAtual = contexto.todas_participacoes.filter(p => 
       ['PENDENTE', 'NA_FILA'].includes(p.estado_visual)
@@ -478,8 +427,6 @@ export class ValidadorUnico {
     const limiteMaximoFila = contexto.operacao.limite_participantes * 3; // 3x o limite
 
     if (tamanhoFilaAtual >= limiteMaximoFila) {
-      console.log(`📋 [VALIDAR-FILA] ❌ Fila muito grande: ${tamanhoFilaAtual}/${limiteMaximoFila}`);
-      
       return {
         valido: false,
         estrategia: 'REJEITADO',
@@ -491,8 +438,6 @@ export class ValidadorUnico {
         }
       };
     }
-
-    console.log(`📋 [VALIDAR-FILA] ✅ Adição à fila validada com sucesso`);
     
     return {
       ...resultado,
@@ -504,28 +449,56 @@ export class ValidadorUnico {
   /**
    * 📊 MÉTODO UTILITÁRIO - ESTATÍSTICAS DA OPERAÇÃO
    * 
-   * Útil para dashboards e relatórios
+   * Útil para dashboards e relatórios (independente de membro específico)
    */
   async obterEstatisticasOperacao(operacaoId: number): Promise<any> {
-    console.log(`📊 [ESTATISTICAS] Operação: ${operacaoId}`);
 
-    const contexto = await this.carregarContextoCompleto(operacaoId, 1, 'SOLICITACAO'); // Membro dummy
 
-    const confirmados = contexto.todas_participacoes.filter(p => 
-      ['CONFIRMADO', 'ADICIONADO_SUP'].includes(p.estado_visual)
-    );
-    const pendentes = contexto.todas_participacoes.filter(p => 
-      ['PENDENTE', 'NA_FILA'].includes(p.estado_visual)
-    );
+    try {
+      // Carregar operação
+      const { data: operacao, error: operacaoError } = await supabase
+        .from('operacao')
+        .select('*')
+        .eq('id', operacaoId)
+        .single();
 
-    return {
-      operacao_id: operacaoId,
-      limite_participantes: contexto.operacao.limite_participantes,
-      confirmados: confirmados.length,
-      pendentes: pendentes.length,
-      vagas_disponíveis: Math.max(0, contexto.operacao.limite_participantes - confirmados.length),
-      status: contexto.operacao.status,
-      aceita_novas_participacoes: ['ATIVA', 'AGUARDANDO_SOLICITACOES'].includes(contexto.operacao.status)
-    };
+      if (operacaoError || !operacao) {
+        throw new Error(`Operação ${operacaoId} não encontrada`);
+      }
+
+      // Carregar todas as participações da operação
+      const { data: participacoes, error: participacoesError } = await supabase
+        .from('participacao')
+        .select('*')
+        .eq('operacao_id', operacaoId)
+        .eq('ativa', true)
+        .order('data_participacao', { ascending: true });
+
+      if (participacoesError) {
+        throw new Error('Erro ao carregar participações');
+      }
+
+      const todasParticipacoes = participacoes || [];
+      
+      const confirmados = todasParticipacoes.filter(p => 
+        ['CONFIRMADO', 'ADICIONADO_SUP'].includes(p.estado_visual)
+      );
+      const pendentes = todasParticipacoes.filter(p => 
+        ['PENDENTE', 'NA_FILA'].includes(p.estado_visual)
+      );
+
+      return {
+        operacao_id: operacaoId,
+        limite_participantes: operacao.limite_participantes,
+        confirmados: confirmados.length,
+        pendentes: pendentes.length,
+        vagas_disponíveis: Math.max(0, operacao.limite_participantes - confirmados.length),
+        status: operacao.status,
+        aceita_novas_participacoes: ['ATIVA', 'AGUARDANDO_SOLICITACOES'].includes(operacao.status)
+      };
+    } catch (error) {
+      console.error('❌ [ESTATISTICAS] Erro:', error);
+      throw error;
+    }
   }
 } 

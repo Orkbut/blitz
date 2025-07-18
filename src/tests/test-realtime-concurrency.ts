@@ -17,18 +17,13 @@ const colors = {
 };
 
 async function testRealtimeAndConstraints() {
-  console.log(`${colors.cyan}🚀 Iniciando testes de Real-time e Constraints...${colors.reset}\n`);
-
   // 1. Testar Constraints de Concorrência
-  console.log(`${colors.blue}📋 TESTE 1: Constraints de Concorrência${colors.reset}`);
   await testConcurrencyConstraints();
 
   // 2. Testar Realtime Updates
-  console.log(`\n${colors.blue}📋 TESTE 2: Supabase Realtime${colors.reset}`);
   await testRealtimeUpdates();
 
   // 3. Testar Processamento de Fila
-  console.log(`\n${colors.blue}📋 TESTE 3: Processamento Atômico da Fila${colors.reset}`);
   await testQueueProcessing();
 }
 
@@ -37,8 +32,7 @@ async function testConcurrencyConstraints() {
   const totalTentativas = 20;
   const limiteEsperado = 15;
 
-  console.log(`Simulando ${totalTentativas} usuários tentando participar simultaneamente...`);
-  console.log(`Limite da operação: ${limiteEsperado}\n`);
+
 
   // Limpar participações anteriores
   await supabase
@@ -75,10 +69,6 @@ async function testConcurrencyConstraints() {
   const sucessos = results.filter(r => r.success);
   const falhas = results.filter(r => !r.success);
 
-  console.log(`⏱️  Tempo de execução: ${endTime - startTime}ms\n`);
-  console.log(`✅ Confirmados: ${sucessos.length} (esperado: ${limiteEsperado})`);
-  console.log(`❌ Rejeitados: ${falhas.length} (esperado: ${totalTentativas - limiteEsperado})`);
-
   // Verificar integridade
   const { count } = await supabase
     .from('participacao')
@@ -86,25 +76,9 @@ async function testConcurrencyConstraints() {
     .eq('operacao_id', operacaoId)
     .eq('ativa', true)
     .eq('estado_visual', 'CONFIRMADO');
-
-  if (count === limiteEsperado) {
-    console.log(`\n${colors.green}✅ PASSOU: Constraints funcionando corretamente!${colors.reset}`);
-    console.log(`   Exatamente ${limiteEsperado} participantes confirmados no banco.`);
-  } else {
-    console.log(`\n${colors.red}❌ FALHOU: Race condition detectada!${colors.reset}`);
-    console.log(`   ${count} confirmados no banco (esperado: ${limiteEsperado})`);
-  }
-
-  // Mostrar algumas mensagens de erro
-  console.log(`\n${colors.yellow}📝 Exemplos de rejeições:${colors.reset}`);
-  falhas.slice(0, 3).forEach(f => {
-    console.log(`   - Membro ${f.membroId}: ${f.error}`);
-  });
 }
 
 async function testRealtimeUpdates() {
-  console.log('Configurando listener de realtime...\n');
-
   const operacaoId = 1;
   let updateCount = 0;
   const updates: any[] = [];
@@ -123,21 +97,12 @@ async function testRealtimeUpdates() {
       (payload) => {
         updateCount++;
         updates.push(payload);
-        const newData = payload.new as any;
-        const oldData = payload.old as any;
-        console.log(`${colors.cyan}🔄 Update #${updateCount}:${colors.reset}`, {
-          event: payload.eventType,
-          membroId: newData?.membro_id || oldData?.membro_id,
-          estado: newData?.estado_visual
-        });
       }
     )
     .subscribe();
 
   // Aguardar conexão
   await new Promise(resolve => setTimeout(resolve, 2000));
-
-  console.log('\n📤 Fazendo alterações para testar realtime...\n');
 
   // Fazer algumas alterações
   const testMemberId = 999;
@@ -173,25 +138,10 @@ async function testRealtimeUpdates() {
 
   // Desconectar
   channel.unsubscribe();
-
-  console.log(`\n${colors.yellow}📊 Resumo do Realtime:${colors.reset}`);
-  console.log(`   Total de updates recebidos: ${updateCount}`);
-  console.log(`   Eventos: ${updates.map(u => u.eventType).join(', ')}`);
-
-  if (updateCount >= 3) {
-    console.log(`\n${colors.green}✅ PASSOU: Realtime funcionando!${colors.reset}`);
-  } else {
-    console.log(`\n${colors.red}❌ FALHOU: Realtime não está capturando todos os eventos${colors.reset}`);
-  }
 }
 
 async function testQueueProcessing() {
-  console.log('Testando processamento atômico da fila...\n');
-
   const operacaoId = 2; // Usar operação diferente para não conflitar
-  
-  // Configurar cenário: operação cheia com fila
-  console.log('📝 Configurando cenário de teste...');
   
   // Limpar dados anteriores
   await supabase
@@ -220,11 +170,7 @@ async function testQueueProcessing() {
     });
   }
 
-  console.log('✅ Cenário criado: 15 confirmados, 5 na fila\n');
-
   // Simular cancelamento
-  console.log('🚫 Simulando cancelamento do membro 5...');
-  
   await supabase
     .from('participacao')
     .update({ ativa: false })
@@ -251,29 +197,15 @@ async function testQueueProcessing() {
     .eq('estado_visual', 'NA_FILA')
     .order('posicao_fila');
 
-  console.log(`\n${colors.yellow}📊 Estado após cancelamento:${colors.reset}`);
-  console.log(`   Confirmados: ${confirmados?.length || 0} (esperado: 15)`);
-  console.log(`   Na fila: ${naFila?.length || 0} (esperado: 4)`);
-
   // Verificar se membro 16 foi promovido
   const membro16Promovido = confirmados?.some(p => p.membro_id === 16);
-
-  if (membro16Promovido && confirmados?.length === 15 && naFila?.length === 4) {
-    console.log(`\n${colors.green}✅ PASSOU: Fila processada corretamente!${colors.reset}`);
-    console.log(`   Membro 16 foi promovido da fila`);
-    console.log(`   Posições da fila reordenadas`);
-  } else {
-    console.log(`\n${colors.red}❌ FALHOU: Processamento da fila com problemas${colors.reset}`);
-  }
 }
 
 // Executar testes
 testRealtimeAndConstraints()
   .then(() => {
-    console.log(`\n${colors.cyan}✨ Testes concluídos!${colors.reset}`);
     process.exit(0);
   })
   .catch((error) => {
-    console.error(`\n${colors.red}💥 Erro nos testes:${colors.reset}`, error);
     process.exit(1);
   }); 

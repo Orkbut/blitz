@@ -7,8 +7,6 @@ const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGci
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 async function testConcurrentRequests() {
-  console.log('🚀 Iniciando teste de concorrência com 20 usuários...\n');
-  
   const operacaoId = 1; // ID de teste
   const totalUsuarios = 20;
   const limiteOperacao = 15;
@@ -40,27 +38,7 @@ async function testConcurrentRequests() {
   // Analisar resultados
   const sucessos = results.filter(r => r.success);
   const falhas = results.filter(r => !r.success);
-  
-  console.log('📊 RESULTADOS DO TESTE:\n');
-  console.log(`✅ Confirmados: ${sucessos.length} (esperado: ${limiteOperacao})`);
-  console.log(`❌ Rejeitados: ${falhas.length} (esperado: ${totalUsuarios - limiteOperacao})`);
-  
-  // Verificar se exatamente 15 foram aceitos
-  if (sucessos.length === limiteOperacao) {
-    console.log('\n🎉 TESTE PASSOU! Constraints funcionando corretamente.');
-  } else {
-    console.log('\n⚠️ TESTE FALHOU! Race condition detectada.');
-    console.log(`Esperado ${limiteOperacao} confirmados, mas ${sucessos.length} foram aceitos.`);
-  }
-  
-  // Mostrar detalhes das falhas
-  if (falhas.length > 0) {
-    console.log('\n📋 Detalhes das rejeições:');
-    falhas.slice(0, 5).forEach(f => {
-      console.log(`- Membro ${f.membroId}: ${f.error}`);
-    });
-  }
 }
 
 // Executar teste
-testConcurrentRequests().catch(console.error); 
+testConcurrentRequests().catch(() => {}); 

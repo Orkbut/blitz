@@ -11,7 +11,9 @@ export async function GET(
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const regionalId = parseInt(params.id);
+    // ✅ CORREÇÃO: Await params para Next.js 15+
+    const resolvedParams = await params;
+    const regionalId = parseInt(resolvedParams.id);
 
     if (isNaN(regionalId)) {
       return NextResponse.json({
@@ -35,6 +37,7 @@ export async function GET(
     }
 
     // Buscar membros da regional com informações completas
+    // ✅ CORREÇÃO: Excluir admins globais da listagem regional
     const { data: membros, error: membrosError } = await supabase
       .from('servidor')
       .select(`
@@ -49,6 +52,7 @@ export async function GET(
       `)
       .eq('regional_id', regionalId)
       .eq('ativo', true)
+      .eq('is_admin_global', false)  // ✅ EXCLUIR ADMINS GLOBAIS DAS REGIONAIS
       .order('nome', { ascending: true });
 
     if (membrosError) {

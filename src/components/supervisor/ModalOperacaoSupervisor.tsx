@@ -15,8 +15,10 @@
  * - Esta exceção é uma regra de negócio válida e intencional
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Operacao } from '@/shared/types';
+import { useRealtimeCentralized } from '@/hooks/useRealtimeCentralized';
+import { getSupervisorHeaders } from '@/lib/auth-utils';
 import styles from './TimelineOperacoes.module.css';
 
 interface ModalOperacaoSupervisorProps {
@@ -34,6 +36,65 @@ export const ModalOperacaoSupervisor: React.FC<ModalOperacaoSupervisorProps> = (
   onDefinirHorario,
   onExcluirOperacao
 }) => {
+  
+  // ✅ ESTADO LOCAL: Operação atualizada via realtime
+  const [operacaoAtualizada, setOperacaoAtualizada] = useState(operacao);
+
+  // ✅ FUNÇÃO DE RELOAD SILENCIOSO: Específica para uma operação
+  const reloadOperacaoSilenciosa = useCallback(async (operacaoId: number) => {
+    try {
+      const response = await fetch('/api/unified/operacoes?portal=supervisor', {
+        headers: getSupervisorHeaders()
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        const operacaoEncontrada = result.data.find((op: any) => op.id === operacaoId);
+        if (operacaoEncontrada) {
+          setOperacaoAtualizada(prev => ({
+            ...prev,
+            participantes_confirmados: operacaoEncontrada.participantes_confirmados || 0,
+            total_solicitacoes: operacaoEncontrada.total_solicitacoes || 0,
+            ativa: operacaoEncontrada.ativa,
+            excluida_temporariamente: operacaoEncontrada.excluida_temporariamente
+          }));
+        }
+      }
+    } catch (error) {
+      // Erro silencioso
+    }
+  }, []);
+
+  // ✅ HOOK REALTIME UNIFICADO: Específico para esta operação
+  useRealtimeCentralized({
+    enabled: true,
+    debug: false,
+    onOperacaoChange: useCallback((payload: any) => {
+      if (payload.eventType === 'UPDATE' && payload.new.id === operacao.id) {
+
+
+        setOperacaoAtualizada(prev => ({
+          ...prev,
+          participantes_confirmados: payload.new.participantes_confirmados || 0,
+          total_solicitacoes: payload.new.total_solicitacoes || 0,
+          ativa: payload.new.ativa,
+          excluida_temporariamente: payload.new.excluida_temporariamente,
+          updated_at: payload.new.updated_at
+        }));
+      }
+    }, [operacao.id]),
+    onParticipacaoChange: useCallback((payload: any) => {
+      const operacaoId = payload.new?.operacao_id || payload.old?.operacao_id;
+      if (operacaoId === operacao.id) {
+
+        
+        // Reload silencioso específico para esta operação
+        setTimeout(() => {
+          reloadOperacaoSilenciosa(operacao.id);
+        }, 1000);
+      }
+    }, [operacao.id, reloadOperacaoSilenciosa])
+  });
   
   // Controle de scroll do modal
   useEffect(() => {
@@ -114,21 +175,21 @@ export const ModalOperacaoSupervisor: React.FC<ModalOperacaoSupervisorProps> = (
             <div className={styles.modalEstatisticas}>
               <div className={styles.estatItem}>
                 <span className={styles.estatValor}>
-                  {operacao.participantes_confirmados || 0}/{operacao.limite_participantes}
+                  {operacaoAtualizada.participantes_confirmados || 0}/{operacaoAtualizada.limite_participantes}
                 </span>
                 <span className={styles.estatLabel}>Confirmados</span>
               </div>
               
               <div className={styles.estatItem}>
                 <span className={styles.estatValor}>
-                  {operacao.pessoas_na_fila || 0}
+                  {operacaoAtualizada.pessoas_na_fila || 0}
                 </span>
                 <span className={styles.estatLabel}>Na Fila</span>
               </div>
               
               <div className={styles.estatItem}>
                 <span className={styles.estatValor}>
-                  {Math.max(0, (operacao.total_participantes || 0) - (operacao.participantes_confirmados || 0) - (operacao.pessoas_na_fila || 0))}
+                  {operacaoAtualizada.total_solicitacoes || 0}
                 </span>
                 <span className={styles.estatLabel}>Solicitações</span>
               </div>

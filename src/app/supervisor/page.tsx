@@ -11,9 +11,9 @@ import { CriarJanelaModal } from '@/components/supervisor/CriarJanelaModal';
 import { CriarOperacaoModal } from '@/components/supervisor/CriarOperacaoModal';
 import { CalendarioSupervisor } from '@/components/supervisor/CalendarioSupervisor';
 import { ModalOperacaoSupervisor } from '@/components/supervisor/ModalOperacaoSupervisor';
-import TimelineOperacoes from '@/components/supervisor/TimelineOperacoes';
+
 import { ElegantPageLoader } from '@/shared/components/ui/LoadingSpinner';
-import { getSupervisorContext, getSupervisorHeaders } from '@/lib/auth-utils';
+import { formatarDataBR, formatarDataHoraCompleta, obterDataAtualIguatu, getSupervisorContext, getSupervisorHeaders } from '@/lib/auth-utils';
 
 export default function SupervisorPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -110,80 +110,15 @@ export default function SupervisorPage() {
 
   // ✅ STATE PARA MODAIS
 
-  const [showGerenciarMembrosModal, setShowGerenciarMembrosModal] = useState(false);
   const [operacaoParaGerenciar, setOperacaoParaGerenciar] = useState<any>(null);
   const [showCriarJanelaModal, setShowCriarJanelaModal] = useState(false);
   const [showCriarOperacaoModal, setShowCriarOperacaoModal] = useState(false);
   const [operacaoSelecionadaModal, setOperacaoSelecionadaModal] = useState<any>(null);
-  const [modoVisualizacao, setModoVisualizacao] = useState<'calendario' | 'timeline'>('calendario');
   
   // ✅ NOVO: STATE PARA MODAL DE HORÁRIO
   const [showHorarioPopover, setShowHorarioPopover] = useState<number | null>(null);
   const [operacaoParaHorario, setOperacaoParaHorario] = useState<any>(null);
   const horarioButtonRefs = useRef<{ [key: number]: React.RefObject<HTMLButtonElement> }>({});
-
-  // ✅ FUNÇÃO PARA FORMATAR DATA NO PADRÃO BRASILEIRO
-  const formatarDataBR = (dataISO: string): string => {
-    if (!dataISO) return '';
-    try {
-      const [ano, mes, dia] = dataISO.split('T')[0].split('-');
-      return `${dia}/${mes}/${ano}`;
-    } catch {
-      return dataISO; // Retorna original se houver erro
-    }
-  };
-
-  // ✅ FUNÇÃO PARA FORMATAR DATA COMPLETA COM DIA DA SEMANA (TIMEZONE SAFE)
-  const formatarDataCompleta = (dataISO: string) => {
-    try {
-      // ✅ CORREÇÃO: Extrair partes da data sem problemas de timezone
-      const dateOnly = dataISO.split('T')[0]; // Remove horário se houver
-      const [ano, mes, dia] = dateOnly.split('-').map(Number);
-      
-      // ✅ CRIAR DATA LOCAL SEM PROBLEMAS DE UTC
-      const date = new Date(ano, mes - 1, dia); // mes-1 porque Date usa 0-11 para meses
-      
-      const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-      const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-      
-      const diaSemana = diasSemana[date.getDay()];
-      const diaFormatado = dia.toString().padStart(2, '0');
-      const mesFormatado = meses[mes - 1]; // mes-1 para acessar array corretamente
-      
-      return {
-        diaMes: diaFormatado,
-        mes: mesFormatado,
-        ano: ano,
-        diaSemana: diaSemana,
-        dataCompleta: `${diaFormatado}/${mesFormatado.toLowerCase()}/${ano}`,
-        diaSemanaAbrev: diaSemana.substring(0, 3).toUpperCase()
-      };
-    } catch (error) {
-      console.error('❌ [TIMEZONE-SAFE] Erro ao formatar data:', error, 'Data recebida:', dataISO);
-      // ✅ FALLBACK: Tentar extrair pelo menos o dia e mês da string
-      const match = dataISO.match(/(\d{4})-(\d{2})-(\d{2})/);
-      if (match) {
-        const [_, ano, mes, dia] = match;
-        return {
-          diaMes: dia,
-          mes: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'][parseInt(mes) - 1] || 'Jan',
-          ano: parseInt(ano),
-          diaSemana: 'Indefinido',
-          dataCompleta: `${dia}/${mes}/${ano}`,
-          diaSemanaAbrev: 'N/A'
-        };
-      }
-      
-      return {
-        diaMes: '??',
-        mes: 'Err',
-        ano: new Date().getFullYear(),
-        diaSemana: 'Erro',
-        dataCompleta: dataISO,
-        diaSemanaAbrev: 'ERR'
-      };
-    }
-  };
 
   useEffect(() => {
     carregarDados();
@@ -215,468 +150,124 @@ export default function SupervisorPage() {
     }
   };
 
-  const carregarJanelas = async () => {
-    try {
-      // ✅ ISOLAMENTO POR REGIONAL: Usar headers com contexto do supervisor
-      const response = await fetch('/api/supervisor/janelas-operacionais', {
-        headers: getSupervisorHeaders()
-      });
-      const result = await response.json();
-      
-      if (result.success) {
-        setJanelas(result.data);
-      } else {
-        console.error('❌ Erro no resultado:', result.error);
-      }
-    } catch (error) {
-      console.error('❌ Erro ao carregar janelas:', error);
-    }
-  };
-
-  const carregarOperacoes = async () => {
-    try {
-      const response = await fetch('/api/unified/operacoes?portal=supervisor');
-      const result = await response.json();
-      
-              if (result.success) {
-        // ✅ MAPEAMENTO PARA INTERFACE CONSOLIDADA
-        const operacoesMapeadas: Operacao[] = result.data.map((op: any) => ({
-          id: op.id,
-          data_operacao: op.dataOperacao || op.data_operacao,
-          modalidade: op.modalidade,
-          tipo: op.tipo,
-          turno: op.turno,
-          horario: op.horario,
-          limite_participantes: op.limiteParticipantes || op.limite_participantes,
-          status: op.statusReal || op.status,
-          ativa: op.ativa ?? true,
-          criado_em: op.criadoEm || op.criado_em,
-          janela_id: op.janela?.id,
-          janela: op.janela,
-          regional: op.regional,
-          // ✅ PROPRIEDADES OPCIONAIS
-          ...(op.excluida_temporariamente !== undefined && { excluida_temporariamente: op.excluida_temporariamente }),
-          // ✅ ADICIONANDO PROPRIEDADES DE PARTICIPAÇÃO
-          participantes_confirmados: op.participantes_confirmados || 0,
-          pessoas_na_fila: op.pessoas_na_fila || 0
-        }));
-        
-        setOperacoes(operacoesMapeadas);
-      } else {
-        console.error('❌ Erro no resultado:', result.error);
-      }
-    } catch (error) {
-      console.error('❌ Erro ao carregar operações:', error);
-    }
-  };
-
-  const carregarSolicitacoes = async () => {
-    try {
-      const response = await fetch('/api/supervisor/solicitacoes');
-      const result = await response.json();
-      
-      if (result.success) {
-        // ✅ CORREÇÃO: API retorna dados em result.data.todas com campos extras
-        const solicitacoesDados = result.data.todas || result.data || [];
-        
-        // ✅ Mapear campos extras para interface
-        const solicitacoesFormatadas = solicitacoesDados.map((s: any) => ({
-          id: s.id,
-          membroNome: s.membroNome,
-          membroId: s.membroId || s.membro_id,
-          operacaoId: s.operacaoId || s.operacao_id,
-          membroMatricula: s.membroMatricula || s.matricula,
-          operacao: s.operacao,
-          dataOperacao: s.dataOperacao,
-          turno: s.turno,
-          status: s.status,
-          estadoVisual: s.estadoVisual || s.estado_visual || 'PENDENTE',
-          timestamp: s.timestamp,
-          // ✅ NOVOS CAMPOS PARA CONTROLE FIFO
-          posicaoFila: s.posicaoFila,
-          isNaFila: s.isNaFila,
-          isProximoDaFila: s.isProximoDaFila,
-          operacaoDetalhes: s.operacaoDetalhes
-        }));
-        
-        setSolicitacoes(solicitacoesFormatadas);
-        
-        // Log apenas se houver mudança no número de solicitações
-        if (solicitacoesFormatadas.length !== solicitacoes.length) {
-          // Removido log desnecessário para produção
-        }
-      } else {
-        console.error('❌ Erro no resultado:', result.error);
-        setSolicitacoes([]); // Limpar em caso de erro
-      }
-    } catch (error) {
-      console.error('❌ Erro ao carregar solicitações:', error);
-      mostrarAvisoElegante('erro', 'Erro de Conexão', 'Não foi possível carregar as solicitações.');
-    } finally {
-      // Carregamento finalizado
-    }
-  };
-
-  // ✅ CARREGAR LIMITES DA JANELA PARA HERANÇA AUTOMÁTICA
-  const carregarLimitesJanela = async (janelaId: string) => {
-    if (!janelaId) {
-      setLimitesJanela({});
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/supervisor/operacoes?janelaId=${janelaId}`);
-      const result = await response.json();
-      
-      if (result.success) {
-        setLimitesJanela(result.data);
-        
-        // ✅ HERANÇA AUTOMÁTICA: Aplicar limites no formulário
-        setNovaOperacao(prev => ({
-          ...prev,
-          // Herdar modalidade se for única
-          modalidade: result.data.configuracaoHerdada?.modalidadeUnica || prev.modalidade,
-          // Herdar limite padrão
-          limite: result.data.limitesParticipantes?.padrao || prev.limite
-        }));
-        
-        console.log('✅ Limites da janela carregados:', result.data);
-      } else {
-        console.error('❌ Erro ao carregar limites:', result.error);
-        setLimitesJanela({});
-      }
-    } catch (error) {
-      console.error('❌ Erro ao carregar limites da janela:', error);
-      setLimitesJanela({});
-    }
-  };
-
-  // ✅ CRIAR JANELA OPERACIONAL (FASE 0 OBRIGATÓRIA)
-  const criarJanelaOperacional = async () => {
-    if (!novaJanela.dataInicio || !novaJanela.dataFim || novaJanela.modalidades.length === 0) {
-      mostrarAvisoElegante('aviso', 'Campos Obrigatórios', 'Preencha todos os campos obrigatórios: datas e modalidades.');
-        return;
-      }
-
-    setLoading(true);
-    try {
-      const response = await fetch('/api/supervisor/janelas-operacionais', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(novaJanela)
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        mostrarAvisoElegante('sucesso', 'Janela Criada!', 'Janela operacional criada com sucesso!');
-        setNovaJanela({
-          dataInicio: '',
-          dataFim: '',
-          modalidades: [],
-          limiteMin: 2,
-          limiteMax: 30
-        });
-        await carregarJanelas();
-      } else {
-        mostrarAvisoElegante('erro', 'Erro ao Criar', result.error);
-      }
-    } catch (error) {
-      console.error('Erro ao criar janela:', error);
-      mostrarAvisoElegante('erro', 'Erro de Conexão', 'Não foi possível criar a janela operacional.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ✅ CRIAR OPERAÇÕES (UMA OU MÚLTIPLAS)
-  const criarOperacoes = async () => {
-    if (!novaOperacao.janelaId || selectedDates.length === 0 || !novaOperacao.modalidade) {
-      mostrarAvisoElegante('aviso', 'Campos Obrigatórios', 'Preencha todos os campos: janela, data(s) e modalidade.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const operacoesCriadas = [];
-      const operacoesComErro = [];
-
-      // Criar operações sequencialmente
-      for (const data of selectedDates) {
-        try {
-          const response = await fetch('/api/supervisor/operacoes', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              ...novaOperacao,
-              data: data
-            })
-          });
-
-          const result = await response.json();
-
-          if (result.success) {
-            operacoesCriadas.push(data);
-          } else {
-            operacoesComErro.push({ data, error: result.error });
-          }
-        } catch (error) {
-          operacoesComErro.push({ data, error: 'Erro de conexão' });
-        }
-      }
-
-      // Mostrar resultado
-      if (operacoesCriadas.length > 0) {
-        const mensagem = selectedDates.length === 1 
-          ? 'Operação criada com sucesso!' 
-          : `${operacoesCriadas.length} operações criadas com sucesso!`;
-        mostrarAvisoElegante('sucesso', 'Sucesso!', mensagem);
-      }
-
-      if (operacoesComErro.length > 0) {
-        const mensagem = `${operacoesComErro.length} operação(ões) falharam. Primeira falha: ${operacoesComErro[0].error}`;
-        mostrarAvisoElegante('erro', 'Algumas Operações Falharam', mensagem);
-      }
-
-      // Limpar seleções
-      setSelectedDates([]);
-              setNovaOperacao({
-          janelaId: '',
-          data: '',
-          modalidade: '',
-          tipo: 'PLANEJADA',
-          turno: '',
-          limite: 15
-        });
-      
-      await carregarOperacoes();
-    } catch (error) {
-      console.error('Erro ao criar operações:', error);
-      mostrarAvisoElegante('erro', 'Erro de Conexão', 'Não foi possível criar as operações.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ✅ FUNÇÃO PARA CANCELAR SELEÇÃO
-  const cancelarSelecao = () => {
-    setSelectedDates([]);
-  };
-
-  // ✅ PROCESSAR SOLICITAÇÃO (APROVAR/REJEITAR)
-  // ✅ FUNÇÃO MELHORADA PARA PROCESSAR SOLICITAÇÕES
-  const processarSolicitacao = async (solicitacaoId: number, acao: 'aprovar' | 'rejeitar', motivo?: string) => {
-    const solicitacao = solicitacoes.find(s => s.id === solicitacaoId);
+  // ✅ CALLBACK MEMOIZADO PARA CARREGAR OPERAÇÕES
+  const carregarOperacoes = useCallback(async () => {
+    if (activeTab !== 'operacoes') return;
     
-    if (acao === 'rejeitar' && !motivo) {
-      const motivoPrompt = prompt('Motivo da rejeição:');
-      if (!motivoPrompt) {
-        mostrarAvisoElegante('aviso', 'Motivo Obrigatório', 'Por favor, informe o motivo da rejeição.');
-        return;
-      }
-      motivo = motivoPrompt;
-    }
-
-    // ✅ SUPERVISOR TEM PODER TOTAL: Pode aprovar qualquer solicitação
-    // Não há validações restritivas
-
-    // ✅ APROVAÇÃO NORMAL (apenas PENDENTE/AGUARDANDO_SUPERVISOR)
-    await executarProcessamento(solicitacaoId, acao, motivo || '');
-  };
-
-  // ✅ FUNÇÃO AUXILIAR PARA EXECUTAR O PROCESSAMENTO
-  const executarProcessamento = async (
-    solicitacaoId: number, 
-    acao: 'aprovar' | 'rejeitar', 
-    motivo: string = '', 
-    justificativaQuebraFifo: string = ''
-  ) => {
     setLoading(true);
     try {
-      // ✅ Usar API PUT específica para processar individual
-      const response = await fetch(`/api/supervisor/solicitacoes/${solicitacaoId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ acao, motivo, justificativaQuebraFifo })
+      const response = await fetch('/api/unified/operacoes?portal=supervisor', {
+        headers: getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL: Contexto automático do supervisor
       });
-
-      const result = await response.json();
-
-      if (result.success) {
-        mostrarAvisoElegante('sucesso', 'Sucesso!', 
-          result.message || `Solicitação ${acao === 'aprovar' ? 'aprovada' : 'rejeitada'} com sucesso!`);
-        
-        // ✅ Limpar states relacionados
-        setMostrandoJustificativa(prev => ({ ...prev, [solicitacaoId]: false }));
-        setJustificativasFifo(prev => ({ ...prev, [solicitacaoId]: '' }));
-        
-        await carregarSolicitacoes();
-      } else {
-        mostrarAvisoElegante('erro', 'Erro ao Processar', result.error);
-      }
-    } catch (error) {
-      console.error('Erro ao processar solicitação:', error);
-      mostrarAvisoElegante('erro', 'Erro de Conexão', 'Não foi possível processar a solicitação. Tente novamente.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ✅ ENVIAR MENSAGEM REGIONAL
-  const enviarMensagemRegional = async () => {
-    if (!novaMensagem.conteudo.trim()) {
-      mostrarAvisoElegante('aviso', 'Campo Obrigatório', 'O conteúdo da mensagem é obrigatório.');
-      return;
-    }
-
-    if (novaMensagem.conteudo.length > 500) {
-      mostrarAvisoElegante('aviso', 'Limite Excedido', 'A mensagem deve ter no máximo 500 caracteres.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await fetch('/api/comunicacao/mensagens-regionais', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(novaMensagem)
-      });
-
       const result = await response.json();
       
       if (result.success) {
-        mostrarAvisoElegante('sucesso', 'Mensagem Enviada!', 'Mensagem regional enviada com sucesso!');
-        setNovaMensagem({ conteudo: '', prazoExpiracao: 7 });
-      } else {
-        mostrarAvisoElegante('erro', 'Erro ao Enviar', result.error);
+        setOperacoes(result.data || []);
       }
     } catch (error) {
-      console.error('Erro ao enviar mensagem:', error);
-      mostrarAvisoElegante('erro', 'Erro de Conexão', 'Não foi possível enviar a mensagem.');
+      console.error('Erro ao carregar operações:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTab]);
 
-  // ✅ EXCLUIR JANELA OPERACIONAL (CONFIRMAÇÃO SIMPLES)
-  const excluirJanelaOperacional = async (janelaId: number) => {
-    // ✅ CONFIRMAÇÃO ÚNICA E SIMPLES
+  // ✅ CALLBACK MEMOIZADO PARA CARREGAR JANELAS COM CONTEXTO CORRETO
+  const carregarJanelas = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/supervisor/janelas-operacionais', {
+        headers: getSupervisorHeaders() // ✅ CONTEXTO AUTOMÁTICO DO SUPERVISOR LOGADO
+      });
+      const result = await response.json();
+      
+      if (result.success) {
+        setJanelas(result.data || []);
+      } else {
+        mostrarAvisoElegante('erro', 'Erro ao Carregar', result.error || 'Erro ao carregar janelas');
+      }
+    } catch (error) {
+      console.error('Erro ao carregar janelas:', error);
+      mostrarAvisoElegante('erro', 'Erro de Conexão', 'Não foi possível carregar as janelas.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // ✅ NOVA FUNÇÃO: EXCLUIR JANELA OPERACIONAL COM AUTENTICAÇÃO CORRETA
+  const excluirJanela = async (janelaId: number, periodo: string) => {
     const confirmacao = confirm(
-      `⚠️ EXCLUIR JANELA ${janelaId}?\n\n` +
-      `Isso irá deletar PERMANENTEMENTE:\n` +
-      `• Todas as operações da janela\n` +
-      `• Todas as participações dos membros\n` +
-      `• A janela operacional completa\n\n` +
-      `❌ Esta ação NÃO pode ser desfeita!\n\n` +
-      `Tem certeza que deseja continuar?`
+      `⚠️ EXCLUIR JANELA OPERACIONAL #${janelaId}?\n\n` +
+      `Período: ${periodo}\n\n` +
+      `Esta ação irá:\n` +
+      `• Excluir PERMANENTEMENTE a janela\n` +
+      `• Remover TODAS as operações da janela\n` +
+      `• Cancelar TODAS as participações\n` +
+      `• Remover TODOS os eventos relacionados\n\n` +
+      `⚠️ ESTA AÇÃO NÃO PODE SER DESFEITA!\n\n` +
+      `Tem certeza absoluta que deseja continuar?`
     );
 
     if (!confirmacao) return;
+
+    // Confirmação dupla para operação crítica
+    const confirmacaoFinal = confirm(
+      `🚨 ÚLTIMA CONFIRMAÇÃO!\n\n` +
+      `Você confirma a EXCLUSÃO PERMANENTE da Janela #${janelaId}?\n\n` +
+      `TODO o histórico será perdido para sempre!`
+    );
+
+    if (!confirmacaoFinal) return;
 
     setLoading(true);
     try {
       const response = await fetch(`/api/supervisor/janelas-operacionais?id=${janelaId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: getSupervisorHeaders() // ✅ CONTEXTO AUTOMÁTICO: X-Supervisor-Id e X-Regional-Id
       });
 
       const result = await response.json();
       
       if (result.success) {
-        const impactoMsg = `Impacto: ${result.data.impacto.participacoesRemovidas} participações e ${result.data.impacto.operacoesRemovidas} operações removidas. Membros afetados: ${result.data.impacto.membrosAfetados.join(', ')}.`;
-        mostrarAvisoElegante('sucesso', 'Janela Excluída!', `${result.message} ${impactoMsg}`);
-        await carregarJanelas(); // ✅ Recarregar lista para mostrar janela removida
+        const impacto = result.data.impacto;
+        mostrarAvisoElegante(
+          'sucesso', 
+          'Janela Excluída!', 
+          `Janela #${janelaId} excluída com sucesso. ` +
+          `${impacto.operacoesRemovidas} operações, ` +
+          `${impacto.participacoesRemovidas} participações e ` +
+          `${impacto.eventosRemovidos} eventos foram removidos.`
+        );
+        await carregarJanelas(); // Recarregar lista
       } else {
-        mostrarAvisoElegante('erro', 'Erro ao Excluir', result.error);
+        mostrarAvisoElegante('erro', 'Erro ao Excluir', result.error || 'Erro desconhecido');
       }
     } catch (error) {
       console.error('Erro ao excluir janela:', error);
-      mostrarAvisoElegante('erro', 'Erro de Conexão', 'Não foi possível excluir a janela operacional.');
+      mostrarAvisoElegante('erro', 'Erro de Conexão', 'Não foi possível excluir a janela.');
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ EXCLUIR OPERAÇÃO TEMPORARIAMENTE
-  const excluirOperacaoTemporariamente = async (operacaoId: number) => {
-    const motivo = prompt(
-      `⚠️ EXCLUIR OPERAÇÃO ${operacaoId} TEMPORARIAMENTE?\n\n` +
-      `Esta ação irá:\n` +
-      `• Ocultar a operação para novos membros\n` +
-      `• Cancelar participações pendentes\n` +
-      `• Notificar membros confirmados\n` +
-      `• Permitir reativação em 24h\n\n` +
-      `Digite o motivo da exclusão (mínimo 10 caracteres):`
-    );
-
-    if (!motivo || motivo.trim().length < 10) {
-      mostrarAvisoElegante('aviso', 'Motivo Obrigatório', 'Digite um motivo com pelo menos 10 caracteres.');
-      return;
+  // ✅ USEEFFECTS PARA CARREGAMENTO INICIAL DOS DADOS
+  useEffect(() => {
+    if (isAuthenticated) {
+      carregarJanelas();
+      carregarOperacoes();
+      setInitialLoading(false);
     }
+  }, [isAuthenticated, carregarJanelas, carregarOperacoes]);
 
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/supervisor/operacoes/${operacaoId}/excluir-temporariamente`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          ...getSupervisorContext(),
-          motivo: motivo.trim() 
-        })
-      });
-
-      const result = await response.json();
-      
-      if (result.success) {
-        mostrarAvisoElegante('sucesso', 'Operação Excluída!', 
-          `Operação excluída temporariamente. ${result.data.participacoesAfetadas} participações afetadas.`);
-        await carregarOperacoes();
-      } else {
-        mostrarAvisoElegante('erro', 'Erro ao Excluir', result.error);
+  // ✅ CARREGAR DADOS QUANDO MUDA DE ABA
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (activeTab === 'operacoes') {
+        carregarOperacoes();
+      } else if (activeTab === 'janelas') {
+        carregarJanelas();
       }
-    } catch (error) {
-      console.error('Erro ao excluir operação:', error);
-      mostrarAvisoElegante('erro', 'Erro de Conexão', 'Não foi possível excluir a operação.');
-    } finally {
-      setLoading(false);
     }
-  };
-
-  // ✅ REATIVAR OPERAÇÃO
-  const reativarOperacao = async (operacaoId: number) => {
-    const confirmacao = confirm(
-      `✅ REATIVAR OPERAÇÃO ${operacaoId}?\n\n` +
-      `Esta ação irá:\n` +
-      `• Tornar a operação visível novamente\n` +
-      `• Permitir novas solicitações\n` +
-      `• Restaurar o status ativo\n\n` +
-      `Confirma a reativação?`
-    );
-
-    if (!confirmacao) return;
-
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/supervisor/operacoes/${operacaoId}/reativar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(getSupervisorContext())
-      });
-
-      const result = await response.json();
-      
-      if (result.success) {
-        mostrarAvisoElegante('sucesso', 'Operação Reativada!', 'Operação reativada com sucesso!');
-        await carregarOperacoes();
-      } else {
-        mostrarAvisoElegante('erro', 'Erro ao Reativar', result.error);
-      }
-    } catch (error) {
-      console.error('Erro ao reativar operação:', error);
-      mostrarAvisoElegante('erro', 'Erro de Conexão', 'Não foi possível reativar a operação.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [activeTab, isAuthenticated, carregarOperacoes, carregarJanelas]);
 
   // ✅ GERENCIAR REFS DOS BOTÕES DE HORÁRIO
   const getHorarioButtonRef = (operacaoId: number) => {
@@ -828,7 +419,89 @@ export default function SupervisorPage() {
     } finally {
       setLoading(false);
     }
-      };
+  };
+
+  // ✅ EXCLUIR OPERAÇÃO TEMPORARIAMENTE
+  const excluirOperacaoTemporariamente = async (operacaoId: number) => {
+    const motivo = prompt(
+      `⚠️ EXCLUIR OPERAÇÃO ${operacaoId} TEMPORARIAMENTE?\n\n` +
+      `Esta ação irá:\n` +
+      `• Ocultar a operação para novos membros\n` +
+      `• Cancelar participações pendentes\n` +
+      `• Notificar membros confirmados\n` +
+      `• Permitir reativação em 24h\n\n` +
+      `Digite o motivo da exclusão (mínimo 10 caracteres):`
+    );
+
+    if (!motivo || motivo.trim().length < 10) {
+      mostrarAvisoElegante('aviso', 'Motivo Obrigatório', 'Digite um motivo com pelo menos 10 caracteres.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/supervisor/operacoes/${operacaoId}/excluir-temporariamente`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          ...getSupervisorContext(),
+          motivo: motivo.trim() 
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        mostrarAvisoElegante('sucesso', 'Operação Excluída!', 
+          `Operação excluída temporariamente. ${result.data.participacoesAfetadas} participações afetadas.`);
+        await carregarOperacoes();
+      } else {
+        mostrarAvisoElegante('erro', 'Erro ao Excluir', result.error);
+      }
+    } catch (error) {
+      console.error('Erro ao excluir operação:', error);
+      mostrarAvisoElegante('erro', 'Erro de Conexão', 'Não foi possível excluir a operação.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ REATIVAR OPERAÇÃO
+  const reativarOperacao = async (operacaoId: number) => {
+    const confirmacao = confirm(
+      `✅ REATIVAR OPERAÇÃO ${operacaoId}?\n\n` +
+      `Esta ação irá:\n` +
+      `• Tornar a operação visível novamente\n` +
+      `• Permitir novas solicitações\n` +
+      `• Restaurar o status ativo\n\n` +
+      `Confirma a reativação?`
+    );
+
+    if (!confirmacao) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/supervisor/operacoes/${operacaoId}/reativar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(getSupervisorContext())
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        mostrarAvisoElegante('sucesso', 'Operação Reativada!', 'Operação reativada com sucesso!');
+        await carregarOperacoes();
+      } else {
+        mostrarAvisoElegante('erro', 'Erro ao Reativar', result.error);
+      }
+    } catch (error) {
+      console.error('Erro ao reativar operação:', error);
+      mostrarAvisoElegante('erro', 'Erro de Conexão', 'Não foi possível reativar a operação.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // ✅ CALLBACK MEMOIZADO PARA AVISOS
   const mostrarAvisoElegante = useCallback((tipo: 'erro' | 'sucesso' | 'aviso', titulo: string, mensagem: string) => {
@@ -841,7 +514,9 @@ export default function SupervisorPage() {
   // ✅ CALLBACK MEMOIZADO PARA CARREGAR OPERAÇÕES
   const carregarOperacoesMemoizado = useCallback(async () => {
     try {
-      const response = await fetch('/api/unified/operacoes?portal=supervisor');
+      const response = await fetch('/api/unified/operacoes?portal=supervisor', {
+        headers: getSupervisorHeaders() // 🚨 ISOLAMENTO REGIONAL: Incluir contexto do supervisor
+      });
       const result = await response.json();
       
       if (result.success) {
@@ -876,7 +551,9 @@ export default function SupervisorPage() {
   // ✅ CALLBACK MEMOIZADO PARA CARREGAR SOLICITAÇÕES
   const carregarSolicitacoesMemoizado = useCallback(async () => {
     try {
-      const response = await fetch('/api/supervisor/solicitacoes');
+      const response = await fetch('/api/supervisor/solicitacoes', {
+        headers: getSupervisorHeaders() // 🚨 ISOLAMENTO REGIONAL: Incluir contexto do supervisor
+      });
       const result = await response.json();
       
       if (result.success) {
@@ -924,6 +601,20 @@ export default function SupervisorPage() {
     carregarSolicitacoesMemoizado();
   }, [carregarOperacoesMemoizado, carregarSolicitacoesMemoizado]); // ✅ Dependências estáveis
 
+  // ✅ FUNÇÃO PARA LIDAR COM MÚLTIPLAS OPERAÇÕES
+  const handleOperacaoClick = (operacoes: Operacao[]) => {
+    if (operacoes.length === 0) return;
+    
+    // Se há apenas uma operação, seleciona direto
+    if (operacoes.length === 1) {
+      setOperacaoSelecionadaModal(operacoes[0]);
+    } else {
+      // Se há múltiplas operações, seleciona a primeira por agora
+      // TODO: Futuramente pode abrir um modal de seleção
+      setOperacaoSelecionadaModal(operacoes[0]);
+    }
+  };
+
   // ✅ LOADING INICIAL ELEGANTE
   if (initialLoading) {
     return <ElegantPageLoader title="Sistema RADAR" subtitle="Carregando painel do supervisor..." />;
@@ -936,103 +627,174 @@ export default function SupervisorPage() {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
-      {/* ✅ HEADER ÚNICO E RESPONSIVO */}
-      <header className="sticky top-0 z-40 transition-all duration-300" style={{ 
-        background: 'var(--bg-card)', 
-        borderBottom: '1px solid var(--border-color)',
-        boxShadow: 'var(--shadow-md)'
-      }}>
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            {/* Título e descrição */}
-            <div className="flex-1">
-              <h1 className="text-2xl lg:text-3xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
-                🎯 Portal do Supervisor
-              </h1>
-              <p className="text-sm lg:text-base" style={{ color: 'var(--text-secondary)' }}>
-                Gerencie operações, janelas operacionais e comunicação regional
-              </p>
-            </div>
-            
-            {/* Navegação e ações */}
-            <div className="flex flex-col sm:flex-row gap-2 lg:gap-3">
-              {/* Tabs de navegação */}
-              <div className="flex gap-1">
-                <button
+      {/* 🎯 HEADER MELHORADO - Mais limpo e organizado */}
+      <header className="sticky top-0 z-40 bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
+          <div className="flex items-center justify-between gap-2">
+            {/* Brand compacto + Navegação */}
+            <div className="flex items-center gap-3 sm:gap-6 flex-1 min-w-0">
+              <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                  <span className="text-base sm:text-lg">🎯</span>
+                </div>
+                <h1 className="text-sm sm:text-lg font-bold text-white truncate">Portal do Supervisor</h1>
+              </div>
+              
+              {/* Navegação integrada */}
+              <div className="hidden sm:flex bg-white/10 backdrop-blur rounded-lg p-1">
+                <button 
                   onClick={() => setActiveTab('operacoes')}
-                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                  className={`px-3 py-1.5 text-sm font-medium rounded transition-all ${
                     activeTab === 'operacoes'
-                      ? 'text-white shadow-md'
-                      : 'hover:shadow-sm'
+                      ? 'bg-white/20 text-white'
+                      : 'text-blue-100 hover:bg-white/10'
                   }`}
-                  style={{
-                    background: activeTab === 'operacoes' ? 'var(--primary)' : 'var(--bg-secondary)',
-                    color: activeTab === 'operacoes' ? 'white' : 'var(--text-primary)',
-                    border: `1px solid ${activeTab === 'operacoes' ? 'var(--primary)' : 'var(--border-color)'}`
-                  }}
                 >
-                  🚨 Operações
+                  📅 Calendário
                 </button>
-                
-                <button
+                <button 
                   onClick={() => setActiveTab('janelas')}
-                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                  className={`px-3 py-1.5 text-sm font-medium rounded transition-all ${
                     activeTab === 'janelas'
-                      ? 'text-white shadow-md'
-                      : 'hover:shadow-sm'
+                      ? 'bg-white/20 text-white'
+                      : 'text-blue-100 hover:bg-white/10'
                   }`}
-                  style={{
-                    background: activeTab === 'janelas' ? 'var(--primary)' : 'var(--bg-secondary)',
-                    color: activeTab === 'janelas' ? 'white' : 'var(--text-primary)',
-                    border: `1px solid ${activeTab === 'janelas' ? 'var(--primary)' : 'var(--border-color)'}`
-                  }}
                 >
                   🗂️ Janelas
                 </button>
               </div>
-              
-              {/* Links para funcionalidades extras */}
-              <div className="flex gap-2">
-                <a
-                  href="/supervisor/diretoria"
-                  className="px-3 py-2 text-sm font-medium rounded-lg hover:shadow-md flex items-center justify-center transition-all duration-200"
-                  style={{
-                    background: 'var(--bg-secondary)',
-                    color: 'var(--text-primary)',
-                    border: '1px solid var(--border-color)'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'var(--bg-hover)';
-                    e.currentTarget.style.borderColor = 'var(--primary)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'var(--bg-secondary)';
-                    e.currentTarget.style.borderColor = 'var(--border-color)';
-                  }}
+
+              {/* Navegação mobile */}
+              <div className="sm:hidden flex bg-white/10 backdrop-blur rounded-lg p-1">
+                <button 
+                  onClick={() => setActiveTab('operacoes')}
+                  className={`px-2 py-1 text-xs font-medium rounded transition-all ${
+                    activeTab === 'operacoes'
+                      ? 'bg-white/20 text-white'
+                      : 'text-blue-100 hover:bg-white/10'
+                  }`}
                 >
-                  🏛️ Diretoria
-                </a>
-                
-                <a
-                  href="/relatorio-diarias"
-                  className="px-3 py-2 text-sm font-medium rounded-lg hover:shadow-md flex items-center justify-center transition-all duration-200"
-                  style={{
-                    background: 'var(--bg-secondary)',
-                    color: 'var(--text-primary)',
-                    border: '1px solid var(--border-color)'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'var(--bg-hover)';
-                    e.currentTarget.style.borderColor = 'var(--primary)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'var(--bg-secondary)';
-                    e.currentTarget.style.borderColor = 'var(--border-color)';
-                  }}
-                  title="Contabilização de diárias por servidor"
+                  📅
+                </button>
+                <button 
+                  onClick={() => setActiveTab('janelas')}
+                  className={`px-2 py-1 text-xs font-medium rounded transition-all ${
+                    activeTab === 'janelas'
+                      ? 'bg-white/20 text-white'
+                      : 'text-blue-100 hover:bg-white/10'
+                  }`}
                 >
-                  📊 Diárias
-                </a>
+                  🗂️
+                </button>
+              </div>
+            </div>
+
+            {/* Menu compacto + Usuário */}
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+              {/* Menu dropdown */}
+              <div className="relative group">
+                <button className="px-2 sm:px-3 py-2 text-xs sm:text-sm bg-white/10 rounded-lg text-white hover:bg-white/20 transition-all flex items-center gap-1">
+                  <span className="text-sm">⚙️</span>
+                  <span className="hidden sm:inline">Menu</span>
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                  <a href="/supervisor/diretoria" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                    🏛️ Diretoria
+                  </a>
+                  <a href="/relatorio-diarias" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                    📊 Relatório de Diárias
+                  </a>
+                  <button onClick={carregarDados} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                    🔄 Atualizar Dados
+                  </button>
+                </div>
+              </div>
+
+              {/* Usuário com responsividade corrigida */}
+              <div className="flex items-center gap-2">
+                {/* Versão completa - apenas em telas médias e grandes */}
+                <div className="hidden md:flex items-center gap-2 bg-white/10 rounded-lg px-3 py-2 border border-white/20">
+                  <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                    {(() => {
+                      const supervisorAuth = localStorage.getItem('supervisorAuth');
+                      if (supervisorAuth) {
+                        try {
+                          const userData = JSON.parse(supervisorAuth);
+                          return userData.nome.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
+                        } catch (error) {
+                          return 'DA';
+                        }
+                      }
+                      return 'DA';
+                    })()}
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-white">
+                      {(() => {
+                        const supervisorAuth = localStorage.getItem('supervisorAuth');
+                        if (supervisorAuth) {
+                          try {
+                            const userData = JSON.parse(supervisorAuth);
+                            return userData.nome.split(' ').slice(0, 2).join(' ');
+                          } catch (error) {
+                            return 'Douglas Santos';
+                          }
+                        }
+                        return 'Douglas Santos';
+                      })()}
+                    </div>
+                    <div className="text-xs text-blue-100">
+                      {(() => {
+                        const supervisorAuth = localStorage.getItem('supervisorAuth');
+                        if (supervisorAuth) {
+                          try {
+                            const userData = JSON.parse(supervisorAuth);
+                            return `${userData.matricula} • ${userData.regional?.nome || 'UR Iguatu'}`;
+                          } catch (error) {
+                            return 'SUP001 • UR Iguatu';
+                          }
+                        }
+                        return 'SUP001 • UR Iguatu';
+                      })()}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Versão compacta - apenas em telas pequenas */}
+                <div className="md:hidden w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  {(() => {
+                    const supervisorAuth = localStorage.getItem('supervisorAuth');
+                    if (supervisorAuth) {
+                      try {
+                        const userData = JSON.parse(supervisorAuth);
+                        return userData.nome.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
+                      } catch (error) {
+                        return 'DA';
+                      }
+                    }
+                    return 'DA';
+                  })()}
+                </div>
+
+                {/* Botão sair - sempre visível */}
+                <button
+                  onClick={() => {
+                    if (confirm('Deseja realmente sair do sistema?')) {
+                      localStorage.removeItem('supervisorAuth');
+                      localStorage.removeItem('membroId');
+                      window.location.href = '/';
+                    }
+                  }}
+                  className="p-2 text-blue-100 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  title="Sair do sistema"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
@@ -1040,64 +802,16 @@ export default function SupervisorPage() {
       </header>
 
       {/* ✅ CONTEÚDO PRINCIPAL */}
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className="max-w-7xl mx-auto px-4 py-3">
         {/* TAB: OPERAÇÕES */}
         {activeTab === 'operacoes' && (
-          <div className="space-y-6">
-            {/* Seletor de Modo de Visualização */}
-            <section className="flex justify-center">
-              <div className="inline-flex bg-white rounded-lg shadow-md border border-gray-200 p-1">
-                <button
-                  onClick={() => setModoVisualizacao('calendario')}
-                  className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-                    modoVisualizacao === 'calendario'
-                      ? 'bg-blue-500 text-white shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
-                >
-                  📅 Calendário
-                </button>
-                <button
-                  onClick={() => setModoVisualizacao('timeline')}
-                  className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-                    modoVisualizacao === 'timeline'
-                      ? 'bg-blue-500 text-white shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
-                >
-                  📊 Timeline
-                </button>
-              </div>
-            </section>
-
-            {/* Visualizações */}
-            <section>
-              {modoVisualizacao === 'calendario' && (
-                <CalendarioSupervisor
-                  onOperacaoClick={setOperacaoSelecionadaModal}
-                  onNovaJanela={() => setShowCriarJanelaModal(true)}
-                  onNovaOperacao={() => setShowCriarOperacaoModal(true)}
-                  onRefresh={carregarDados}
-                  loading={loading}
-                />
-              )}
-              
-              {modoVisualizacao === 'timeline' && (
-                <TimelineOperacoes
-                  operacoes={operacoes}
-                  onGerenciarMembros={setOperacaoParaGerenciar}
-                  onExcluirOperacao={excluirOperacaoTemporariamente}
-                  onReativarOperacao={reativarOperacao}
-                  onDefinirHorario={abrirHorarioPopover}
-                  onNovaJanela={() => setShowCriarJanelaModal(true)}
-                  onNovaOperacao={() => setShowCriarOperacaoModal(true)}
-                  dataParaReabrir={dataParaReabrirModal}
-                  loading={loading}
-                  onRefresh={carregarDados}
-                />
-              )}
-            </section>
-          </div>
+          <CalendarioSupervisor
+            onOperacaoClick={handleOperacaoClick}
+            onNovaJanela={() => setShowCriarJanelaModal(true)}
+            onNovaOperacao={() => setShowCriarOperacaoModal(true)}
+            onRefresh={carregarDados}
+            loading={loading}
+          />
         )}
 
         {/* TAB: JANELAS OPERACIONAIS */}
@@ -1136,63 +850,132 @@ export default function SupervisorPage() {
               </button>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {janelas.map((janela) => (
-                <article key={janela.id} className="rounded-lg p-4 hover:shadow-md transition-all duration-200 group relative" style={{
-                  background: 'linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-hover) 100%)',
-                  border: '1px solid var(--border-color)'
+                <article key={janela.id} className="group relative overflow-hidden rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl" style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%)',
+                  border: '2px solid transparent',
+                  backgroundClip: 'padding-box',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04)'
                 }}>
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex-1">
-                      <h3 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>
-                        Janela #{janela.id}
-                      </h3>
-                      <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
-                        📅 {formatarDataBR(janela.dataInicio)} - {formatarDataBR(janela.dataFim)}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        janela.status === 'ATIVA' 
-                          ? 'text-green-800' 
-                          : 'text-gray-800'
-                      }`} style={{
-                        background: janela.status === 'ATIVA' ? 'var(--success-light)' : 'var(--bg-hover)',
-                        border: `1px solid ${janela.status === 'ATIVA' ? 'var(--success)' : 'var(--border-color)'}`
+                  {/* Gradiente decorativo no topo */}
+                  <div className="absolute inset-x-0 top-0 h-1" style={{
+                    background: janela.status === 'ATIVA' 
+                      ? 'linear-gradient(90deg, #10b981, #34d399, #6ee7b7)' 
+                      : 'linear-gradient(90deg, #6b7280, #9ca3af, #d1d5db)'
+                  }}></div>
+                  
+                  {/* Header com ícone e status */}
+                  <div className="flex items-start justify-between p-6 pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-lg" style={{
+                        background: janela.status === 'ATIVA' 
+                          ? 'linear-gradient(135deg, #10b981, #059669)' 
+                          : 'linear-gradient(135deg, #6b7280, #4b5563)',
+                        color: 'white'
                       }}>
-                        {janela.status}
-                      </span>
-                      
-                      {/* Botão de excluir discreto */}
-                      <button
-                        onClick={() => excluirJanelaOperacional(janela.id)}
-                        disabled={loading}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:shadow-md"
-                        style={{ color: 'var(--danger)', background: 'transparent' }}
-                        title="⚠️ Excluir janela (remove TODAS as participações)"
-                        aria-label={`Excluir janela ${janela.id}`}
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
+                        {janela.status === 'ATIVA' ? '🟢' : '🔴'}
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-lg text-gray-900">
+                          Janela #{janela.id}
+                        </h3>
+                        <p className="text-sm text-gray-600 flex items-center gap-1">
+                          📅 {formatarDataBR(janela.dataInicio)} - {formatarDataBR(janela.dataFim)}
+                        </p>
+                      </div>
                     </div>
+                    
+                    {/* Botão de excluir - aparece no hover */}
+                    <button
+                      onClick={() => excluirJanela(janela.id, `${formatarDataBR(janela.dataInicio)} - ${formatarDataBR(janela.dataFim)}`)}
+                      disabled={loading}
+                      className="opacity-0 group-hover:opacity-100 transition-all duration-200 w-8 h-8 rounded-lg flex items-center justify-center text-white hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{
+                        background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
+                        boxShadow: '0 2px 8px rgba(220, 38, 38, 0.3)'
+                      }}
+                      title="Excluir janela operacional"
+                    >
+                      {loading ? (
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      ) : (
+                        <span className="text-sm">🗑️</span>
+                      )}
+                    </button>
                   </div>
                   
-                  <dl className="space-y-2 text-xs">
-                    <div className="flex items-center">
-                      <dt className="w-20 font-medium" style={{ color: 'var(--text-secondary)' }}>Modalidades:</dt>
-                      <dd style={{ color: 'var(--text-primary)' }}>{janela.modalidades.join(', ')}</dd>
+                  {/* Status badge elegante */}
+                  <div className="px-6 pb-4">
+                    <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold ${
+                      janela.status === 'ATIVA' 
+                        ? 'bg-green-100 text-green-800 border border-green-200' 
+                        : 'bg-gray-100 text-gray-800 border border-gray-200'
+                    }`}>
+                      <span className={`w-2 h-2 rounded-full mr-2 ${
+                        janela.status === 'ATIVA' ? 'bg-green-500' : 'bg-gray-500'
+                      }`}></span>
+                      {janela.status}
+                    </span>
+                  </div>
+                  
+                  {/* Informações principais */}
+                  <div className="px-6 pb-6 space-y-4">
+                    {/* Modalidades */}
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                        <span className="text-sm">⚡</span>
+                      </div>
+                      <div className="flex-1">
+                        <dt className="text-sm font-medium text-gray-700 mb-1">Modalidades</dt>
+                        <dd className="flex gap-2 flex-wrap">
+                          {janela.modalidades.map((modalidade) => (
+                            <span key={modalidade} className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium ${
+                              modalidade === 'BLITZ' 
+                                ? 'bg-red-100 text-red-800 border border-red-200' 
+                                : 'bg-amber-100 text-amber-800 border border-amber-200'
+                            }`}>
+                              {modalidade === 'BLITZ' ? '🚨' : '⚖️'} {modalidade}
+                            </span>
+                          ))}
+                        </dd>
+                      </div>
                     </div>
-                    <div className="flex items-center">
-                      <dt className="w-20 font-medium" style={{ color: 'var(--text-secondary)' }}>Regional:</dt>
-                      <dd style={{ color: 'var(--text-primary)' }}>{janela.regional}</dd>
+                    
+                    {/* Regional */}
+                    <div className="flex items-center gap-3">
+                      <div className="w-6 h-6 rounded-lg bg-purple-100 flex items-center justify-center">
+                        <span className="text-sm">🏢</span>
+                      </div>
+                      <div className="flex-1">
+                        <dt className="text-sm font-medium text-gray-700">Regional</dt>
+                        <dd className="text-sm text-gray-900 font-medium">{janela.regional}</dd>
+                      </div>
                     </div>
-                    <div className="flex items-center">
-                      <dt className="w-20 font-medium" style={{ color: 'var(--text-secondary)' }}>Operações:</dt>
-                      <dd style={{ color: 'var(--text-primary)' }}>{janela.operacoesCriadas} criadas</dd>
+                    
+                    {/* Operações e limites */}
+                    <div className="grid grid-cols-2 gap-4 pt-2">
+                      <div className="text-center p-3 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
+                        <div className="text-2xl font-bold text-blue-700">{janela.operacoesCriadas}</div>
+                        <div className="text-xs text-blue-600 font-medium">Operações</div>
+                      </div>
+                                             <div className="text-center p-3 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200">
+                                                  <div className="text-2xl font-bold text-emerald-700">{janela.limite_max || 30}</div>
+                         <div className="text-xs text-emerald-600 font-medium">Limite Máx</div>
+                       </div>
+                     </div>
+                   </div>
+                   
+                   {/* Footer com data de criação */}
+                   <div className="px-6 py-3 bg-gray-50 border-t border-gray-100">
+                     <div className="flex items-center justify-between text-xs text-gray-500">
+                       <span>Criada em {formatarDataBR(janela.criado_em?.split('T')[0] || '')}</span>
+                      <span className="flex items-center gap-1">
+                        <span>🔧</span>
+                        Supervisor
+                      </span>
                     </div>
-                  </dl>
+                  </div>
                 </article>
               ))}
             </div>
@@ -1296,17 +1079,6 @@ export default function SupervisorPage() {
       )}
 
       {/* Modal de Gerenciar Membros */}
-      {showGerenciarMembrosModal && (
-        <GerenciarMembrosModal
-          onClose={() => setShowGerenciarMembrosModal(false)}
-          onUpdate={() => {
-            carregarOperacoes();
-            carregarSolicitacoes();
-          }}
-        />
-      )}
-
-      {/* Modal de Operação Específica */}
       {operacaoParaGerenciar && (
         <GerenciarMembrosModal
           operacaoEspecifica={operacaoParaGerenciar}

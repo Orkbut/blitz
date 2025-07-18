@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { MultiDateCalendar } from './MultiDateCalendar';
-import { getSupervisorContext } from '@/lib/auth-utils';
+import { getSupervisorContext, getSupervisorHeaders, getSupervisorData } from '@/lib/auth-utils';
 
 interface CriarJanelaModalProps {
   onClose: () => void;
@@ -18,13 +18,39 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
     modalidades: [] as string[],
     limiteMaximo: 30
   });
+  const [parametros, setParametros] = useState({
+    prazoMinAgendamento: 10, // Valor padrão, será carregado do banco
+    prazoMaxPeriodo: 40
+  });
 
-  // ✅ CALCULAR DATAS BLOQUEADAS (MENOS DE 10 DIAS)
+  // ✅ NOVO: Carregar parâmetros do banco de dados
+  const carregarParametros = async () => {
+    try {
+      const response = await fetch('/api/admin/parametros');
+      const data = await response.json();
+      
+      if (data.success) {
+        const parametrosMap = data.data.reduce((acc: any, param: any) => {
+          acc[param.chave] = param.valor;
+          return acc;
+        }, {});
+        
+        setParametros({
+          prazoMinAgendamento: parseInt(parametrosMap.PRAZO_MIN_AGENDAMENTO_JANELAS) || 10,
+          prazoMaxPeriodo: parseInt(parametrosMap.PRAZO_MAX_PERIODO_JANELA) || 40
+        });
+      }
+    } catch (error) {
+      // Manter valores padrão em caso de erro
+    }
+  };
+
+  // ✅ CALCULAR DATAS BLOQUEADAS (USAR PARÂMETRO DO BANCO)
   const getBlockedDates = () => {
     const hoje = new Date();
     const blockedDates: string[] = [];
     
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < parametros.prazoMinAgendamento; i++) {
       const data = new Date(hoje);
       data.setDate(hoje.getDate() + i);
       blockedDates.push(data.toISOString().split('T')[0]);
@@ -32,6 +58,28 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
     
     return blockedDates;
   };
+
+  // ✅ NOVO: Calcular data mínima permitida (hoje + parâmetro)
+  const getMinDate = () => {
+    const hoje = new Date();
+    const dataMinima = new Date(hoje);
+    dataMinima.setDate(hoje.getDate() + parametros.prazoMinAgendamento);
+    // ✅ CORRIGIDO: Garantir formato correto YYYY-MM-DD no timezone local
+    return dataMinima.toISOString().split('T')[0];
+  };
+
+  // ✅ NOVO: Calcular data máxima permitida (minDate + parâmetro para permitir navegação)
+  const getMaxDate = () => {
+    const hoje = new Date();
+    const dataMaxima = new Date(hoje);
+    dataMaxima.setDate(hoje.getDate() + parametros.prazoMinAgendamento + parametros.prazoMaxPeriodo);
+    return dataMaxima.toISOString().split('T')[0];
+  };
+
+  // ✅ NOVO: Carregar parâmetros ao abrir o modal
+  useEffect(() => {
+    carregarParametros();
+  }, []);
 
   // ✅ FUNCIONALIDADE ESC: Fechar modal com ESC
   useEffect(() => {
@@ -74,38 +122,46 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
 
     setLoading(true);
     try {
-      // ✅ ISOLAMENTO POR REGIONAL: Obter contexto do supervisor logado
-      const supervisorContext = getSupervisorContext();
+      // ✅ DEBUG: Verificar dados do supervisor antes de enviar
+      const supervisorData = getSupervisorData();
+      const headers = getSupervisorHeaders();
       
-      if (!supervisorContext.supervisorId || !supervisorContext.regionalId) {
-        alert('Erro: Dados do supervisor não encontrados. Faça login novamente.');
-        return;
-      }
+      // Debug silencioso
+      
+      // ✅ CORRIGIDO: Garantir datas corretas no timezone de Iguatu-CE
+      const dataInicioFormatada = novaJanela.periodo[0]; // Já está em formato YYYY-MM-DD
+      const dataFimFormatada = novaJanela.periodo[novaJanela.periodo.length - 1];
 
       const response = await fetch('/api/supervisor/janelas-operacionais', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...getSupervisorHeaders() // ✅ CORREÇÃO: Incluir contexto do supervisor
+        },
         body: JSON.stringify({
-          dataInicio: novaJanela.periodo[0], // Primeira data do intervalo
-          dataFim: novaJanela.periodo[novaJanela.periodo.length - 1], // Última data do intervalo
+          dataInicio: dataInicioFormatada, // Mantém formato YYYY-MM-DD sem timezone
+          dataFim: dataFimFormatada,
           modalidades: novaJanela.modalidades,
-          limiteMin: 2, // Valor fixo definido pelo admin
-          limiteMax: novaJanela.limiteMaximo,
-          regionalId: supervisorContext.regionalId, // ✅ DINÂMICO: Regional do supervisor logado
-          supervisorId: supervisorContext.supervisorId // ✅ DINÂMICO: ID do supervisor logado
+          limiteMin: 2,
+          limiteMax: novaJanela.limiteMaximo
         })
       });
 
       const result = await response.json();
       
       if (result.success) {
+        alert('Janela operacional criada com sucesso!');
+        setNovaJanela({
+          periodo: [],
+          modalidades: [],
+          limiteMaximo: 30
+        });
         onSuccess();
         onClose();
       } else {
-        alert(`Erro ao criar janela: ${result.error}`);
+        alert(`Erro: ${result.error}`);
       }
     } catch (error) {
-      console.error('Erro ao criar janela:', error);
       alert('Erro de conexão. Não foi possível criar a janela operacional.');
     } finally {
       setLoading(false);
@@ -318,6 +374,8 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
                     onDatesChange={(dates) => {
                       setNovaJanela(prev => ({ ...prev, periodo: dates }));
                     }}
+                    minDate={getMinDate()}
+                    maxDate={getMaxDate()}
                     blockedDates={getBlockedDates()}
                     rangeMode={true}
                     onApply={() => {

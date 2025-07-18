@@ -34,7 +34,7 @@ export const useRealtimeCalendarioSupervisor = ({
         try {
           channelRef.current.unsubscribe();
         } catch (error) {
-          console.error('[Calendário Supervisor Realtime] Erro ao limpar:', error);
+          // Erro silencioso
         }
         channelRef.current = null;
         isSubscribedRef.current = false;
@@ -51,7 +51,7 @@ export const useRealtimeCalendarioSupervisor = ({
         try {
           channelRef.current.unsubscribe();
         } catch (error) {
-          console.error('[Calendário Supervisor Realtime] Erro ao desconectar:', error);
+          // Erro silencioso
         }
         channelRef.current = null;
         isSubscribedRef.current = false;
@@ -95,7 +95,7 @@ export const useRealtimeCalendarioSupervisor = ({
                 }, 100);
               }
             } catch (error) {
-              console.error('[Calendário Supervisor Realtime] Erro no handler participação:', error);
+              // Erro silencioso
             }
           }
         )
@@ -119,7 +119,7 @@ export const useRealtimeCalendarioSupervisor = ({
                 }, 100);
               }
             } catch (error) {
-              console.error('[Calendário Supervisor Realtime] Erro no handler operação:', error);
+              // Erro silencioso
             }
           }
         )
@@ -133,7 +133,6 @@ export const useRealtimeCalendarioSupervisor = ({
 
       channelRef.current = channel;
     } catch (error) {
-      console.error('[Calendário Supervisor Realtime] Erro ao configurar:', error);
       isSubscribedRef.current = false;
     }
 
@@ -142,7 +141,7 @@ export const useRealtimeCalendarioSupervisor = ({
         try {
           channelRef.current.unsubscribe();
         } catch (error) {
-          console.error('[Calendário Supervisor Realtime] Erro ao limpar:', error);
+          // Erro silencioso
         }
         channelRef.current = null;
       }

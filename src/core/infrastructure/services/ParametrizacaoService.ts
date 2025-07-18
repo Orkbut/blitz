@@ -55,7 +55,6 @@ export class ParametrizacaoService {
       this.ultimaAtualizacao = new Date();
       // Parameters loaded logging removed for performance
     } catch (error) {
-      console.error('Erro ao carregar parâmetros do Supabase:', error);
       // Em caso de erro, usar valores padrão
       this.carregarParametrosPadrao();
     }
@@ -88,7 +87,6 @@ export class ParametrizacaoService {
     
     const valor = this.parametros.get(nomeParametro);
     if (valor === undefined) {
-      console.warn(`Parâmetro não encontrado: ${nomeParametro}`);
       throw new Error(`Parâmetro ${nomeParametro} não encontrado no sistema`);
     }
     

@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Operacao } from '@/shared/types';
-import { useRealtimeOperacoes } from '@/hooks/useRealtime';
+import { useRealtimeCentralized } from '@/hooks/useRealtimeCentralized';
 import { ElegantInlineLoader } from '@/shared/components/ui/LoadingSpinner';
 import { clickInspector, limparTodosOsLogs } from '@/lib/logger';
 import styles from './TimelineOperacoes.module.css';
@@ -32,19 +32,16 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
   loading = false,
   onRefresh
 }) => {
-  console.log(`[TEMP-LOG-TIMELINE] 🚀 === COMPONENTE TimelineOperacoes RENDERIZADO ===`);
-  console.log(`[TEMP-LOG-TIMELINE] 📊 Props: operacoes.length=${operacoes.length}, loading=${loading}`);
-  
   const [dataSelecionada, setDataSelecionada] = useState<string | null>(null);
   const [showModalDetalhes, setShowModalDetalhes] = useState(false);
   // Modo removido - sempre timeline - versão simplificada
   const [showInspectorModal, setShowInspectorModal] = useState(false);
   const [inspectorResult, setInspectorResult] = useState<{ discrepancias: any[], success: boolean, isCleanup?: boolean } | null>(null);
-  
+
   // Funcionalidade de modo removida
-  
+
   // 🚀 NOVO: Estado para solicitações em tempo real
-  const [solicitacoesPorOperacao, setSolicitacoesPorOperacao] = useState<{[key: number]: any[]}>({});
+  const [solicitacoesPorOperacao, setSolicitacoesPorOperacao] = useState<{ [key: number]: any[] }>({});
   const [loadingSolicitacoes, setLoadingSolicitacoes] = useState(false);
 
   // 🎯 CONTROLE DE PERFORMANCE: Request deduplication sem cache
@@ -76,128 +73,138 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
     const datas = operacoes.map(op => new Date(op.data_operacao));
     const minData = new Date(Math.min(...datas.map(d => d.getTime())));
     const maxData = new Date(Math.max(...datas.map(d => d.getTime())));
-    
+
     return {
       startDate: minData,
       endDate: maxData
     };
   }, [operacoes]);
-  
+
+  // � FNOVO: Versão silenciosa para reload de garantia (seguindo padrão CalendarioSupervisor)
+  const reloadOperacoesSilencioso = useCallback(async () => {
+    if (operacaoIds.length === 0) return;
+
+    try {
+      const response = await fetch('/api/unified/operacoes?portal=supervisor', {
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        let operacoesData = Array.isArray(result.data) ? result.data : [];
+
+        // Filtrar apenas as operações que estamos monitorando
+        const operacoesFiltradas = operacoesData.filter((op: any) =>
+          operacaoIds.includes(op.id)
+        );
+
+        // Trigger refresh do componente pai para atualizar dados
+        if (onRefresh) {
+          onRefresh();
+        }
+      }
+    } catch (error) {
+      // Erro silencioso
+    }
+  }, [operacaoIds]);
+
   // 🚀 FUNÇÃO OTIMIZADA: Carregar solicitações sempre com dados frescos
   const carregarSolicitacoes = useCallback(async (operacaoIdEspecifica?: number) => {
     const requestId = ++requestCounterRef.current;
     const startTime = Date.now();
-    
-    // Request loading logging removed for performance
-    
+
     if (operacaoIds.length === 0) {
-      // No operations logging removed for performance
       return;
     }
 
     // 🎯 CONTROLE DE CONCORRÊNCIA: Se já há uma requisição em andamento, reutilizar
     if (lastRequestRef.current) {
-      // Request reuse logging removed for performance
       try {
-        const result = await lastRequestRef.current;
-        return result;
+        return await lastRequestRef.current;
       } catch (error) {
-        // Continuar com nova requisição se a anterior falhou
+        // Erro silencioso
       }
     }
-    
-    try {
+
+    // 🚀 NOVA REQUISIÇÃO
+    const promise = (async () => {
       setLoadingSolicitacoes(true);
-      
-      // 🎯 OTIMIZAÇÃO: Endpoint específico vs completo
-      let endpoint = '/api/supervisor/solicitacoes';
-      if (operacaoIdEspecifica) {
-        // 🚀 NOVO: Endpoint para operação específica (quando disponível)
-        // Por enquanto, usar o endpoint completo mas processar apenas a operação específica
-        endpoint = '/api/supervisor/solicitacoes';
-      }
-      
-      // 🎯 CRIAR PROMISE QUE SERÁ REUTILIZADA
-      const requestPromise = fetch(endpoint).then(response => response.json());
-      lastRequestRef.current = requestPromise;
-      
-      const result = await requestPromise;
-      
-      // ✅ LIMPAR REFERÊNCIA APÓS COMPLETAR
-      if (lastRequestRef.current === requestPromise) {
-        lastRequestRef.current = null;
-      }
-      
-      if (result.success) {
-        // 🚀 PROCESSAMENTO SEMPRE FRESCO: Dados sempre atualizados
-        const todasSolicitacoes = result.data?.todas || [];
-        // Processing requests logging removed for performance
-        
-        // Agrupar solicitações por operação
-        const solicitacoesPorOp: {[key: number]: any[]} = {};
-        
-        todasSolicitacoes.forEach((sol: any) => {
-          const opId = sol.operacaoDetalhes?.id || sol.operacaoId || sol.operacao_id;
-          if (opId) {
-            if (!solicitacoesPorOp[opId]) {
-              solicitacoesPorOp[opId] = [];
+
+      try {
+        const operacoesIds = operacaoIdEspecifica ? [operacaoIdEspecifica] : operacaoIds;
+
+        const response = await fetch('/api/debug/debug-operacoes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ operacoes_ids: operacoesIds })
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+          // Erro silencioso
+          return;
+        }
+
+        const todasSolicitacoes = result.data || [];
+
+        // 🎯 AGRUPAR POR OPERAÇÃO
+        const solicitacoesPorOp: { [key: number]: any[] } = {};
+        operacoesIds.forEach(id => { solicitacoesPorOp[id] = []; });
+
+        todasSolicitacoes.forEach((solicitacao: any) => {
+          if (solicitacao.ativa && solicitacao.estado_visual === 'PENDENTE') {
+            if (!solicitacoesPorOp[solicitacao.operacao_id]) {
+              solicitacoesPorOp[solicitacao.operacao_id] = [];
             }
-            solicitacoesPorOp[opId].push(sol);
+            solicitacoesPorOp[solicitacao.operacao_id].push(solicitacao);
           }
         });
-        
-        // 🎯 OTIMIZAÇÃO GRANULAR: Atualizar apenas operação específica quando possível
+
+        // ✅ ATUALIZAR ESTADO
         if (operacaoIdEspecifica) {
-          // Specific operation update logging removed for performance
-          
-          // ✅ SEGURANÇA: Atualizar apenas uma operação específica no estado
-          setSolicitacoesPorOperacao(prevState => {
-            const newState = { ...prevState };
-            
-            if (solicitacoesPorOp[operacaoIdEspecifica]) {
+          setSolicitacoesPorOperacao(prev => {
+            const newState = { ...prev };
+            if (solicitacoesPorOp[operacaoIdEspecifica].length > 0) {
               newState[operacaoIdEspecifica] = solicitacoesPorOp[operacaoIdEspecifica];
-              // Operation state update logging removed for performance
             } else {
-              // ✅ REMOÇÃO: Se não há solicitações para esta operação, removê-la do estado
               delete newState[operacaoIdEspecifica];
-              // Operation state removal logging removed for performance
             }
-            
             return newState;
           });
         } else {
-          // ✅ FALLBACK: Carregamento completo (comportamento original)
-          // Full load logging removed for performance
-          
-          const newStateKeys = Object.keys(solicitacoesPorOp);
-          // State update logging removed for performance
-          
-          setSolicitacoesPorOperacao(solicitacoesPorOp);
+          // ✅ LIMPEZA: Remover operações que não estão mais sendo monitoradas
+          setSolicitacoesPorOperacao(prevState => {
+            const newState = { ...solicitacoesPorOp };
+            const operacoesRemovidas = Object.keys(prevState).filter(id => !operacaoIds.includes(parseInt(id)));
+            return newState;
+          });
         }
-      } else {
-        // API error logging removed for performance
+
+      } catch (error) {
+        // Erro silencioso
+      } finally {
+        setLoadingSolicitacoes(false);
+        lastRequestRef.current = null;
       }
-      
-      return result;
-    } catch (error) {
-      // Request error logging removed for performance
-      // ✅ LIMPAR REFERÊNCIA EM CASO DE ERRO
-      lastRequestRef.current = null;
-      throw error;
-    } finally {
-      setLoadingSolicitacoes(false);
-    }
+    })();
+
+    lastRequestRef.current = promise;
+    return promise;
   }, [operacaoIds]);
 
   // 🎯 DEBOUNCE INTELIGENTE: Função para agendar carregamento com cancelamento
   const agendarCarregamento = useCallback((motivo: string, delay: number = 200, operacaoIdEspecifica?: number) => {
     // Debounce scheduling logging removed for performance
-    
+
     // ✅ CANCELAR TIMER ANTERIOR
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
-    
+
     // ✅ AGENDAR NOVO TIMER
     debounceTimerRef.current = setTimeout(() => {
       // Debounce execution logging removed for performance
@@ -205,53 +212,112 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
       carregarSolicitacoes(operacaoIdEspecifica);
     }, delay);
   }, [carregarSolicitacoes]);
-  
-  // 🚀 CALLBACK MEMOIZADO: Para evitar recriar função em cada render
+
+  // 🚀 CALLBACK OTIMIZADO: Para realtime verdadeiro ao invés de polling
   const handleRealtimeUpdate = useCallback((operacaoId: number, eventType?: string) => {
     const eventTime = Date.now();
     const eventId = ++eventCounterRef.current;
-    
+
     // ✅ OTIMIZADO: Event overload detection com logs mínimos
     eventTimestampsRef.current.push(eventTime);
-    const recentEvents = eventTimestampsRef.current.filter(t => eventTime - t < 5000); // Últimos 5 segundos
+    const recentEvents = eventTimestampsRef.current.filter(t => eventTime - t < 5000);
     eventTimestampsRef.current = recentEvents;
-    
-    // ✅ OTIMIZADO: Log apenas sobrecarga crítica
+
+    // ✅ OTIMIZADO: Detectar sobrecarga crítica
     if (recentEvents.length > 20) {
-      console.warn(`[Realtime] 🚨 SOBRECARGA CRÍTICA! ${recentEvents.length} eventos em 5s`);
+      return; // Ignorar evento para evitar sobrecarga
     }
-    
-    // Funcionalidade removida - não há mais modo compacto
-  }, [agendarCarregamento]);
-  
-  // ✅ NOVO: Hook realtime otimizado para operações
-  console.log(`[TEMP-LOG-TIMELINE] 🔄 Migrando para useRealtimeOperacoes...`);
-  const { 
-    isConnected, 
-    reconnect: forceRealtimeRefresh 
-  } = useRealtimeOperacoes({
-    operacaoIds,
+
+    // 🎯 OTIMIZADO: Detectar cancelamentos com mais precisão
+    const ehCancelamento = eventType === 'participacao-cancelada' || eventType === 'UPDATE';
+    if (ehCancelamento) {
+      // Atualizar apenas a operação específica para cancelamentos
+      carregarSolicitacoes(operacaoId);
+      return;
+    }
+
+    // 🔄 OUTROS EVENTOS: Atualização seletiva
+    if (operacaoIds.includes(operacaoId)) {
+      const shouldRefreshGlobal = ['operacao-criada', 'operacao-atualizada'].includes(eventType || '');
+
+      if (shouldRefreshGlobal) {
+        carregarSolicitacoes(); // Refresh global
+      } else {
+        carregarSolicitacoes(operacaoId); // Refresh específico
+      }
+    }
+  }, [operacaoIds, carregarSolicitacoes]);
+
+  // ✅ HOOK REALTIME UNIFICADO: Seguindo padrão do CalendarioSupervisor
+  const {
+    isConnected
+  } = useRealtimeCentralized({
     enabled: operacaoIds.length > 0 && !loading,
-    onOperacaoChange: (operacaoId, eventType) => {
-      console.log(`[TEMP-LOG-TIMELINE] 🔄 Operação ${operacaoId} alterada: ${eventType}`);
-      handleRealtimeUpdate(operacaoId, eventType);
-    },
-    onParticipacaoChange: (operacaoId, eventType) => {
-      console.log(`[TEMP-LOG-TIMELINE] 👤 Participação operação ${operacaoId} alterada: ${eventType}`);
-      handleRealtimeUpdate(operacaoId, eventType);
-    },
-    debug: false
+    debug: false,
+    onOperacaoChange: useCallback((payload: any) => {
+      // ✅ ATUALIZAR TODOS OS DADOS DO BACKEND (seguindo padrão CalendarioSupervisor)
+      if (payload.eventType === 'UPDATE') {
+        const operacaoId = payload.new.id;
+
+        // Trigger refresh do componente pai para atualizar dados
+        if (onRefresh) {
+          onRefresh();
+        }
+
+        return; // Processado com sucesso
+      }
+
+      // Processar outros tipos de eventos (INSERT/DELETE)
+      if (payload.eventType === 'INSERT' || payload.eventType === 'DELETE') {
+        // Trigger refresh do componente pai para atualizar dados
+        if (onRefresh) {
+          onRefresh();
+        }
+      }
+    }, []),
+    onParticipacaoChange: useCallback((payload: any) => {
+      // ✅ ESTRATÉGIA SIMPLIFICADA: Trigger reload silencioso para garantir consistência
+      const operacaoId = payload.new?.operacao_id || payload.old?.operacao_id;
+
+      if (operacaoId && operacaoIds.includes(operacaoId)) {
+        // Trigger reload silencioso após pequeno delay
+        setTimeout(() => {
+          reloadOperacoesSilencioso();
+        }, 1000);
+      }
+    }, [operacaoIds, reloadOperacoesSilencioso])
   });
-  console.log(`[TEMP-LOG-TIMELINE] ✅ Hook realtime ativo - Conectado: ${isConnected}`);
 
   // Funcionalidade removida - não há mais modo compacto
-  
+
   // ✅ OTIMIZADO: CARREGAR SOLICITAÇÕES INICIALMENTE
   useEffect(() => {
     if (operacaoIds.length > 0 && !loadingSolicitacoes) {
       carregarSolicitacoes(); // ✅ CARREGAMENTO COMPLETO para carregamento inicial
     }
   }, [operacaoIds.length]);
+
+  // ✅ NOVA FUNCIONALIDADE: Limpeza de estado para operações que não existem mais
+  useEffect(() => {
+    setSolicitacoesPorOperacao(prevState => {
+      const newState = { ...prevState };
+      let foiLimpeza = false;
+
+      // Remover solicitações de operações que não estão mais sendo monitoradas
+      Object.keys(newState).forEach(operacaoIdStr => {
+        const operacaoId = parseInt(operacaoIdStr);
+        if (!operacaoIds.includes(operacaoId)) {
+          delete newState[operacaoId];
+          foiLimpeza = true;
+          // Limpeza silenciosa
+        }
+      });
+
+      // Limpeza silenciosa
+
+      return foiLimpeza ? newState : prevState;
+    });
+  }, [operacaoIds]);
 
   // ✅ CONTROLE DE SCROLL DO MODAL
   useEffect(() => {
@@ -260,7 +326,7 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
     } else {
       document.body.style.overflow = 'unset';
     }
-    
+
     return () => {
       document.body.style.overflow = 'unset';
     };
@@ -273,6 +339,32 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
       setShowModalDetalhes(true);
     }
   }, [dataParaReabrir, showModalDetalhes]);
+
+  // ✅ NOVA FUNCIONALIDADE: Limpeza periódica de estado órfão
+  useEffect(() => {
+    const intervalLimpeza = setInterval(() => {
+      setSolicitacoesPorOperacao(prevState => {
+        const newState = { ...prevState };
+        let houveLimpeza = false;
+
+        // Verificar se há solicitações órfãs (operações que não existem mais)
+        Object.keys(newState).forEach(operacaoIdStr => {
+          const operacaoId = parseInt(operacaoIdStr);
+          const operacaoExiste = operacoes.find(op => op.id === operacaoId);
+
+          if (!operacaoExiste) {
+            delete newState[operacaoId];
+            houveLimpeza = true;
+            // Limpeza silenciosa
+          }
+        });
+
+        return houveLimpeza ? newState : prevState;
+      });
+    }, 30000); // Limpeza a cada 30 segundos
+
+    return () => clearInterval(intervalLimpeza);
+  }, [operacoes]);
 
   // ✅ OTIMIZADO: Monitor de solicitações removido (logs excessivos)
 
@@ -301,7 +393,7 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
   // Agrupar operações por data e mês
   const operacoesPorData = useMemo(() => {
     const grupos: { [key: string]: Operacao[] } = {};
-    
+
     operacoes.forEach(operacao => {
       const data = operacao.data_operacao.split('T')[0]; // YYYY-MM-DD
       if (!grupos[data]) {
@@ -313,9 +405,9 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
     // Ordenar datas (mais recentes primeiro)
     const datasOrdenadas = Object.keys(grupos).sort((a, b) => b.localeCompare(a));
     const resultado: { [key: string]: Operacao[] } = {};
-    
+
     datasOrdenadas.forEach(data => {
-      resultado[data] = grupos[data].sort((a, b) => 
+      resultado[data] = grupos[data].sort((a, b) =>
         (a.turno + (a.horario || '')).localeCompare(b.turno + (b.horario || ''))
       );
     });
@@ -326,11 +418,11 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
   // Agrupar por mês para navegação
   const operacoesPorMes = useMemo(() => {
     const grupos: { [key: string]: { [key: string]: Operacao[] } } = {};
-    
+
     Object.entries(operacoesPorData).forEach(([data, operacoes]) => {
       const dataObj = new Date(data + 'T00:00:00');
       const mesAno = `${dataObj.getFullYear()}-${(dataObj.getMonth() + 1).toString().padStart(2, '0')}`;
-      
+
       if (!grupos[mesAno]) {
         grupos[mesAno] = {};
       }
@@ -340,16 +432,16 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
     // Ordenar meses (mais recentes primeiro) e dentro de cada mês, ordenar datas do início para o fim
     const mesesOrdenados = Object.keys(grupos).sort((a, b) => b.localeCompare(a));
     const resultado: { [key: string]: { [key: string]: Operacao[] } } = {};
-    
+
     mesesOrdenados.forEach(mes => {
       // Ordenar datas dentro do mês do início para o fim (crescente)
       const datasDoMes = Object.keys(grupos[mes]).sort((a, b) => a.localeCompare(b));
       const mesOrdenado: { [key: string]: Operacao[] } = {};
-      
+
       datasDoMes.forEach(data => {
         mesOrdenado[data] = grupos[mes][data];
       });
-      
+
       resultado[mes] = mesOrdenado;
     });
 
@@ -361,12 +453,12 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
     const hoje = new Date();
     const amanha = new Date(hoje);
     amanha.setDate(hoje.getDate() + 1);
-    
+
     const diaSemana = data.toLocaleDateString('pt-BR', { weekday: 'short' });
     const diaMes = data.getDate().toString().padStart(2, '0');
     const mes = data.toLocaleDateString('pt-BR', { month: 'short' });
     const ano = data.getFullYear();
-    
+
     let labelTempo = '';
     if (data.toDateString() === hoje.toDateString()) {
       labelTempo = 'HOJE';
@@ -390,7 +482,7 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
     const excluidas = operacoes.filter(op => op.excluida_temporariamente === true).length;
     const confirmados = operacoes.reduce((acc, op) => acc + (op.participantes_confirmados || 0), 0);
     const naFila = operacoes.reduce((acc, op) => acc + (op.pessoas_na_fila || 0), 0);
-    
+
     return { total, ativas, excluidas, confirmados, naFila };
   };
 
@@ -475,7 +567,7 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
             {datasDisponiveis.length} datas com operações • {operacoes.length} operações totais
           </p>
         </div>
-        
+
         <div className={styles.controles}>
           {onNovaJanela && (
             <button
@@ -493,7 +585,44 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
               🚨 Nova Operação
             </button>
           )}
-          
+
+          {onRefresh && (
+            <button
+              className={styles.botaoAcao}
+              onClick={onRefresh}
+              disabled={loading}
+            >
+              🔄 Atualizar
+            </button>
+          )}
+
+          {/* ✅ NOVO: Indicador de Conexão Realtime */}
+          <div
+            className={styles.realtimeIndicator}
+            title={isConnected ? 'Realtime conectado' : 'Realtime desconectado'}
+          >
+            <div
+              className={styles.realtimeStatus}
+              style={{
+                color: isConnected ? '#10b981' : '#ef4444',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontSize: '12px'
+              }}
+            >
+              <div
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  backgroundColor: isConnected ? '#10b981' : '#ef4444',
+                  animation: isConnected ? 'none' : 'pulse 2s infinite'
+                }}
+              />
+              {isConnected ? 'Real-time ativo' : 'Reconectando...'}
+            </div>
+          </div>
 
 
         </div>
@@ -531,7 +660,7 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
                     </button>
 
                     {/* Scroll horizontal das datas do mês */}
-                    <div 
+                    <div
                       id={`mes-${mesAno}`}
                       className={styles.mesScrollHorizontal}
                       onMouseDown={handleMouseDown}
@@ -544,7 +673,7 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
                         const dataInfo = formatarDataCompleta(data);
                         const stats = obterEstatisticasData(operacoesData);
                         const isSelected = dataSelecionada === data;
-                        
+
                         return (
                           <div
                             key={data}
@@ -565,7 +694,7 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
                                 {dataInfo.labelTempo}
                               </div>
                             )}
-                            
+
                             {/* Data principal */}
                             <div className={styles.dataInfo}>
                               <div className={styles.diaMes}>{dataInfo.diaMes}</div>
@@ -582,14 +711,14 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
                                 <span className={styles.numero}>{stats.total}</span>
                                 <span className={styles.label}>ops</span>
                               </div>
-                              
+
                               {stats.confirmados > 0 && (
                                 <div className={styles.indicadorConfirmados}>
                                   <span className={styles.numero}>{stats.confirmados}</span>
                                   <span className={styles.label}>conf</span>
                                 </div>
                               )}
-                              
+
                               {stats.excluidas > 0 && (
                                 <div className={styles.indicadorExcluidas}>
                                   <span className={styles.numero}>{stats.excluidas}</span>
@@ -647,7 +776,7 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
                     </h3>
                     <p>{operacoesSelecionadas.length} operação(ões) nesta data</p>
                   </div>
-                  
+
                   <button
                     className={styles.modalCloseButton}
                     onClick={() => setShowModalDetalhes(false)}
@@ -659,18 +788,16 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
 
                 <div className={styles.modalBody}>
                   {operacoesSelecionadas.map((operacao) => (
-                    <div 
+                    <div
                       key={operacao.id}
-                      className={`${styles.modalOperacaoCard} ${
-                        operacao.excluida_temporariamente === true ? styles.excluida : ''
-                      }`}
+                      className={`${styles.modalOperacaoCard} ${operacao.excluida_temporariamente === true ? styles.excluida : ''
+                        }`}
                     >
                       {/* Header da operação */}
                       <div className={styles.modalOperacaoHeader}>
                         <div className={styles.modalOperacaoInfo}>
-                          <span className={`${styles.modalidadeBadge} ${
-                            operacao.modalidade === 'BLITZ' ? styles.blitz : styles.balanca
-                          }`}>
+                          <span className={`${styles.modalidadeBadge} ${operacao.modalidade === 'BLITZ' ? styles.blitz : styles.balanca
+                            }`}>
                             {operacao.modalidade === 'BLITZ' ? '🚨' : '⚖️'} {operacao.modalidade}
                           </span>
                           <span className={styles.tipoBadge}>{operacao.tipo}</span>
@@ -680,12 +807,11 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
                           )}
                         </div>
 
-                        <span className={`${styles.statusBadge} ${
-                          operacao.excluida_temporariamente === true ? styles.excluida :
+                        <span className={`${styles.statusBadge} ${operacao.excluida_temporariamente === true ? styles.excluida :
                           operacao.status === 'AGUARDANDO_SOLICITACOES' ? styles.ativa : styles.outras
-                        }`}>
-                          {operacao.excluida_temporariamente === true ? 'EXCLUÍDA' : 
-                           operacao.status === 'AGUARDANDO_SOLICITACOES' ? 'ATIVA' : operacao.status}
+                          }`}>
+                          {operacao.excluida_temporariamente === true ? 'EXCLUÍDA' :
+                            operacao.status === 'AGUARDANDO_SOLICITACOES' ? 'ATIVA' : operacao.status}
                         </span>
                       </div>
 
@@ -697,14 +823,14 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
                           </span>
                           <span className={styles.estatLabel}>Confirmados</span>
                         </div>
-                        
+
                         {(operacao.pessoas_na_fila || 0) > 0 && (
                           <div className={styles.estatItem}>
                             <span className={styles.estatValor}>{operacao.pessoas_na_fila}</span>
                             <span className={styles.estatLabel}>Na fila</span>
                           </div>
                         )}
-                        
+
                         <div className={styles.estatItem}>
                           <span className={styles.estatValor}>{operacao.regional || 'Centro'}</span>
                           <span className={styles.estatLabel}>Regional</span>
@@ -722,7 +848,7 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
                         >
                           👥 Membros
                         </button>
-                        
+
                         <div className={styles.modalAcoesSecundarias}>
                           {onDefinirHorario && (
                             <button
@@ -736,7 +862,7 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
                               ⏰
                             </button>
                           )}
-                          
+
                           {operacao.ativa && operacao.excluida_temporariamente !== true ? (
                             <button
                               className={styles.modalBotaoExcluir}
@@ -771,35 +897,35 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
 
           {/* Modal do Inspetor */}
           {showInspectorModal && inspectorResult && (
-            <div 
-              className={styles.modalOverlay} 
+            <div
+              className={styles.modalOverlay}
               onClick={() => setShowInspectorModal(false)}
             >
-              <div 
-                className={styles.modalContent} 
+              <div
+                className={styles.modalContent}
                 onClick={(e) => e.stopPropagation()}
                 style={{ maxWidth: '500px' }}
               >
                 <div className={styles.modalHeader}>
                   <div className={styles.modalTitle}>
                     <h3>
-                      {inspectorResult.isCleanup 
-                        ? '🧹 Limpeza Concluída' 
-                        : inspectorResult.success 
-                        ? '✅ Resultado do Inspetor' 
-                        : '🚨 Resultado do Inspetor'
+                      {inspectorResult.isCleanup
+                        ? '🧹 Limpeza Concluída'
+                        : inspectorResult.success
+                          ? '✅ Resultado do Inspetor'
+                          : '🚨 Resultado do Inspetor'
                       }
                     </h3>
                     <p>
                       {inspectorResult.isCleanup
                         ? 'Dados do inspetor foram limpos'
-                        : inspectorResult.success 
-                        ? 'Verificação de integridade concluída'
-                        : `${inspectorResult.discrepancias.length} discrepância(s) encontrada(s)`
+                        : inspectorResult.success
+                          ? 'Verificação de integridade concluída'
+                          : `${inspectorResult.discrepancias.length} discrepância(s) encontrada(s)`
                       }
                     </p>
                   </div>
-                  
+
                   <button
                     className={styles.modalCloseButton}
                     onClick={() => setShowInspectorModal(false)}
@@ -811,8 +937,8 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
 
                 <div className={styles.modalBody}>
                   {inspectorResult.success ? (
-                    <div style={{ 
-                      textAlign: 'center', 
+                    <div style={{
+                      textAlign: 'center',
                       padding: '40px 20px',
                       color: '#16a34a'
                     }}>
@@ -823,38 +949,38 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
                         {inspectorResult.isCleanup ? 'Dados Limpos!' : 'Perfeito!'}
                       </h4>
                       <p style={{ margin: '0', color: '#65a30d' }}>
-                        {inspectorResult.isCleanup 
+                        {inspectorResult.isCleanup
                           ? 'Todos os dados do inspetor foram removidos. Pronto para novo teste!'
                           : 'Todos os clicks foram renderizados corretamente.'
                         }
                       </p>
                     </div>
                   ) : (
-                    <div style={{ 
+                    <div style={{
                       padding: '20px',
                       backgroundColor: '#fef2f2',
                       border: '1px solid #fecaca',
                       borderRadius: '8px'
                     }}>
-                      <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
                         marginBottom: '16px',
                         color: '#dc2626'
                       }}>
                         <span style={{ fontSize: '24px', marginRight: '12px' }}>🚨</span>
                         <strong>Atenção: Discrepâncias detectadas!</strong>
                       </div>
-                      
-                      <p style={{ 
-                        margin: '0 0 16px 0', 
+
+                      <p style={{
+                        margin: '0 0 16px 0',
                         color: '#991b1b',
                         fontSize: '14px'
                       }}>
-                        {inspectorResult.discrepancias.length} problema(s) encontrado(s) na sincronização 
+                        {inspectorResult.discrepancias.length} problema(s) encontrado(s) na sincronização
                         entre clicks e renderizações.
                       </p>
-                      
+
                       <div style={{
                         backgroundColor: '#fff',
                         padding: '12px',
@@ -863,16 +989,16 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
                         fontSize: '13px',
                         color: '#7f1d1d'
                       }}>
-                        💡 <strong>Como resolver:</strong><br/>
-                        • Verifique o console do navegador para detalhes<br/>
-                        • Use o botão "🧹 Limpar" para resetar os dados<br/>
+                        💡 <strong>Como resolver:</strong><br />
+                        • Verifique o console do navegador para detalhes<br />
+                        • Use o botão "🧹 Limpar" para resetar os dados<br />
                         • Execute um novo teste após a limpeza
                       </div>
                     </div>
                   )}
                 </div>
 
-                <div style={{ 
+                <div style={{
                   padding: '20px',
                   borderTop: '1px solid #e5e7eb',
                   display: 'flex',
@@ -897,7 +1023,7 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
                       📋 Ver Detalhes no Console
                     </button>
                   )}
-                  
+
                   <button
                     onClick={() => setShowInspectorModal(false)}
                     style={{
@@ -910,11 +1036,11 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
                       fontSize: '14px'
                     }}
                   >
-                    {inspectorResult.isCleanup 
-                      ? '🧹 Fechar' 
-                      : inspectorResult.success 
-                      ? '✅ Fechar' 
-                      : '🚨 Entendi'
+                    {inspectorResult.isCleanup
+                      ? '🧹 Fechar'
+                      : inspectorResult.success
+                        ? '✅ Fechar'
+                        : '🚨 Entendi'
                     }
                   </button>
                 </div>

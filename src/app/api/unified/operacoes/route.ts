@@ -161,10 +161,15 @@ export async function GET(request: NextRequest) {
       // Filtrar apenas participações ATIVAS primeiro
       const participacoesAtivas = op.participacao?.filter((p: any) => p.ativa === true) || [];
       
+
+      
       // Contar participantes confirmados (incluindo adicionados pelo supervisor)
-      const participantesConfirmados = participacoesAtivas.filter(
-                    (p: any) => p.estado_visual === 'CONFIRMADO' || p.estado_visual === 'ADICIONADO_SUP'
+      const participantesConfirmadosArray = participacoesAtivas.filter(
+        (p: any) => p.estado_visual === 'CONFIRMADO' || p.estado_visual === 'ADICIONADO_SUP'
       );
+      const participantesConfirmados = participantesConfirmadosArray.length;
+      
+
       
       // ✅ NOVA LÓGICA: Contar solicitações pendentes (não mais "na fila")
       const solicitacoesPendentes = participacoesAtivas.filter(
@@ -261,7 +266,7 @@ export async function GET(request: NextRequest) {
           excluida_temporariamente: op.excluida_temporariamente,
           participantes: participantesOrdenados, // ✅ FORMATO ESPERADO PELO MODAL COM ORDENAÇÃO CRONOLÓGICA
           // Campos extras para compatibilidade
-          participantes_confirmados: participantesConfirmados.length,
+          participantes_confirmados: participantesConfirmados,
           pessoas_na_fila: naFila.length, // ✅ CORRIGIDO: apenas pessoas realmente na fila (estado_visual = 'NA_FILA')
           total_solicitacoes: todasSolicitacoes.length, // ✅ NOVO: total de solicitações (PENDENTE + NA_FILA) para o calendário
           // ✅ CORREÇÃO: Adicionar campos mapeados também para supervisor
@@ -295,7 +300,7 @@ export async function GET(request: NextRequest) {
           decisao_diretoria: op.decisao_diretoria,
           motivo_diretoria: op.motivo_diretoria,
           // Contadores
-          participantesConfirmados: participantesConfirmados.length,
+          participantesConfirmados: participantesConfirmados,
           totalParticipantes: participacoesAtivas.length,
           membrosBloquados: participacoesComBloqueio.filter(p => p.bloqueado).length,
           // Participantes com informações de bloqueio
@@ -314,7 +319,7 @@ export async function GET(request: NextRequest) {
         ativa: op.ativa,
         excluida_temporariamente: op.excluida_temporariamente,
         horario: op.horario, // ✅ NOVO: Horário específico da operação
-        participantes_confirmados: participantesConfirmados.length,
+        participantes_confirmados: participantesConfirmados,
         pessoas_na_fila: naFila.length, // ✅ CORRIGIDO: apenas pessoas realmente na fila (estado_visual = 'NA_FILA')
         total_solicitacoes: todasSolicitacoes.length, // ✅ NOVO: total de solicitações (PENDENTE + NA_FILA) para o calendário
         // 🔍 ADICIONAR participacoes no formato esperado pelo tooltip
@@ -330,7 +335,7 @@ export async function GET(request: NextRequest) {
             matricula: p.servidor?.matricula || 'N/A'
           }
         })),
-        participantes_detalhes: participantesConfirmados.map((p: any) => ({
+        participantes_detalhes: participantesConfirmadosArray.map((p: any) => ({
           id: p.id,
           estado_visual: p.estado_visual, // ✅ INCLUIR ESTADO VISUAL
           servidor: {

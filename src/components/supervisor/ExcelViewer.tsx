@@ -366,8 +366,7 @@ export default function ExcelViewer({ filePath, fileName }: ExcelViewerProps) {
             if (cell.style) {
               style[cellKey] = {};
               
-              console.log(`🔍 Analisando célula ${cellKey}:`, cellValue);
-              console.log('📋 Estilo da célula:', JSON.stringify(cell.style, null, 2));
+
               
               // Cor de fundo
               if (cell.style.fill) {

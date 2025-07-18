@@ -40,10 +40,6 @@ export class EuVouOrchestratorSimplificado {
   private validadorUnico: ValidadorUnico;
 
   constructor() {
-    console.log(`🎭 [ORCHESTRATOR-SIMPLIFICADO] 🚨 ======= ORCHESTRATOR SIMPLIFICADO INICIALIZADO =======`);
-    console.log(`🎭 [ORCHESTRATOR-SIMPLIFICADO] ⏰ Timestamp: ${new Date().toISOString()}`);
-    console.log(`🎭 [ORCHESTRATOR-SIMPLIFICADO] 🔄 Usa ValidadorUnico (remove lógica duplicada)`);
-    
     this.validadorUnico = new ValidadorUnico();
   }
 
@@ -54,31 +50,16 @@ export class EuVouOrchestratorSimplificado {
    * AGORA: ~50 linhas focadas em coordenação
    */
   async executar(operacaoId: number, membroId: number): Promise<ResultadoExecucao> {
-    
-    console.log(`🎭 [ORCHESTRATOR-SIMPLIFICADO] 🚨 ======= EXECUÇÃO INICIADA =======`);
-    console.log(`🎭 [ORCHESTRATOR-SIMPLIFICADO] 🎯 Operação: ${operacaoId}, Membro: ${membroId}`);
-    console.log(`🎭 [ORCHESTRATOR-SIMPLIFICADO] ⏰ Timestamp: ${new Date().toISOString()}`);
-
     try {
       // 1️⃣ DELEGAÇÃO PARA VALIDADOR ÚNICO
-      console.log(`🎭 [ORCHESTRATOR-SIMPLIFICADO] 📡 Delegando validação para ValidadorUnico...`);
-      
       const resultadoValidacao = await this.validadorUnico.validarParticipacao(
         operacaoId, 
         membroId, 
         'SOLICITACAO'
       );
 
-      console.log(`🎭 [ORCHESTRATOR-SIMPLIFICADO] 📊 Resultado validação:`, {
-        valido: resultadoValidacao.valido,
-        estrategia: resultadoValidacao.estrategia,
-        mensagem: resultadoValidacao.mensagem
-      });
-
       // 2️⃣ VERIFICAÇÃO DE RESULTADO
       if (!resultadoValidacao.valido) {
-        console.log(`🎭 [ORCHESTRATOR-SIMPLIFICADO] ❌ Validação rejeitada: ${resultadoValidacao.mensagem}`);
-        
         return {
           sucesso: false,
           mensagem: resultadoValidacao.mensagem,
@@ -89,8 +70,6 @@ export class EuVouOrchestratorSimplificado {
       }
 
       // 3️⃣ EXECUÇÃO DA ESTRATÉGIA DETERMINADA
-      console.log(`🎭 [ORCHESTRATOR-SIMPLIFICADO] ⚡ Executando estratégia: ${resultadoValidacao.estrategia}`);
-      
       let resultadoExecucao: ResultadoExecucao;
 
       switch (resultadoValidacao.estrategia) {
@@ -107,18 +86,11 @@ export class EuVouOrchestratorSimplificado {
       }
 
       // 4️⃣ EVENTOS E NOTIFICAÇÕES
-      console.log(`🎭 [ORCHESTRATOR-SIMPLIFICADO] 📢 Disparando eventos...`);
-      
       await this.dispararEventos(operacaoId, membroId, resultadoExecucao);
-
-      console.log(`🎭 [ORCHESTRATOR-SIMPLIFICADO] ✅ Execução concluída com sucesso!`);
-      console.log(`🎭 [ORCHESTRATOR-SIMPLIFICADO] 🏁 Resultado:`, resultadoExecucao);
 
       return resultadoExecucao;
 
     } catch (error) {
-      console.error('🚨 [ORCHESTRATOR-SIMPLIFICADO] Erro interno:', error);
-      
       return {
         sucesso: false,
         mensagem: 'Erro interno no processamento',
@@ -140,8 +112,6 @@ export class EuVouOrchestratorSimplificado {
     resultadoValidacao: any
   ): Promise<ResultadoExecucao> {
     
-    console.log(`✅ [CONFIRMACAO-DIRETA] Criando participação confirmada...`);
-
     const { data: participacao, error } = await supabase
       .from('participacao')
       .insert({
@@ -157,11 +127,8 @@ export class EuVouOrchestratorSimplificado {
       .single();
 
     if (error) {
-      console.error('🚨 [CONFIRMACAO-DIRETA] Erro database:', error);
       throw new Error('Erro ao confirmar participação');
     }
-
-    console.log(`✅ [CONFIRMACAO-DIRETA] Participação criada:`, participacao);
 
     return {
       sucesso: true,
@@ -186,8 +153,6 @@ export class EuVouOrchestratorSimplificado {
     resultadoValidacao: any
   ): Promise<ResultadoExecucao> {
     
-    console.log(`📋 [ADICAO-FILA] Criando participação pendente...`);
-
     const { data: participacao, error } = await supabase
       .from('participacao')
       .insert({
@@ -202,11 +167,8 @@ export class EuVouOrchestratorSimplificado {
       .single();
 
     if (error) {
-      console.error('🚨 [ADICAO-FILA] Erro database:', error);
       throw new Error('Erro ao adicionar à fila');
     }
-
-    console.log(`📋 [ADICAO-FILA] Participação criada:`, participacao);
 
     return {
       sucesso: true,
@@ -231,9 +193,6 @@ export class EuVouOrchestratorSimplificado {
     membroId: number, 
     resultado: ResultadoExecucao
   ): Promise<void> {
-    
-    console.log(`📢 [DISPARAR-EVENTOS] Tipo: ${resultado.tipoAcao}`);
-
     try {
       // Registrar evento no histórico
       await supabase
@@ -254,11 +213,8 @@ export class EuVouOrchestratorSimplificado {
       // - Notificação real-time via Supabase
       // - Email/SMS se configurado
       // - Webhook para integrações
-      
-      console.log(`📢 [DISPARAR-EVENTOS] ✅ Eventos disparados com sucesso`);
 
     } catch (error) {
-      console.error('🚨 [DISPARAR-EVENTOS] Erro ao disparar eventos:', error);
       // Não propaga o erro pois a operação principal já foi realizada
     }
   }
@@ -269,8 +225,6 @@ export class EuVouOrchestratorSimplificado {
    * Útil para debugging e monitoramento
    */
   async obterStatusExecucao(operacaoId: number): Promise<any> {
-    console.log(`📊 [STATUS-EXECUCAO] Operação: ${operacaoId}`);
-
     const estatisticas = await this.validadorUnico.obterEstatisticasOperacao(operacaoId);
 
     return {
@@ -289,14 +243,10 @@ export class EuVouOrchestratorSimplificado {
    * Para facilitar a transição do EuVouOrchestrator original
    */
   static async migrarDo_EuVouOrchestrator_Original(): Promise<void> {
-    console.log(`🔄 [MIGRACAO] Iniciando migração para orchestrator simplificado...`);
-    
     // Em um sistema real, este método:
     // 1. Verificaria dados inconsistentes
     // 2. Reprocessaria participações pendentes
     // 3. Validaria integridade dos dados
     // 4. Geraria relatório de migração
-    
-    console.log(`🔄 [MIGRACAO] ✅ Migração simulada concluída`);
   }
 } 

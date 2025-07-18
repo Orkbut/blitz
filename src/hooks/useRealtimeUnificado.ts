@@ -71,8 +71,7 @@ export const useRealtimeUnificado = ({
   inactivityTimeout = 60000
 }: UseRealtimeUnificadoParams) => {
   
-  console.log(`[TEMP-LOG-REALTIME-UNIFICADO] 🚀 === HOOK UNIFICADO INICIALIZADO ===`);
-  console.log(`[TEMP-LOG-REALTIME-UNIFICADO] 📋 Operações: ${operacaoIds.length}, Enabled: ${enabled}, Visible: ${isVisible}`);
+  // Hook inicializado
   
   // ==========================================
   // 🔧 ESTADOS CONSOLIDADOS
@@ -131,7 +130,6 @@ export const useRealtimeUnificado = ({
     
     if (!isUserActiveRef.current) {
       isUserActiveRef.current = true;
-      console.log(`[TEMP-LOG-REALTIME-UNIFICADO] 🔄 Usuário voltou a ficar ativo`);
     }
   }, []);
 
@@ -139,13 +137,6 @@ export const useRealtimeUnificado = ({
   // 🔧 FETCH OPERAÇÕES CONSOLIDADO
   // ==========================================
   const fetchOperacoes = useCallback(async (): Promise<void> => {
-    console.log(`[TEMP-LOG-REALTIME-UNIFICADO] 📡 Iniciando fetch operações...`);
-    
-    // TEMP-LOG-BANCO-OPT: Monitorar performance do hook (executa a cada 30s)
-    const hookFetchStartTime = performance.now();
-    console.log(`TEMP-LOG-BANCO-OPT: [HOOK-FETCH] Iniciando fetch às ${new Date().toISOString()}`);
-    console.log(`TEMP-LOG-BANCO-OPT: [HOOK-FETCH] Período: ${startDateStr} até ${endDateStr}`);
-    
     setLoading(true);
     setError(null);
 
@@ -161,19 +152,12 @@ export const useRealtimeUnificado = ({
 
       const url = `/api/unified/operacoes?${params}`;
       
-      // TEMP-LOG-BANCO-OPT: Medir tempo da requisição HTTP
-      const httpStartTime = performance.now();
-      console.log(`TEMP-LOG-BANCO-OPT: [HOOK-FETCH] Fazendo requisição para: ${url}`);
-      
       const response = await fetch(url, {
         headers: {
           'Cache-Control': 'no-cache',
           'Pragma': 'no-cache'
         }
       });
-
-      const httpTime = performance.now() - httpStartTime;
-      console.log(`TEMP-LOG-BANCO-OPT: [HOOK-FETCH] Requisição HTTP concluída em ${httpTime.toFixed(2)}ms`);
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -182,16 +166,12 @@ export const useRealtimeUnificado = ({
       const data = await response.json();
       
       if (data.success) {
-        const totalFetchTime = performance.now() - hookFetchStartTime;
-        console.log(`[TEMP-LOG-REALTIME-UNIFICADO] ✅ Operações carregadas: ${data.data?.length || 0}`);
-        console.log(`TEMP-LOG-BANCO-OPT: [HOOK-FETCH] ✅ Fetch completo em ${totalFetchTime.toFixed(2)}ms (HTTP: ${httpTime.toFixed(2)}ms)`);
         setOperacoes(data.data || []);
       } else {
         throw new Error(data.error || 'Erro ao buscar operações');
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao conectar com o servidor';
-      console.error(`[TEMP-LOG-REALTIME-UNIFICADO] ❌ Erro no fetch:`, errorMessage);
       setError(errorMessage);
       setOperacoes([]);
     } finally {
@@ -203,7 +183,6 @@ export const useRealtimeUnificado = ({
   // 🔧 REFETCH UNIFICADO
   // ==========================================
   const refetch = useCallback((reason: string = 'Manual') => {
-    console.log(`[TEMP-LOG-REALTIME-UNIFICADO] 🔄 REFETCH SOLICITADO - Motivo: ${reason}`);
     setRefetchCounter(prev => prev + 1);
   }, []);
 
@@ -220,7 +199,6 @@ export const useRealtimeUnificado = ({
     if (!enabled) return;
 
     const currentInterval = getCurrentInterval();
-    console.log(`[TEMP-LOG-REALTIME-UNIFICADO] ⏱️ Polling ajustado: ${currentInterval}ms`);
 
     intervalRef.current = setInterval(() => {
       refetch('SmartPolling');
@@ -236,7 +214,7 @@ export const useRealtimeUnificado = ({
         try {
           channelRef.current.unsubscribe();
         } catch (error) {
-          console.error('[TEMP-LOG-REALTIME-UNIFICADO] Erro ao limpar:', error);
+          // Erro silencioso
         }
         channelRef.current = null;
         isSubscribedRef.current = false;
@@ -255,8 +233,6 @@ export const useRealtimeUnificado = ({
         isSubscribedRef.current = false;
       }
 
-      console.log(`[TEMP-LOG-REALTIME-UNIFICADO] 📡 Criando canal: ${channelName}`);
-      
       const channel = supabase
         .channel(channelName)
         .on(
@@ -280,7 +256,6 @@ export const useRealtimeUnificado = ({
                 // Detecção soft delete
                 if (payload.eventType === 'UPDATE' && newData?.ativa === false && oldData?.ativa === true) {
                   if (operacaoId && operacaoIds.includes(operacaoId)) {
-                    console.log(`[TEMP-LOG-REALTIME-UNIFICADO] 🚫 Participação cancelada - Op: ${operacaoId}`);
                     setTimeout(() => {
                       if (onUpdate) onUpdate(operacaoId, 'PARTICIPACAO_CANCELED');
                       refetch('ParticipacaoCancelada');
@@ -295,14 +270,13 @@ export const useRealtimeUnificado = ({
               }
               
               if (operacaoId) {
-                console.log(`[TEMP-LOG-REALTIME-UNIFICADO] 📡 Evento realtime: ${payload.eventType} - Op: ${operacaoId}`);
                 setTimeout(() => {
                   if (onUpdate) onUpdate(operacaoId, `PARTICIPACAO_${payload.eventType}`);
                   refetch(`Realtime_${payload.eventType}`);
                 }, 50);
               }
             } catch (error) {
-              console.error('[TEMP-LOG-REALTIME-UNIFICADO] Erro no handler:', error);
+              // Erro silencioso
             }
           }
         )
@@ -320,21 +294,19 @@ export const useRealtimeUnificado = ({
               const operacaoId = newData?.id || oldData?.id;
               
               if (operacaoId && operacaoIds.includes(operacaoId)) {
-                console.log(`[TEMP-LOG-REALTIME-UNIFICADO] 🔄 Operação atualizada: ${operacaoId}`);
                 setTimeout(() => {
                   if (onUpdate) onUpdate(operacaoId, `OPERACAO_${payload.eventType}`);
                   refetch(`Realtime_Operacao_${payload.eventType}`);
                 }, 50);
               }
             } catch (error) {
-              console.error('[TEMP-LOG-REALTIME-UNIFICADO] Erro no handler operação:', error);
+              // Erro silencioso
             }
           }
         );
 
       channel.subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log(`[TEMP-LOG-REALTIME-UNIFICADO] ✅ Canal subscrito: ${channelName}`);
           isSubscribedRef.current = true;
         }
       });
@@ -342,7 +314,7 @@ export const useRealtimeUnificado = ({
       channelRef.current = channel;
       
     } catch (error) {
-      console.error('[TEMP-LOG-REALTIME-UNIFICADO] Erro ao configurar realtime:', error);
+      // Erro silencioso
     }
   }, [enabled, operacaoIds, channelName, isVisible, onUpdate, refetch]);
 
@@ -372,7 +344,6 @@ export const useRealtimeUnificado = ({
       isDocumentVisibleRef.current = !document.hidden;
       
       if (wasVisible !== isDocumentVisibleRef.current) {
-        console.log(`[TEMP-LOG-REALTIME-UNIFICADO] 👁️ Tab ${isDocumentVisibleRef.current ? 'visível' : 'em background'}`);
         resetPollingInterval();
       }
     };
@@ -389,7 +360,6 @@ export const useRealtimeUnificado = ({
       isUserActiveRef.current = (now - lastActivityRef.current) < inactivityTimeout;
       
       if (wasActive !== isUserActiveRef.current) {
-        console.log(`[TEMP-LOG-REALTIME-UNIFICADO] 👤 Usuário ${isUserActiveRef.current ? 'ativo' : 'inativo'}`);
         resetPollingInterval();
       }
     }, 5000);
@@ -463,18 +433,14 @@ export const useRealtimeUnificado = ({
 
 // Trigger manual para refresh de operações específicas
 export const triggerUnifiedRefresh = async (operacaoIds: number[], eventType: string = 'FORCE_REFRESH') => {
-  console.log(`[TEMP-LOG-REALTIME-UNIFICADO] 🔄 Trigger unificado: ${eventType} para ops: ${operacaoIds.join(',')}`);
-  
   try {
     const { data } = await supabase
       .from('operacao')
       .update({ atualizacao_forcada: new Date().toISOString() })
       .in('id', operacaoIds);
       
-    console.log(`[TEMP-LOG-REALTIME-UNIFICADO] ✅ Trigger executado para ${operacaoIds.length} operações`);
     return { success: true, data };
   } catch (error) {
-    console.error('[TEMP-LOG-REALTIME-UNIFICADO] ❌ Erro no trigger:', error);
     return { success: false, error };
   }
 }; 

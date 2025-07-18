@@ -71,7 +71,7 @@ export const useOperacoes = ({ startDate, endDate }: UseOperacoesParams) => {
       // ✅ OTIMIZADO: Logs detalhados removidos (performance)
 
       if (data.success) {
-        // console.log('✅ [USE-OPERACOES] Dados recebidos da API:', {
+        // Dados recebidos da API
         //   total: data.data?.length || 0,
         //   timestamp: new Date().toLocaleTimeString(),
         //   counterId: refetchCounter
@@ -82,7 +82,7 @@ export const useOperacoes = ({ startDate, endDate }: UseOperacoesParams) => {
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao conectar com o servidor';
-      console.error(`❌ [HOOK-OPERACOES] Erro no fetch:`, errorMessage);
+      // Erro silencioso
       setError(errorMessage);
       setOperacoes([]);
     } finally {
@@ -92,10 +92,8 @@ export const useOperacoes = ({ startDate, endDate }: UseOperacoesParams) => {
 
   // 🔧 CORREÇÃO: Refetch que força re-renderização através do contador
   const refetch = useCallback(() => {
-    // console.log('🚨 [USE-OPERACOES] REFETCH CHAMADO! Motivo: Real-time detectou mudança');
     // Incrementar contador para forçar re-renderização (que dispara useEffect -> fetchOperacoes)
     setRefetchCounter(prev => {
-      // console.log('📈 [USE-OPERACOES] Counter atual:', prev, '→ Novo:', prev + 1);
       return prev + 1;
     });
   }, []);

@@ -46,9 +46,6 @@ export class ValidadorParticipacao {
     operacaoId: number,
     contexto: ContextoValidacao = ContextoValidacao.SOLICITACAO
   ): Promise<ResultadoValidacao> {
-    console.log(`[TEMP-LOG-VALIDADOR] 🚨 INÍCIO VALIDAÇÃO - Servidor ${servidorId} → Op ${operacaoId}`);
-    console.log(`[TEMP-LOG-VALIDADOR] 📋 CONTEXTO: ${contexto}`);
-    
     if (contexto === ContextoValidacao.SOLICITACAO) {
       return this.validarParaSolicitacao(servidorId, operacaoId);
     } else {
@@ -58,8 +55,6 @@ export class ValidadorParticipacao {
 
   // 🎯 VALIDAÇÃO PARA SOLICITAÇÃO: Apenas verificações básicas
   async validarParaSolicitacao(servidorId: number, operacaoId: number): Promise<ResultadoValidacao> {
-    console.log(`[TEMP-LOG-VALIDADOR] ✅ SOLICITAÇÃO - Validações básicas apenas`);
-    
     const motivos: string[] = [];
 
     try {
@@ -74,8 +69,6 @@ export class ValidadorParticipacao {
         return { podeParticipar: false, motivos };
       }
 
-      console.log(`[TEMP-LOG-VALIDADOR] 📋 Dados carregados - Op: ${operacao.tipo} | Servidor: ${servidor.nome} (${servidor.perfil})`);
-
       // 2. ✅ VALIDAR APENAS: Estado da operação (aceitar AGUARDANDO_SOLICITACOES para solicitação)
       const statusValidos = ['ATIVA', 'AGUARDANDO_SOLICITACOES'];
       if (!statusValidos.includes(operacao.status)) {
@@ -84,7 +77,6 @@ export class ValidadorParticipacao {
 
       // 3. ✅ VALIDAR APENAS: Limite básico de participantes na operação
       const participacoesAtivas = await this.contarParticipacoes(operacaoId);
-      console.log(`[TEMP-LOG-VALIDADOR] 📊 Limite participantes: ${participacoesAtivas}/${operacao.limite_participantes || 0}`);
 
       // ✅ PARA SOLICITAÇÃO: Aceitar mesmo se estiver no limite (fila de espera)
       // Só bloquear se estiver muito acima do limite (segurança)
@@ -94,10 +86,8 @@ export class ValidadorParticipacao {
       }
 
       // 4. ❌ NÃO VALIDAR: Limites de ciclo funcional
-      console.log(`[TEMP-LOG-VALIDADOR] ⚠️ SOLICITAÇÃO: NÃO validando limite de ciclo funcional`);
       
-      // 5. ❌ NÃO VALIDAR: Limites de diárias mensais  
-      console.log(`[TEMP-LOG-VALIDADOR] ⚠️ SOLICITAÇÃO: NÃO validando limite mensal de diárias`);
+      // 5. ❌ NÃO VALIDAR: Limites de diárias mensais
 
       // 6. ✅ VALIDAR APENAS: Conflito de data (mesmo servidor, mesma data)
       if (await this.temConflitoPorData(servidorId, operacao.data_operacao)) {
@@ -105,12 +95,10 @@ export class ValidadorParticipacao {
       }
 
       const podeParticipar = motivos.length === 0;
-      console.log(`[TEMP-LOG-VALIDADOR] 🎯 RESULTADO SOLICITAÇÃO - Pode participar: ${podeParticipar} | Motivos: ${motivos.join(', ') || 'Nenhum'}`);
 
       return { podeParticipar, motivos };
 
     } catch (error) {
-      console.error(`[TEMP-LOG-VALIDADOR] ❌ Erro na validação de solicitação:`, error);
       return { 
         podeParticipar: false, 
         motivos: ['Erro interno na validação'] 
@@ -120,8 +108,6 @@ export class ValidadorParticipacao {
 
   // 🎯 VALIDAÇÃO PARA CONFIRMAÇÃO: Todas as regras de negócio
   async validarParaConfirmacao(servidorId: number, operacaoId: number): Promise<ResultadoValidacao> {
-    console.log(`[TEMP-LOG-VALIDADOR] ✅ CONFIRMAÇÃO - Validando TODAS as regras`);
-    
     const motivos: string[] = [];
 
     try {
@@ -136,7 +122,7 @@ export class ValidadorParticipacao {
         return { podeParticipar: false, motivos };
       }
 
-      console.log(`[TEMP-LOG-VALIDADOR] 📋 Dados carregados - Op: ${operacao.tipo} | Servidor: ${servidor.nome} (${servidor.perfil})`);
+      // Dados carregados
 
       // 2. ✅ VALIDAR: Estado da operação (confirmação aceita apenas ATIVA)
       if (operacao.status !== 'ATIVA') {
@@ -145,14 +131,12 @@ export class ValidadorParticipacao {
 
       // 3. ✅ VALIDAR: Limite de participantes na operação
       const participacoesAtivas = await this.contarParticipacoes(operacaoId);
-      console.log(`[TEMP-LOG-VALIDADOR] 📊 Limite participantes: ${participacoesAtivas}/${operacao.limite_participantes || 0}`);
 
       if (participacoesAtivas >= (operacao.limite_participantes || 0)) {
         motivos.push('Operação já atingiu o limite de participantes');
       }
 
       // 4. ✅ VALIDAR: Limites de ciclo funcional
-      console.log(`[TEMP-LOG-VALIDADOR] ✅ CONFIRMAÇÃO: Validando limite de ciclo funcional`);
       const limiteCicloResult = await this.validarLimiteCicloFuncional(servidorId, operacao.data_operacao);
       if (!limiteCicloResult.podeParticipar) {
         motivos.push(...limiteCicloResult.motivos);
@@ -160,7 +144,6 @@ export class ValidadorParticipacao {
 
       // 5. ✅ VALIDAR: Limites de diárias mensais (apenas para PLANEJADA)
       if (operacao.tipo === 'PLANEJADA') {
-        console.log(`[TEMP-LOG-VALIDADOR] ✅ CONFIRMAÇÃO: Validando limite mensal de diárias`);
         const limiteDiariasResult = await this.validarLimiteMensalDiarias(servidorId, operacao.data_operacao);
         if (!limiteDiariasResult.podeParticipar) {
           motivos.push(...limiteDiariasResult.motivos);
@@ -173,12 +156,10 @@ export class ValidadorParticipacao {
       }
 
       const podeParticipar = motivos.length === 0;
-      console.log(`[TEMP-LOG-VALIDADOR] 🎯 RESULTADO CONFIRMAÇÃO - Pode participar: ${podeParticipar} | Motivos: ${motivos.join(', ') || 'Nenhum'}`);
 
       return { podeParticipar, motivos };
 
     } catch (error) {
-      console.error(`[TEMP-LOG-VALIDADOR] ❌ Erro na validação de confirmação:`, error);
       return { 
         podeParticipar: false, 
         motivos: ['Erro interno na validação'] 
@@ -189,53 +170,40 @@ export class ValidadorParticipacao {
   // Método específico para validação rápida (sem todas as verificações)
   async validacaoRapida(membroId: number, operacaoId: number): Promise<boolean> {
     try {
-      console.log(`%c[TEMP-LOG-VALIDADOR] ⚡ VALIDAÇÃO RÁPIDA - Membro ${membroId} → Op ${operacaoId}`, 'background: #f3f4f6; color: #374151;');
-      
       const operacao = await this.operacaoRepository.buscarPorId(operacaoId);
       if (!operacao || !operacao.ativa) {
-        console.log(`%c[TEMP-LOG-VALIDADOR] ❌ Validação rápida falhou - Operação inválida`, 'background: #fecaca; color: #991b1b;');
         return false;
       }
 
       const jaParticipa = await this.operacaoRepository.verificarParticipacaoExistente(membroId, operacaoId);
       if (jaParticipa) {
-        console.log(`%c[TEMP-LOG-VALIDADOR] ❌ Validação rápida falhou - Já participa`, 'background: #fecaca; color: #991b1b;');
         return false;
       }
 
       const participantesConfirmados = await this.operacaoRepository.contarParticipantesConfirmados(operacaoId);
       const podeParticipar = participantesConfirmados < operacao.limite_participantes;
       
-      console.log(`%c[TEMP-LOG-VALIDADOR] ⚡ Validação rápida resultado: ${podeParticipar} (${participantesConfirmados}/${operacao.limite_participantes})`, 'background: #f3f4f6; color: #374151;');
-      
       return podeParticipar;
     } catch (error) {
-      console.error('%c[TEMP-LOG-VALIDADOR] 💥 ERRO na validação rápida:', 'background: #fecaca; color: #991b1b;', error);
       return false;
     }
   }
 
   // Helper para carregar operação
   private async carregarOperacao(operacaoId: number) {
-    console.log(`[TEMP-LOG-VALIDADOR] 🔍 Carregando operação ${operacaoId} do banco...`);
     const operacao = await this.operacaoRepository.buscarPorId(operacaoId);
-    console.log(`[TEMP-LOG-VALIDADOR] 📋 Operação carregada: ${operacao?.tipo || 'N/A'} | Status: ${operacao?.status || 'N/A'} | Limite: ${operacao?.limite_participantes || 'N/A'}`);
     return operacao;
   }
 
   // Helper para carregar servidor
   private async carregarServidor(servidorId: number) {
-    console.log(`[TEMP-LOG-VALIDADOR] 🔍 Carregando servidor ${servidorId} do banco...`);
     const servidor = await this.servidorRepository.buscarPorId(servidorId);
-    console.log(`[TEMP-LOG-VALIDADOR] 👤 Servidor carregado: ${servidor?.nome || 'N/A'} | Perfil: ${servidor?.perfil || 'N/A'} | Regional: ${servidor?.regional_id || 'N/A'}`);
     return servidor;
   }
 
   // Helper para contar participantes ativos
   private async contarParticipacoes(operacaoId: number) {
-    console.log(`[TEMP-LOG-VALIDADOR] 🔢 Contando participações ativas para operação ${operacaoId}...`);
     const count = await this.operacaoRepository.contarParticipantesConfirmados(operacaoId);
-    console.log(`[TEMP-LOG-VALIDADOR] 📊 Total de participações ativas encontradas: ${count}`);
     return count;
   }
 

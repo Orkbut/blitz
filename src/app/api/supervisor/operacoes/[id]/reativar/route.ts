@@ -6,7 +6,9 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const operacaoId = parseInt(params.id);
+    // ✅ CORREÇÃO: Await params para Next.js 15+
+    const resolvedParams = await params;
+    const operacaoId = parseInt(resolvedParams.id);
     const { supervisorId } = await request.json();
 
     // Validações básicas

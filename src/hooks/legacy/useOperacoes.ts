@@ -46,20 +46,6 @@ interface UseOperacoesParams {
  * Este wrapper será removido em 2 sprints.
  */
 export const useOperacoes = ({ startDate, endDate }: UseOperacoesParams) => {
-  console.warn(`
-    ⚠️ DEPRECATED: useOperacoes
-    📦 Migre para: useState + fetch simples
-    🗓️ Remoção prevista: 2 sprints
-    
-    Padrão novo (muito mais simples):
-    const [operacoes, setOperacoes] = useState([]);
-    const fetchOperacoes = useCallback(async () => {
-      const response = await fetch('/api/unified/operacoes?...');
-      const data = await response.json();
-      setOperacoes(data.data);
-    }, []);
-  `);
-  
   const [operacoes, setOperacoes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

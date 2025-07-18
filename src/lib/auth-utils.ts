@@ -37,7 +37,6 @@ export function getSupervisorData(): SupervisorData | null {
     
     return userData;
   } catch (error) {
-    console.error('Erro ao obter dados do supervisor:', error);
     return null;
   }
 }
@@ -100,4 +99,71 @@ export function getSupervisorContext() {
     supervisorId: supervisorData.id,
     regionalId: supervisorData.regionalId
   };
-} 
+}
+
+/**
+ * ✅ FORMATAÇÃO DE DATAS CENTRALIZADAS
+ * Timezone: America/Fortaleza (Iguatu-CE, Brasil)
+ * Garante consistência em todo o projeto
+ */
+
+/**
+ * Formatar data no padrão brasileiro (dd/MM/yyyy) com timezone correto
+ */
+export const formatarDataBR = (dataISO: string): string => {
+  if (!dataISO) return '';
+  try {
+    // Garantir que sempre use o timezone de Iguatu-CE
+    const data = new Date(dataISO);
+    return data.toLocaleDateString('pt-BR', {
+      timeZone: 'America/Fortaleza',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  } catch (error) {
+    return dataISO;
+  }
+};
+
+/**
+ * Formatar data e hora completa com timezone correto
+ */
+export const formatarDataHoraCompleta = (dataISO: string): string => {
+  if (!dataISO) return '';
+  try {
+    const data = new Date(dataISO);
+    return data.toLocaleString('pt-BR', {
+      timeZone: 'America/Fortaleza',
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (error) {
+    return dataISO;
+  }
+};
+
+/**
+ * Obter data atual no timezone de Iguatu-CE
+ */
+export const obterDataAtualIguatu = (): Date => {
+  const agora = new Date();
+  // Converter para timezone de Fortaleza (mesmo de Iguatu)
+  const dataLocal = new Date(agora.toLocaleString('en-US', { timeZone: 'America/Fortaleza' }));
+  return dataLocal;
+}; 
+
+/**
+ * Formatar período de janela operacional
+ */
+export const formatarPeriodoJanela = (dataInicio: string, dataFim: string): string => {
+  try {
+    return `${formatarDataBR(dataInicio)} - ${formatarDataBR(dataFim)}`;
+  } catch (error) {
+    return `${dataInicio} - ${dataFim}`;
+  }
+}; 

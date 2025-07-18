@@ -93,7 +93,7 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
         throw new Error(result.error || 'Resposta inválida da API');
       }
     } catch (error) {
-      console.error('[Modal Gerenciar] ❌ Erro ao atualizar operações:', error);
+      // Erro silencioso
     }
   }, []); // Sem dependências, totalmente estável
 

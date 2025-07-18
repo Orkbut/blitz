@@ -179,12 +179,36 @@ async function rejeitarSolicitacao(solicitacaoId: number, adminId: number, motiv
       }, { status: 404 });
     }
 
+    // ✅ CORREÇÃO: Garantir que adminId seja válido
+    let adminValido = adminId;
+    
+    // Verificar se o admin existe
+    const { data: adminExiste } = await supabase
+      .from('servidor')
+      .select('id')
+      .eq('id', adminId)
+      .eq('ativo', true)
+      .single();
+
+    // Se admin não existe, usar o admin principal como fallback
+    if (!adminExiste) {
+      const { data: adminPrincipal } = await supabase
+        .from('servidor')
+        .select('id')
+        .eq('is_admin_global', true)
+        .eq('ativo', true)
+        .limit(1)
+        .single();
+      
+      adminValido = adminPrincipal?.id || 6; // Fallback definitivo
+    }
+
     // Rejeitar solicitação
     const { data: solicitacaoRejeitada, error: updateError } = await supabase
       .from('solicitacao_supervisor')
       .update({
         status: 'REJEITADA',
-        analisada_por: adminId,
+        analisada_por: adminValido, // ✅ CORREÇÃO: Usar admin válido
         data_analise: new Date().toISOString(),
         motivo_rejeicao: motivo || 'Sem justificativa fornecida'
       })
@@ -200,7 +224,8 @@ async function rejeitarSolicitacao(solicitacaoId: number, adminId: number, motiv
     console.log('✅ [ADMIN] Solicitação rejeitada:', {
       id: solicitacaoRejeitada.id,
       matricula: solicitacaoRejeitada.matricula,
-      motivo
+      motivo,
+      adminResponsavel: adminValido
     });
 
     return NextResponse.json({
@@ -286,12 +311,26 @@ export async function PUT(request: NextRequest) {
       }
 
       // ✅ ATUALIZAR SOLICITAÇÃO COMO APROVADA
+      // ✅ CORREÇÃO: Garantir que adminId seja válido
+      let adminValido = 1; // Default
+      
+      // Buscar admin principal ativo
+      const { data: adminPrincipal } = await supabase
+        .from('servidor')
+        .select('id')
+        .eq('is_admin_global', true)
+        .eq('ativo', true)
+        .limit(1)
+        .single();
+      
+      adminValido = adminPrincipal?.id || 6; // Fallback para admin principal
+
       const { error: errorUpdate } = await supabase
         .from('solicitacao_supervisor')
         .update({
           status: 'APROVADA',
           data_analise: new Date().toISOString(),
-          analisada_por: 1 // TODO: Pegar ID do admin logado
+          analisada_por: adminValido // ✅ CORREÇÃO: Usar admin válido
         })
         .eq('id', id);
 
@@ -308,12 +347,26 @@ export async function PUT(request: NextRequest) {
 
     } else if (action === 'REJEITAR') {
       // ✅ REJEITAR SOLICITAÇÃO
+      // ✅ CORREÇÃO: Garantir que adminId seja válido  
+      let adminValidoRejeicao = 1; // Default
+      
+      // Buscar admin principal ativo
+      const { data: adminPrincipalRejeicao } = await supabase
+        .from('servidor')
+        .select('id')
+        .eq('is_admin_global', true)
+        .eq('ativo', true)
+        .limit(1)
+        .single();
+      
+      adminValidoRejeicao = adminPrincipalRejeicao?.id || 6; // Fallback para admin principal
+
       const { error: errorRejeitar } = await supabase
         .from('solicitacao_supervisor')
         .update({
           status: 'REJEITADA',
           data_analise: new Date().toISOString(),
-          analisada_por: 1, // TODO: Pegar ID do admin logado
+          analisada_por: adminValidoRejeicao, // ✅ CORREÇÃO: Usar admin válido
           motivo_rejeicao: motivo_rejeicao || 'Não especificado'
         })
         .eq('id', id);

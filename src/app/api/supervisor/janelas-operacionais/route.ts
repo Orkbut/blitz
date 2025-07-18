@@ -42,6 +42,12 @@ export async function GET(request: NextRequest) {
       throw error;
     }
 
+    console.log('🔍 [API GET] Janelas brutas do banco:', janelas?.map(j => ({
+      id: j.id,
+      data_inicio: j.data_inicio,
+      data_fim: j.data_fim
+    })));
+
     // ✅ CONTAR OPERAÇÕES REAIS PARA CADA JANELA
     const janelasComOperacoes = await Promise.all(
       (janelas || []).map(async (janela) => {
@@ -51,7 +57,7 @@ export async function GET(request: NextRequest) {
           .eq('janela_id', janela.id)
           .eq('ativa', true);
 
-        return {
+        const janelaFormatada = {
           id: janela.id,
           dataInicio: janela.data_inicio,
           dataFim: janela.data_fim,
@@ -63,6 +69,10 @@ export async function GET(request: NextRequest) {
           limiteMax: janela.limite_max,
           criadoEm: janela.criado_em
         };
+        
+
+        
+        return janelaFormatada;
       })
     );
 
@@ -91,14 +101,29 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
+    // ✅ CORRIGIDO: Obter contexto do supervisor pelos headers
+    const supervisorId = request.headers.get('X-Supervisor-Id');
+    const regionalId = request.headers.get('X-Regional-Id');
+    
+    console.log('🔍 [API] Headers recebidos:', {
+      supervisorId,
+      regionalId,
+      allHeaders: Object.fromEntries(request.headers.entries())
+    });
+    
+    if (!supervisorId || !regionalId) {
+      return NextResponse.json({
+        success: false,
+        error: 'Contexto do supervisor não encontrado. Faça login novamente.'
+      }, { status: 401 });
+    }
+    
     const { 
       dataInicio, 
       dataFim, 
       modalidades, 
       limiteMin = 2, 
-      limiteMax = 30,
-      regionalId = 5, // ✅ UR IGUATU (ID válido)
-      supervisorId = 1 // ✅ DOUGLAS ALBERTO DOS SANTOS
+      limiteMax = 30
     } = body;
 
     // ✅ VALIDAÇÕES BÁSICAS
@@ -119,7 +144,7 @@ export async function POST(request: NextRequest) {
       .from('janela_operacional')
       .select('id, data_inicio, data_fim, modalidades')
       .eq('ativa', true)
-      .eq('regional_id', regionalId);
+      .eq('regional_id', parseInt(regionalId));
 
     if (validationError) {
       console.error('❌ Erro ao validar sobreposição:', validationError);
@@ -170,11 +195,19 @@ export async function POST(request: NextRequest) {
     }
 
     // ✅ CRIAR JANELA REAL NO SUPABASE
+    console.log('🔍 [API] Dados que serão salvos no banco:', {
+      regional_id: parseInt(regionalId),
+      supervisor_id: parseInt(supervisorId),
+      data_inicio: dataInicio,
+      data_fim: dataFim,
+      modalidades: Array.isArray(modalidades) ? modalidades.join(',') : modalidades
+    });
+    
     const { data: novaJanela, error } = await supabase
       .from('janela_operacional')
       .insert({
-        regional_id: regionalId,
-        supervisor_id: supervisorId,
+        regional_id: parseInt(regionalId),
+        supervisor_id: parseInt(supervisorId),
         data_inicio: dataInicio,
         data_fim: dataFim,
         modalidades: Array.isArray(modalidades) ? modalidades.join(',') : modalidades,
@@ -184,6 +217,8 @@ export async function POST(request: NextRequest) {
       })
       .select()
       .single();
+
+    console.log('🔍 [API] Janela criada no banco:', novaJanela);
 
     if (error) {
       console.error('❌ Erro ao criar janela:', error);

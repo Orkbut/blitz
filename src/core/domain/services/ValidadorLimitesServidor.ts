@@ -32,7 +32,7 @@ export class ValidadorLimitesServidor {
    */
   async validarLimites(dados: DadosValidacao): Promise<ResultadoValidacao> {
     try {
-      console.log('🔍 Validando limites para servidor:', dados.servidorId);
+
 
       // 1. Buscar parâmetros de limite
       const parametros = await this.parametrizacaoService.buscarParametrosLimite();
@@ -80,7 +80,7 @@ export class ValidadorLimitesServidor {
         };
       }
 
-      console.log('✅ Validação aprovada:', limitesAtuais);
+
 
       return {
         podeConfirmar: true,

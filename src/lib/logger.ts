@@ -76,7 +76,7 @@ class ClickInspector {
       timestamp: Date.now()
     });
     
-    console.log(`[CLICK] ${membro} → ${acao} → Op ${operacaoId} (${data})`);
+    // Log silencioso
   }
   
   // 🎯 REGISTRAR RENDERIZAÇÃO
@@ -95,7 +95,7 @@ class ClickInspector {
       timestamp: Date.now()
     });
     
-    console.log(`[RENDER] ${membro} → MOSTRADO → Op ${operacaoId} (${data})`);
+    // Log silencioso
   }
   
   // 🎯 INSPEÇÃO CIRÚRGICA
@@ -121,10 +121,7 @@ class ClickInspector {
         discrepancia
       });
       
-      // Log apenas discrepâncias
-      if (discrepancia) {
-        console.log(`🚨 DISCREPÂNCIA: ${membro} Op ${operacaoId} (${data}) → ${clicksCount} clicks, ${rendersCount} renders`);
-      }
+      // Log silencioso
     }
     
     return resultados;
@@ -135,16 +132,7 @@ class ClickInspector {
     const resultados = this.inspecionar();
     const discrepancias = resultados.filter(r => r.discrepancia);
     
-    console.log(`[INSPETOR] ${resultados.length} operações analisadas`);
-    
-    if (discrepancias.length > 0) {
-      console.log(`🚨 ${discrepancias.length} DISCREPÂNCIAS DETECTADAS:`);
-      discrepancias.forEach(d => {
-        console.log(`   ${d.membro} Op ${d.operacaoId} (${d.data}): ${d.clicks}→${d.renderizacoes}`);
-      });
-    } else {
-      console.log(`✅ PERFEITO: Todos os clicks foram renderizados corretamente`);
-    }
+    // Relatório silencioso
     
     return discrepancias;
   }
@@ -153,16 +141,13 @@ class ClickInspector {
   limpar() {
     this.clicks.clear();
     this.renders.clear();
-    console.log(`[INSPETOR] Dados limpos - pronto para novos testes`);
+    // Log silencioso
   }
   
   // 🧹 LIMPEZA COMPLETA: Remove todos os dados e logs
   limparTudo() {
     this.clicks.clear();
     this.renders.clear();
-    console.clear(); // Limpar console também
-    console.log(`🧹 [INSPETOR] Limpeza completa realizada - console e dados limpos`);
-    console.log(`✅ [INSPETOR] Sistema pronto para novos testes`);
   }
 }
 

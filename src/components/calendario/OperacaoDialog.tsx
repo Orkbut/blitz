@@ -138,17 +138,24 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
     lastPropsRef.current.dateString !== currentDateString;
   
   if (propsChanged) {
-    console.log(`🎯 [OPERACAO-DIALOG] Render NECESSÁRIO #${renderCount.current} - Props mudaram`);
     lastPropsRef.current = { operacoesLength: currentPropsLength, dateString: currentDateString };
-  } else {
-    console.log(`⚠️ [OPERACAO-DIALOG] Render DESNECESSÁRIO #${renderCount.current} - Props iguais`);
   }
   
-  console.log(`[RENDER-DEBUG] 🔄 OperacaoDialog render #${renderCount.current}`);
-  console.log(`[RENDER-DEBUG] 📊 Props: operacoes=${operacoesIniciais.length}, date=${date.toISOString()}`);
+  // ✅ EXTRAIR ID DA AUTENTICAÇÃO (não localStorage)
+  const getMembroIdFromAuth = () => {
+    try {
+      const membroAuth = localStorage.getItem('membroAuth');
+      if (membroAuth) {
+        const userData = JSON.parse(membroAuth);
+        return userData.id?.toString() || '1';
+      }
+    } catch (error) {
+      // Erro silencioso
+    }
+    return '1'; // Fallback apenas em caso de erro
+  };
   
-  // Obtém o ID do membro do localStorage
-  const membroId = localStorage.getItem('membroId') || '1';
+  const membroId = getMembroIdFromAuth();
   
   const [operacoes, setOperacoes] = useState<Operacao[]>(operacoesIniciais);
   const [loading, setLoading] = useState<number | null>(null);
@@ -162,7 +169,6 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
   // 🚀 REALTIME: IDs das operações no modal (memoizados para estabilidade)
   const operacaoIds = useMemo(() => {
     const ids = operacoes.map(op => op.id).sort((a, b) => a - b);
-    console.log(`[RENDER-DEBUG] 📋 IDs computados: [${ids.join(',')}]`);
     return ids;
   }, [operacoes]);
   
@@ -177,7 +183,6 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
 
   // ✅ CALLBACK ULTRA-ESTÁVEL: Handle novos eventos de histórico
   const handleNovoEvento = useCallback((evento: any) => {
-    console.log(`[EVENTO-HISTORICO] 📋 Novo: ${evento.tipo_evento} - Op:${evento.operacao_id}`);
     const operacaoId = evento.operacao_id;
     
     // 💾 CACHE INTELIGENTE: Adicionar evento ao cache local
@@ -185,14 +190,12 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
       const historicoAtual = prev[operacaoId];
       
       if (!historicoAtual) {
-        console.log(`[EVENTO-HISTORICO] ⚠️ Cache não existe para Op:${operacaoId}`);
         return prev;
       }
       
       // Verificar duplicata
       const eventoExiste = historicoAtual.eventos.some(e => e.id === evento.id.toString());
       if (eventoExiste) {
-        console.log(`[EVENTO-HISTORICO] 🔄 Duplicata ignorada`);
         return prev;
       }
       
@@ -211,8 +214,6 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
         }
       ].sort((a, b) => new Date(a.data_evento).getTime() - new Date(b.data_evento).getTime());
       
-      console.log(`[EVENTO-HISTORICO] ✅ Adicionado - Total:${eventosAtualizados.length}`);
-      
       return {
         ...prev,
         [operacaoId]: {
@@ -224,7 +225,6 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
     
     // Forçar atualização visual se modal aberto
     if (historicoModalAberto === operacaoId) {
-      console.log(`[EVENTO-HISTORICO] 🔄 Atualizando modal aberto`);
       setHistoricoModalAberto(null);
       setTimeout(() => setHistoricoModalAberto(operacaoId), 10);
     }
@@ -240,11 +240,8 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
     debug: false
   });
   
-  console.log(`[REALTIME-STATUS] 🔗 Conectado: ${isConnected}`);
-  
   // Atualizar operações quando prop mudar
   useEffect(() => {
-    console.log(`[RENDER-DEBUG] 🔄 Props mudaram - atualizando operações`);
     setOperacoes(operacoesIniciais);
   }, [operacoesIniciais]);
 
@@ -271,7 +268,6 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
         }
       });
     } catch (error) {
-      console.error('Erro ao atualizar operações:', error);
       toast.error('Erro ao atualizar informações');
     } finally {
       // Pequeno delay para feedback visual do ícone girando
@@ -284,18 +280,11 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
 
 
   const handleEuVou = async (operacaoId: number) => {
-    const membroId = localStorage.getItem('membroId') || '1';
-    console.log(`[TEMP-LOG-EU-VOU] 🚨 ======= INICIANDO EU VOU =======`);
-    console.log(`[TEMP-LOG-EU-VOU] 🎯 Membro: ${membroId}, Operação: ${operacaoId}`);
-    console.log(`[TEMP-LOG-EU-VOU] ⏰ Timestamp: ${new Date().toISOString()}`);
-    console.log(`[TEMP-LOG-EU-VOU] 🔥 Função handleEuVou foi chamada! (Se você vê isso, clique funcionou)`);
-    
+    // ✅ USAR O ID DA AUTENTICAÇÃO (já extraído no componente)
+    const membroIdLocal = membroId;
     setLoading(operacaoId);
     
     try {
-      console.log(`[TEMP-LOG-EU-VOU] 📡 Fazendo requisição para: /api/participations (UNIFICADA)`);
-      console.log(`[TEMP-LOG-EU-VOU] 📋 Payload:`, { action: 'join', operationId: operacaoId.toString(), membroId });
-      
       // Usar API unificada
       const response = await fetch(`/api/participations`, {
         method: 'POST',
@@ -303,37 +292,28 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
         body: JSON.stringify({
           action: 'join',
           operationId: operacaoId.toString(),
-          membroId: membroId
+          membroId: membroIdLocal
         })
       });
 
-      console.log(`[TEMP-LOG-EU-VOU] 📡 Response status: ${response.status}`);
       const data = await response.json();
-      console.log(`[TEMP-LOG-EU-VOU] 📊 Response data:`, data);
 
       if (data.success) {
-        console.log(`[TEMP-LOG-EU-VOU] ✅ SUCESSO! EU VOU realizado.`);
         toast.success(data.data.mensagem || 'Participação confirmada!');
         onOperacaoUpdate(); // Recarregar operações
       } else {
-        console.log(`[TEMP-LOG-EU-VOU] ❌ FALHA! Erro:`, data.error);
         toast.error(data.error || 'Erro ao confirmar participação');
       }
     } catch (error) {
-      console.log(`[TEMP-LOG-EU-VOU] 💥 EXCEÇÃO! Erro:`, error);
       toast.error('Erro ao processar solicitação');
-      console.error('Erro EU VOU:', error);
     } finally {
       setLoading(null);
-      console.log(`[TEMP-LOG-EU-VOU] 🏁 Finalizando processo EU VOU`);
     }
   };
 
   const handleCancelar = async (operacaoId: number) => {
-    const membroId = localStorage.getItem('membroId') || '1';
-    console.log(`[CANCELAR] 🚨 ======= INICIANDO CANCELAMENTO =======`);
-    console.log(`[CANCELAR] 🎯 Membro: ${membroId}, Operação: ${operacaoId}`);
-    console.log(`[CANCELAR] ⏰ Timestamp: ${new Date().toISOString()}`);
+    // ✅ USAR O ID DA AUTENTICAÇÃO (já extraído no componente)
+    const membroIdLocal = membroId;
     
     setLoading(operacaoId);
     
@@ -342,30 +322,23 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          membroId: membroId,
+          membroId: membroIdLocal,
           operacaoId: operacaoId
         })
       });
 
-      console.log(`[CANCELAR] 📡 Response status: ${response.status}`);
       const data = await response.json();
-      console.log(`[CANCELAR] 📊 Response data:`, data);
 
       if (data.success) {
-        console.log(`[CANCELAR] ✅ SUCESSO! Cancelamento realizado.`);
         toast.success(data.data.mensagem || 'Participação cancelada!');
         onOperacaoUpdate(); // Recarregar operações
       } else {
-        console.log(`[CANCELAR] ❌ FALHA! Erro:`, data.error);
         toast.error(data.error || 'Erro ao cancelar participação');
       }
     } catch (error) {
-      console.log(`[CANCELAR] 💥 EXCEÇÃO! Erro:`, error);
       toast.error('Erro ao processar cancelamento');
-      console.error('Erro CANCELAR:', error);
     } finally {
       setLoading(null);
-      console.log(`[CANCELAR] 🏁 Finalizando processo de cancelamento`);
     }
   };
 
@@ -376,33 +349,21 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
     
     // 💾 CACHE INTELIGENTE: Se já temos dados e não é force refresh, retornar
     if (historicoOperacao[operacaoId] && !forceRefresh) {
-      console.log(`💾 [CACHE-INTELIGENTE] Dados em cache para operação ${operacaoId}`);
-      console.log(`💾 [CACHE-INTELIGENTE] Eventos em cache: ${historicoOperacao[operacaoId].eventos.length}`);
       return;
     }
     
     setLoadingHistorico(prev => ({ ...prev, [operacaoId]: true }));
     
     try {
-      console.log(`📊 [TOOLTIP-HISTÓRICO] 🚀 Iniciando busca para operação ${operacaoId} | membro ${membroId}`);
-      
-      
       const response = await fetch(`/api/agendamento/operacoes/${operacaoId}/historico?membroId=${membroId}`);
-      console.log(`📊 [TOOLTIP-HISTÓRICO] 🌐 Response status: ${response.status}`);
       
       if (!response.ok) {
-        console.error(`📊 [TOOLTIP-HISTÓRICO] ❌ Erro na resposta: ${response.status} ${response.statusText}`);
         throw new Error('Erro ao buscar histórico');
       }
       
       const data = await response.json();
       
-      console.log(`📊 [TOOLTIP-HISTÓRICO] Operação: ${operacaoId}`);
-      console.log(`📊 [TOOLTIP-HISTÓRICO] Eventos recebidos:`, data.data?.eventos?.length || 0);
-      
       if (data.success && data.data) {
-        console.log(`📊 [TOOLTIP-HISTÓRICO] ✅ Dados válidos encontrados`);
-        
         // 🔥 CACHE ACUMULATIVO: Mesclar eventos novos com existentes
         const eventosExistentes = historicoOperacao[operacaoId]?.eventos || [];
         const eventosNovos = data.data.eventos;
@@ -424,10 +385,6 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
         const eventosCombinados = Array.from(eventosMap.values())
           .sort((a, b) => new Date(a.data_evento).getTime() - new Date(b.data_evento).getTime());
         
-        console.log(`💾 [CACHE-ACUMULATIVO] Eventos existentes: ${eventosExistentes.length}`);
-        console.log(`💾 [CACHE-ACUMULATIVO] Eventos novos: ${eventosNovos.length}`);
-        console.log(`💾 [CACHE-ACUMULATIVO] Eventos combinados: ${eventosCombinados.length}`);
-        
         setHistoricoOperacao(prev => ({
           ...prev,
           [operacaoId]: {
@@ -435,13 +392,9 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
             eventos: eventosCombinados
           }
         }));
-        
-        console.log(`📊 [TOOLTIP-HISTÓRICO] ✅ Histórico atualizado com sucesso!`);
-      } else {
-        console.error(`📊 [TOOLTIP-HISTÓRICO] ❌ Resposta inválida:`, data);
       }
     } catch (error) {
-      console.error(`📊 [TOOLTIP-HISTÓRICO] ❌ Erro ao buscar histórico:`, error);
+      // Erro silencioso
     } finally {
       setLoadingHistorico(prev => {
         const novo = { ...prev };
@@ -458,7 +411,6 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
     setHistoricoModalAberto(operacaoId);
     
     // 🔥 SEMPRE buscar dados frescos quando abrir a janela
-    console.log(`🔥 [HISTÓRICO-FRESH] Forçando busca de dados atualizados para operação ${operacaoId}`);
     buscarHistoricoOperacao(operacaoId, true); // Forçar refresh para obter dados mais recentes
   };
 
@@ -725,20 +677,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                   ⏳ Carregando histórico...
                 </div>
               </div>
-            ) : (() => {
-              console.log(`📊 [MODAL-HISTORICO-RENDER] 🔄 Verificando condições de renderização...`);
-              console.log(`📊 [MODAL-HISTORICO-RENDER] Histórico existe:`, !!historico);
-              console.log(`📊 [MODAL-HISTORICO-RENDER] Eventos:`, historico?.eventos);
-              console.log(`📊 [MODAL-HISTORICO-RENDER] Quantidade de eventos:`, historico?.eventos?.length);
-              
-              if (historico && historico.eventos.length > 0) {
-                console.log(`📊 [MODAL-HISTORICO-RENDER] ✅ Renderizando lista de eventos`);
-                return true;
-              } else {
-                console.log(`📊 [MODAL-HISTORICO-RENDER] ❌ Sem eventos para renderizar`);
-                return false;
-              }
-            })() ? (
+            ) : (historico && historico.eventos.length > 0) ? (
               <div className={styles.historicoLista}>
                 <div className={styles.historicoHeader}>
                   <span>📋 {historico.eventos.length} {historico.eventos.length === 1 ? 'evento' : 'eventos'} registrados</span>
@@ -933,14 +872,9 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                       {estadoInfo.showButton && (
                         <button
                           onClick={() => {
-                            console.log(`[TEMP-LOG-BOTAO-CLICK] 🔥 CLIQUE DETECTADO no botão da operação ${operacao.id}`);
-                            console.log(`[TEMP-LOG-BOTAO-CLICK] 📊 Estado: buttonAction='${estadoInfo.buttonAction}', buttonText='${estadoInfo.buttonText}'`);
-                            
                             if (estadoInfo.buttonAction === 'cancelar') {
-                              console.log(`[TEMP-LOG-BOTAO-CLICK] ➡️ Chamando handleCancelar(${operacao.id})`);
                               handleCancelar(operacao.id);
                             } else {
-                              console.log(`[TEMP-LOG-BOTAO-CLICK] ➡️ Chamando handleEuVou(${operacao.id})`);
                               handleEuVou(operacao.id);
                             }
                           }}

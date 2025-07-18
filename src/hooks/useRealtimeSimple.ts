@@ -29,9 +29,7 @@ export const useRealtimeSimple = ({
   onParticipacaoChangeRef.current = onParticipacaoChange;
 
   const log = useCallback((message: string, data?: any) => {
-    if (debug) {
-      console.log(`[RealtimeSimple] ${message}`, data || '');
-    }
+    // Log silencioso
   }, [debug]);
 
   // ✅ RATE LIMIT PROTECTION - Conforme documentação Supabase (100 joins/second)

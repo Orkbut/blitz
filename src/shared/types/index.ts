@@ -27,6 +27,7 @@ export interface Operacao {
   regional?: string;
   participantes_confirmados?: number;
   pessoas_na_fila?: number;
+  total_solicitacoes?: number; // ✅ NOVO: total de solicitações (PENDENTE + NA_FILA)
   
   // ✅ Campos para contexto do membro
   minha_participacao?: {

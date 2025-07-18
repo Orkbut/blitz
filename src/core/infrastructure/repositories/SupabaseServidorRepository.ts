@@ -53,7 +53,6 @@ export class SupabaseServidorRepository {
         regional_nome: servidor.regional.nome
       };
     } catch (error) {
-      console.error('Erro ao buscar servidor por ID:', error);
       return null;
     }
   }
@@ -85,7 +84,6 @@ export class SupabaseServidorRepository {
         regional_nome: servidor.regional.nome
       };
     } catch (error) {
-      console.error('Erro ao buscar servidor por matrícula:', error);
       return null;
     }
   }
@@ -193,7 +191,6 @@ export class SupabaseServidorRepository {
       if (error) throw error;
       return (data && data.length > 0);
     } catch (error) {
-      console.error('Erro ao verificar restrição temporal:', error);
       return false; // Em caso de erro, não bloqueia
     }
   }

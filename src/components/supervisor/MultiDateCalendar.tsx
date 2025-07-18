@@ -60,6 +60,23 @@ export const MultiDateCalendar: React.FC<MultiDateCalendarProps> = ({
     setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1));
   };
 
+  // ✅ NOVO: Verificar se navegação está disponível
+  const canNavigatePrev = () => {
+    if (!minDate) return true;
+    const prevMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1);
+    const minDateObj = new Date(minDate);
+    return prevMonth.getFullYear() > minDateObj.getFullYear() || 
+           (prevMonth.getFullYear() === minDateObj.getFullYear() && prevMonth.getMonth() >= minDateObj.getMonth());
+  };
+
+  const canNavigateNext = () => {
+    if (!maxDate) return true;
+    const nextMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1);
+    const maxDateObj = new Date(maxDate);
+    return nextMonth.getFullYear() < maxDateObj.getFullYear() || 
+           (nextMonth.getFullYear() === maxDateObj.getFullYear() && nextMonth.getMonth() <= maxDateObj.getMonth());
+  };
+
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
   const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
@@ -73,6 +90,7 @@ export const MultiDateCalendar: React.FC<MultiDateCalendarProps> = ({
     // ✅ CORREÇÃO: Normalizar datas para início do dia no timezone local
     // Para evitar problemas de timezone, vamos comparar apenas as datas (YYYY-MM-DD)
     if (minDate) {
+      // ✅ CORRIGIDO: Garantir que a comparação seja sempre string para string
       const minDateString = minDate.includes('T') ? minDate.split('T')[0] : minDate;
       if (dateString < minDateString) return false;
     }
@@ -102,26 +120,40 @@ export const MultiDateCalendar: React.FC<MultiDateCalendarProps> = ({
         onDatesChange([dateString]);
       } else if (selectedDates.length === 1) {
         // Segundo clique: completa o intervalo
-        const startDate = new Date(selectedDates[0]);
-        const endDate = new Date(dateString);
+        // ✅ CORREÇÃO: Trabalhar apenas com strings de data para evitar timezone
+        const startDateString = selectedDates[0];
+        const endDateString = dateString;
         
         // Determinar qual é a data inicial e final (sempre em ordem)
-        const realStartDate = startDate < endDate ? startDate : endDate;
-        const realEndDate = startDate < endDate ? endDate : startDate;
+        const realStartString = startDateString <= endDateString ? startDateString : endDateString;
+        const realEndString = startDateString <= endDateString ? endDateString : startDateString;
         
-        // Verifica limite de 40 dias
-        const daysDiff = Math.ceil((realEndDate.getTime() - realStartDate.getTime()) / (1000 * 60 * 60 * 24));
-        if (daysDiff > 40) {
-          alert('O período máximo é de 40 dias. Selecione um intervalo menor.');
+        // Verifica limite de dias (padrão 40, mas pode ser configurado)
+        const startDate = new Date(realStartString + 'T00:00:00');
+        const endDate = new Date(realEndString + 'T00:00:00');
+        const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+        const maxDays = 40; // TODO: Pegar do parâmetro quando disponível
+        if (daysDiff > maxDays) {
+          alert(`O período máximo é de ${maxDays} dias. Selecione um intervalo menor.`);
           return;
         }
         
         // Cria intervalo completo sempre em ordem cronológica
         const interval = [];
-        const current = new Date(realStartDate);
-        while (current <= realEndDate) {
-          interval.push(format(current, 'yyyy-MM-dd'));
-          current.setDate(current.getDate() + 1);
+        const [startYear, startMonth, startDay] = realStartString.split('-').map(Number);
+        const [endYear, endMonth, endDay] = realEndString.split('-').map(Number);
+        
+        let currentDate = new Date(startYear, startMonth - 1, startDay);
+        const endDateObj = new Date(endYear, endMonth - 1, endDay);
+        
+        while (currentDate <= endDateObj) {
+          const year = currentDate.getFullYear();
+          const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+          const day = currentDate.getDate().toString().padStart(2, '0');
+          const dateString = `${year}-${month}-${day}`;
+          
+          interval.push(dateString);
+          currentDate.setDate(currentDate.getDate() + 1);
         }
         onDatesChange(interval);
       } else {
@@ -159,7 +191,7 @@ export const MultiDateCalendar: React.FC<MultiDateCalendarProps> = ({
         <button
           type="button"
           onClick={handlePrevMonth}
-          disabled={disabled}
+          disabled={disabled || !canNavigatePrev()}
           className="p-2 rounded-lg transition-all duration-200 disabled:opacity-50"
           style={{
             color: 'var(--text-secondary)',
@@ -186,7 +218,7 @@ export const MultiDateCalendar: React.FC<MultiDateCalendarProps> = ({
         <button
           type="button"
           onClick={handleNextMonth}
-          disabled={disabled}
+          disabled={disabled || !canNavigateNext()}
           className="p-2 rounded-lg transition-all duration-200 disabled:opacity-50"
           style={{
             color: 'var(--text-secondary)',

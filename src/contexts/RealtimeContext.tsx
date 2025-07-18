@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
+import { supabase, configurarAuthRealtime } from '@/lib/supabase';
 import { realtimeManager, type DatabaseChangeEvent } from '@/core/infrastructure/services/RealtimeManager';
 
 /**
@@ -89,10 +89,7 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // 🎯 FUNÇÃO DE LOG CENTRALIZADA - OTIMIZADA
   const log = useCallback((message: string, data?: any, forceLog = false) => {
-    // ✅ CORREÇÃO: Usar cache ao invés de iterar sempre
-    if (debugEnabledRef.current || forceLog) {
-      console.log(`[RealtimeContext] ${message}`, data || '');
-    }
+    // Log silencioso
   }, []);
 
   // 🔧 FUNÇÃO: Atualizar cache de debug
@@ -225,6 +222,13 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       channelRef.current = null;
     }
 
+    // 🔐 CONFIGURAR AUTENTICAÇÃO DO REALTIME PRIMEIRO
+    const authConfigured = configurarAuthRealtime();
+    if (!authConfigured) {
+      log('⚠️ [REALTIME-AUTH] Não foi possível configurar autenticação - usuário pode não estar logado');
+      // Continue mesmo assim para permitir conexão anônima
+    }
+
     // 🔄 CRIAR NOVA CONEXÃO
     const channelName = `realtime-central-${Date.now()}`;
     log('🔌 Criando conexão centralizada:', channelName);
@@ -256,12 +260,6 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       },
       (payload) => {
         log('📨 Evento operacao recebido:', payload.eventType);
-        console.log('🚨📡 [REALTIME-GLOBAL] EVENTO OPERACAO DETECTADO!', {
-          eventType: payload.eventType,
-          timestamp: new Date().toISOString(),
-          subscriptionsAtivas: subscriptionsRef.current.size,
-          payload: payload
-        });
         
         // ✅ HEALTH CHECK: Atualizar timestamp de último evento
         lastEventTimeRef.current = Date.now();
@@ -270,6 +268,7 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         subscriptionsRef.current.forEach((subscription) => {
           if (subscription.enabled && subscription.onOperacaoChange) {
             try {
+              // Log silencioso
               subscription.onOperacaoChange(payload);
             } catch (error) {
               log('❌ Erro ao executar callback de operação:', error);
@@ -289,12 +288,6 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       },
       (payload) => {
         log('📨 Evento participacao recebido:', payload.eventType);
-        console.log('🚨👥 [REALTIME-GLOBAL] EVENTO PARTICIPACAO DETECTADO!', {
-          eventType: payload.eventType,
-          timestamp: new Date().toISOString(),
-          subscriptionsAtivas: subscriptionsRef.current.size,
-          payload: payload
-        });
         
         // ✅ HEALTH CHECK: Atualizar timestamp de último evento
         lastEventTimeRef.current = Date.now();
@@ -303,6 +296,7 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         subscriptionsRef.current.forEach((subscription) => {
           if (subscription.enabled && subscription.onParticipacaoChange) {
             try {
+              // Log silencioso
               subscription.onParticipacaoChange(payload);
             } catch (error) {
               log('❌ Erro ao executar callback de participação:', error);

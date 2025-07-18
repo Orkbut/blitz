@@ -4,41 +4,81 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://umcejyqkfhvxaiyvmqac.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtY2VqeXFrZmh2eGFpeXZtcWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2OTcyODcsImV4cCI6MjA2NTI3MzI4N30.Jsbdm3GMKHBvTuWkQWKP1vEIgiDBWeq5wJtwjdlydeU';
 
-// Cliente único do Supabase (singleton)
+// 🚀 CONFIGURAÇÃO OTIMIZADA para REALTIME VERDADEIRO
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   realtime: {
+    // ✅ CONFIGURAÇÃO ANTI-POLLING: Otimizada para realtime verdadeiro
     params: {
-      eventsPerSecond: 30, // ✅ AUMENTADO: De 10 para 30 eventos/segundo
-      heartbeatIntervalMs: 15000, // ✅ NOVO: Heartbeat a cada 15 segundos
-      reconnectDelayMs: 1000, // ✅ NOVO: Reconectar após 1 segundo em caso de falha
-      timeoutMs: 20000, // ✅ NOVO: Timeout de 20 segundos para operações
+      eventsPerSecond: 10, // Padrão do Supabase
+      log_level: 'info', // Para debug quando necessário
     },
-    // ✅ Headers adicionais para melhor debugging
-    headers: {
-      'X-Client-Info': 'radar-detran@1.0.0'
-    }
+    // ✅ HEARTBEAT: Para conexões estáveis
+    heartbeatIntervalMs: 30000,
+    // ✅ TIMEOUT: Para reconexões rápidas
+    timeout: 10000,
   },
-  // 🚀 NOVO: Configurações de retry automático
   auth: {
-    persistSession: false,
-    autoRefreshToken: false,
+    persistSession: true,
+    autoRefreshToken: true,
     detectSessionInUrl: false
   },
-  // ✅ OTIMIZAÇÃO: Configurações de rede
-  db: {
-    schema: 'public'
-  },
-  // 🚀 NOVO: Configurações globais de timeout
+  // ✅ OTIMIZAÇÃO GLOBAL: Para requisições mais rápidas
   global: {
     headers: {
-      'X-Client-Timeout': '30000'
+      'X-Client-Info': 'radar-detran-realtime-optimized'
     }
   }
 });
 
-// Verificar conexão
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('❌ [Supabase] Variáveis de ambiente não configuradas');
-} else {
-  // console.log('✅ [Supabase] Cliente configurado:', supabaseUrl);
+
+
+// ✅ FUNÇÃO PARA DEBUG: Verificar conexão
+export async function verificarConexaoSupabase(): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.from('operacao').select('id').limit(1);
+    if (error) {
+      return false;
+    }
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+// 🎯 FUNÇÃO: Configurar autenticação do Realtime
+export function configurarAuthRealtime(): boolean {
+  try {
+    // Buscar dados do usuário logado
+    const membroAuth = localStorage.getItem('membroAuth');
+    const supervisorAuth = localStorage.getItem('supervisorAuth');
+    const adminAuth = localStorage.getItem('admin_token');
+
+    let userData = null;
+
+    if (membroAuth) {
+      userData = JSON.parse(membroAuth);
+    } else if (supervisorAuth) {
+      userData = JSON.parse(supervisorAuth);
+    } else if (adminAuth) {
+      userData = {
+        id: 999,
+        matricula: 'admin',
+        nome: 'Administrador',
+        perfil: 'Admin',
+        regionalId: 0
+      };
+    }
+
+    if (!userData) {
+      return false;
+    }
+
+    // ✅ SOLUÇÃO SIMPLES: Use apenas o anonKey (sem JWT customizado)
+    // Como as tabelas não têm RLS, o anonKey é suficiente
+    supabase.realtime.setAuth(supabaseAnonKey);
+    
+    return true;
+  } catch (error) {
+    return false;
+  }
 } 

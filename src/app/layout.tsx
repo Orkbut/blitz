@@ -1,17 +1,10 @@
 import type { Metadata } from "next";
-import { Montserrat } from "next/font/google";
 import "./globals.css";
 import { RealtimeProvider } from "@/contexts/RealtimeContext";
 
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  variable: "--font-montserrat",
-  weight: ["300", "400", "500", "600", "700", "800"],
-});
-
 export const metadata: Metadata = {
-  title: "Sistema RADAR - DETRAN/CE",
-  description: "Registro de Agendamento de Diárias Antecipadas e Recursos",
+  title: "Sistema EU VOU - DETRAN CE",
+  description: "Sistema de gestão de operações DETRAN Ceará",
 };
 
 export default function RootLayout({
@@ -28,25 +21,10 @@ export default function RootLayout({
           content="telephone=no, date=no, email=no, address=no"
         />
       </head>
-      <body
-        className={`${montserrat.variable} font-sans antialiased transition-colors duration-300`}
-        style={{
-          background: 'var(--bg-primary)',
-          color: 'var(--text-primary)'
-        }}
-      >
+      <body>
         <RealtimeProvider>
-        <div 
-          className="min-h-screen transition-colors duration-300"
-          style={{
-            background: 'linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-hover) 100%)'
-          }}
-        >
           {children}
-        </div>
         </RealtimeProvider>
-        
-
       </body>
     </html>
   );

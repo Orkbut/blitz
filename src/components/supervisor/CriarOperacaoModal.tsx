@@ -93,6 +93,15 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
       const result = await response.json();
       
       if (result.success) {
+        console.log('🔍 DEBUG - Janelas recebidas da API:', result.data);
+        result.data.forEach((janela: any) => {
+          console.log(`🔍 Janela #${janela.id}:`, {
+            dataInicio_raw: janela.dataInicio,
+            dataFim_raw: janela.dataFim,
+            dataInicio_formatada: formatarDataBR(janela.dataInicio),
+            dataFim_formatada: formatarDataBR(janela.dataFim)
+          });
+        });
         setJanelas(result.data || []);
       } else {
         alert(`Erro ao carregar janelas: ${result.error}`);

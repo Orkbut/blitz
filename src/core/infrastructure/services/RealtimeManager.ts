@@ -92,11 +92,7 @@ export class RealtimeManager {
     this.startHealthMonitoring();
     this.setupGlobalErrorHandling();
     
-    console.log(`[RealtimeManager] 🚀 Instância criada com config:`, {
-      maxChannels: config.maxChannelsPerClient,
-      maxJoins: config.maxJoinsPerSecond,
-      healthInterval: config.healthCheckInterval
-    });
+    // Manager inicializado
   }
   
   /**
@@ -127,20 +123,12 @@ export class RealtimeManager {
    * Implementa pooling de canais - reutiliza se já existe.
    */
   public subscribe(subscription: ChannelSubscription): boolean {
-    console.log(`[RealtimeManager] 📡 Subscribe solicitado:`, {
-      channelId: subscription.channelId,
-      tables: subscription.tables,
-      enabled: subscription.enabled
-    });
-    
     if (!subscription.enabled) {
-      console.log(`[RealtimeManager] ⏸️ Subscription desabilitado: ${subscription.channelId}`);
       return false;
     }
     
     // 🔐 RATE LIMITING CHECK
     if (!this.checkRateLimit()) {
-      console.warn(`[RealtimeManager] ⚠️ Rate limit atingido - rejeitando subscription`);
       return false;
     }
     
@@ -151,7 +139,7 @@ export class RealtimeManager {
     if (!this.channels.has(subscription.channelId)) {
       this.createChannel(subscription);
     } else {
-      console.log(`[RealtimeManager] ♻️ Reutilizando canal existente: ${subscription.channelId}`);
+      // Canal reutilizado
     }
     
     return true;
@@ -161,8 +149,6 @@ export class RealtimeManager {
    * 🎯 UNSUBSCRIBE FROM CHANNEL
    */
   public unsubscribe(channelId: string): void {
-    console.log(`[RealtimeManager] 🔌 Unsubscribe: ${channelId}`);
-    
     this.subscriptions.delete(channelId);
     
     // 🧹 REMOVER CANAL SE NÃO HÁ MAIS SUBSCRIPTIONS
@@ -171,8 +157,6 @@ export class RealtimeManager {
       channel.unsubscribe();
       this.channels.delete(channelId);
       this.reconnectAttempts.delete(channelId);
-      
-      console.log(`[RealtimeManager] 🗑️ Canal removido: ${channelId}`);
     }
   }
   
@@ -180,8 +164,6 @@ export class RealtimeManager {
    * 🎯 CRIAR CANAL BASEADO NA DOCUMENTAÇÃO
    */
   private createChannel(subscription: ChannelSubscription): void {
-    console.log(`[RealtimeManager] 🔧 Criando canal: ${subscription.channelId}`);
-    
     try {
       const channel = supabase.channel(subscription.channelId);
       
@@ -199,8 +181,6 @@ export class RealtimeManager {
           },
           (payload) => this.handleDatabaseChange(subscription.channelId, table, payload)
         );
-        
-        console.log(`[RealtimeManager] 👂 Listener configurado: ${table}${filter ? ` (filtro: ${filter})` : ''}`);
       });
       
       // 🏥 HEALTH MONITORING
@@ -214,7 +194,6 @@ export class RealtimeManager {
       this.channels.set(subscription.channelId, channel);
       
     } catch (error) {
-      console.error(`[RealtimeManager] ❌ Erro ao criar canal ${subscription.channelId}:`, error);
       this.notifyConnectionError(subscription.channelId, 'Erro ao criar canal');
     }
   }
@@ -238,12 +217,7 @@ export class RealtimeManager {
       timestamp: this.lastEventTime
     };
     
-    console.log(`[RealtimeManager] 📨 Evento recebido:`, {
-      channel: channelId,
-      table,
-      type: payload.eventType,
-      recordId: payload.new?.id || payload.old?.id
-    });
+    // Evento recebido
     
     // 🎯 EVENT BUS DISPATCH
     const customEvent = new CustomEvent('database_change', { detail: event });
@@ -255,7 +229,7 @@ export class RealtimeManager {
       try {
         subscription.onDatabaseChange(event);
       } catch (error) {
-        console.error(`[RealtimeManager] ❌ Erro no callback do subscription ${channelId}:`, error);
+        // Erro silencioso
       }
     }
   }
@@ -293,26 +267,21 @@ export class RealtimeManager {
       
       // ⚠️ ALERTA: >60s sem eventos com canais ativos
       if (timeSinceLastEvent > 60000 && this.channels.size > 0) {
-        console.warn(`[RealtimeManager] 💀 Health check: ${Math.round(timeSinceLastEvent/1000)}s sem eventos`);
-        
         // 🔄 RECONEXÃO PREVENTIVA após 90s
         if (timeSinceLastEvent > 90000) {
-          console.log(`[RealtimeManager] 🔄 Iniciando reconexão preventiva...`);
           this.preventiveReconnect();
         }
       }
       
     }, this.config.healthCheckInterval);
     
-    console.log(`[RealtimeManager] 🏥 Health monitoring iniciado (${this.config.healthCheckInterval}ms)`);
+    // Health monitoring iniciado
   }
   
   /**
    * 🎯 RECONEXÃO PREVENTIVA
    */
   private preventiveReconnect(): void {
-    console.log(`[RealtimeManager] 🔄 Executando reconexão preventiva de ${this.channels.size} canais...`);
-    
     const channelIds = Array.from(this.channels.keys());
     
     channelIds.forEach(channelId => {
@@ -333,8 +302,6 @@ export class RealtimeManager {
   private setupChannelHealthMonitoring(channel: RealtimeChannel, channelId: string): void {
     // Monitorar eventos do sistema
     channel.on('system', {}, (status) => {
-      console.log(`[RealtimeManager] 🔧 Status do sistema (${channelId}):`, status);
-      
       if (status.error) {
         this.handleChannelError(channelId, status.error);
       }
@@ -345,8 +312,6 @@ export class RealtimeManager {
    * 🎯 HANDLER PARA STATUS DE SUBSCRIPTION
    */
   private handleSubscriptionStatus(channelId: string, status: string): void {
-    console.log(`[RealtimeManager] 🔌 Status subscription (${channelId}): ${status}`);
-    
     const subscription = this.subscriptions.get(channelId);
     
     switch (status) {
@@ -378,11 +343,7 @@ export class RealtimeManager {
     const errorCode = error.code || error.type || 'UnknownError';
     const errorMessage = REALTIME_ERROR_CODES[errorCode as keyof typeof REALTIME_ERROR_CODES] || error.message || 'Erro desconhecido';
     
-    console.error(`[RealtimeManager] ❌ Erro no canal ${channelId}:`, {
-      code: errorCode,
-      message: errorMessage,
-      error
-    });
+    // Erro no canal
     
     this.notifyConnectionError(channelId, errorMessage);
     
@@ -413,13 +374,10 @@ export class RealtimeManager {
     const attempts = this.reconnectAttempts.get(channelId) || 0;
     
     if (attempts >= this.config.maxReconnectAttempts) {
-      console.error(`[RealtimeManager] 💀 Máximo de tentativas atingido para ${channelId}`);
       return;
     }
     
     const backoffTime = this.config.reconnectBackoffMs * Math.pow(2, attempts); // Exponential backoff
-    
-    console.log(`[RealtimeManager] ⏰ Reagendando reconexão (${channelId}) em ${backoffTime}ms (tentativa ${attempts + 1})`);
     
     setTimeout(() => {
       const subscription = this.subscriptions.get(channelId);
@@ -460,7 +418,6 @@ export class RealtimeManager {
     if (typeof window !== 'undefined') {
       window.addEventListener('unhandledrejection', (event) => {
         if (event.reason?.message?.includes('realtime') || event.reason?.message?.includes('websocket')) {
-          console.error('[RealtimeManager] ❌ Erro global não tratado:', event.reason);
           event.preventDefault(); // Prevenir crash da aplicação
         }
       });
@@ -488,8 +445,6 @@ export class RealtimeManager {
    * 🎯 SHUTDOWN GRACEFUL
    */
   public shutdown(): void {
-    console.log(`[RealtimeManager] 🛑 Iniciando shutdown graceful...`);
-    
     this.isShuttingDown = true;
     
     // Parar health monitoring
@@ -500,7 +455,6 @@ export class RealtimeManager {
     
     // Desconectar todos os canais
     this.channels.forEach((channel, channelId) => {
-      console.log(`[RealtimeManager] 🔌 Desconectando canal: ${channelId}`);
       channel.unsubscribe();
     });
     
@@ -508,8 +462,6 @@ export class RealtimeManager {
     this.channels.clear();
     this.subscriptions.clear();
     this.reconnectAttempts.clear();
-    
-    console.log(`[RealtimeManager] ✅ Shutdown concluído`);
   }
   
   /**

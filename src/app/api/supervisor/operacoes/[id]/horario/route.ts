@@ -12,7 +12,9 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const operacaoId = parseInt(params.id);
+    // ✅ CORREÇÃO: Await params para Next.js 15+
+    const resolvedParams = await params;
+    const operacaoId = parseInt(resolvedParams.id);
     const { horario, turno, supervisorId } = await request.json();
 
     // Validações básicas
@@ -158,7 +160,9 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const operacaoId = parseInt(params.id);
+    // ✅ CORREÇÃO: Await params para Next.js 15+
+    const resolvedParams = await params;
+    const operacaoId = parseInt(resolvedParams.id);
     const { supervisorId } = await request.json();
 
     // Reutilizar a lógica do PUT passando horário como null
