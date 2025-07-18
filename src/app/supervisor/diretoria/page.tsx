@@ -104,7 +104,9 @@ export default function DiretoriaPage() {
         return;
       }
 
-      const response = await fetch(`/api/supervisor/diretoria?formato=texto&janela_id=${janelaSelecionada}`);
+      const response = await fetch(`/api/supervisor/diretoria?formato=texto&janela_id=${janelaSelecionada}`, {
+        headers: getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
+      });
       const texto = await response.text();
       
       if (!response.ok) {

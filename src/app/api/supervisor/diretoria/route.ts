@@ -13,9 +13,12 @@ export async function GET(request: NextRequest) {
     const formato = searchParams.get('formato') || 'json'; // json | texto
     const janela_id = searchParams.get('janela_id');
 
-    console.log('🔍 Buscando dados da diretoria...', { formato, janela_id });
+    // ✅ ISOLAMENTO POR REGIONAL: Obter contexto do supervisor
+    const supervisorRegionalId = request.headers.get('X-Regional-Id');
 
-    // ✅ Buscar operações PLANEJADAS da janela selecionada
+    console.log('🔍 Buscando dados da diretoria...', { formato, janela_id, supervisorRegionalId });
+
+    // ✅ Buscar operações PLANEJADAS da janela selecionada (apenas da regional do supervisor)
     let queryOperacoes = supabase
       .from('operacao')
       .select(`
@@ -26,10 +29,17 @@ export async function GET(request: NextRequest) {
         tipo,
         limite_participantes,
         status,
-        janela_id
+        janela_id,
+        janela:janela_operacional!inner(regional_id)
       `)
       .eq('ativa', true)
       .eq('tipo', 'PLANEJADA');
+
+    // ✅ FILTRO POR REGIONAL DO SUPERVISOR
+    if (supervisorRegionalId) {
+      queryOperacoes = queryOperacoes.eq('janela.regional_id', parseInt(supervisorRegionalId));
+      console.log(`🔒 [ISOLAMENTO] Supervisor da Regional ${supervisorRegionalId} - operações diretoria filtradas`);
+    }
 
     // Filtrar por janela se especificada
     if (janela_id) {

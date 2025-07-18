@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { MultiDateCalendar } from './MultiDateCalendar';
+import { getSupervisorHeaders } from '@/lib/auth-utils';
 
 interface JanelaOperacional {
   id: string;
@@ -89,7 +90,9 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
   const carregarJanelas = async () => {
     setLoadingJanelas(true);
     try {
-      const response = await fetch('/api/supervisor/janelas-operacionais');
+      const response = await fetch('/api/supervisor/janelas-operacionais', {
+        headers: getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
+      });
       const result = await response.json();
       
       if (result.success) {
@@ -170,7 +173,10 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
         try {
           const response = await fetch('/api/supervisor/operacoes', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              ...getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
+            },
             body: JSON.stringify({
               ...novaOperacao,
               data: data

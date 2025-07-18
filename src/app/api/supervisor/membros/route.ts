@@ -4,12 +4,22 @@ import { supabase } from '@/lib/supabase';
 // GET - Listar membros ativos
 export async function GET(request: NextRequest) {
   try {
-    // ✅ OTIMIZADO: Buscar membros ativos
-    const { data: membros, error } = await supabase
+    // ✅ ISOLAMENTO POR REGIONAL: Obter contexto do supervisor
+    const supervisorRegionalId = request.headers.get('X-Regional-Id');
+    
+    // ✅ OTIMIZADO: Buscar membros ativos da regional do supervisor
+    let query = supabase
       .from('servidor')
-      .select('id, nome, matricula, perfil, ativo')
-      .eq('ativo', true)
-      .order('nome', { ascending: true });
+      .select('id, nome, matricula, perfil, ativo, regional_id')
+      .eq('ativo', true);
+
+    // ✅ FILTRO POR REGIONAL
+    if (supervisorRegionalId) {
+      query = query.eq('regional_id', parseInt(supervisorRegionalId));
+      console.log(`🔒 [ISOLAMENTO] Supervisor da Regional ${supervisorRegionalId} - membros filtrados`);
+    }
+
+    const { data: membros, error } = await query.order('nome', { ascending: true });
 
     if (error) {
       console.error('❌ [API-MEMBROS] Erro ao buscar membros:', error);

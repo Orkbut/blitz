@@ -24,6 +24,7 @@ import { useModal } from '@/hooks/useModal';
 import { UniversalModal } from '@/shared/components/ui';
 import styles from './GerenciarMembrosModal.module.css';
 import { format, parseISO } from 'date-fns';
+import { getSupervisorHeaders } from '@/lib/auth-utils';
 
 interface Membro {
   id: number;
@@ -83,7 +84,9 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
   // 🚀 FUNÇÃO DE ATUALIZAÇÃO MEMOIZADA
   const atualizarOperacoes = useCallback(async () => {
     try {
-      const response = await fetch('/api/unified/operacoes?portal=supervisor&includeParticipantes=true&mode=light');
+      const response = await fetch('/api/unified/operacoes?portal=supervisor&includeParticipantes=true&mode=light', {
+        headers: getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
+      });
       if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       const result = await response.json();
       if (result.success) {
@@ -214,7 +217,8 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
       const response = await fetch('/api/supervisor/membros', {
         headers: {
           'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
+          'Pragma': 'no-cache',
+          ...getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
         }
       });
       
@@ -434,7 +438,10 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
     try {
       const responseValidacao = await fetch('/api/supervisor/validar-limites-servidor', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
+        },
         body: JSON.stringify({
           servidorId: membroId,
           dataOperacao: operacaoSelecionada.data_operacao,
@@ -539,7 +546,10 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
     try {
       const response = await fetch('/api/supervisor/gerenciar-participacao', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
+        },
         body: JSON.stringify({
           acao: 'adicionar',
           operacaoId: operacaoSelecionada.id,
@@ -598,7 +608,10 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
     try {
       const response = await fetch('/api/supervisor/gerenciar-participacao', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
+        },
         body: JSON.stringify({
           acao: 'remover',
           participacaoId: participacaoId
@@ -692,7 +705,10 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
     try {
       const responseValidacao = await fetch('/api/supervisor/validar-limites-servidor', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
+        },
         body: JSON.stringify({
           servidorId: participacaoParaAprovar.membro_id,
           dataOperacao: operacaoSelecionada.data_operacao,

@@ -2,11 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { smartLogger } from '@/lib/logger';
 
-// GET - Buscar TODAS as solicitações pendentes de aprovação
+// GET - Buscar solicitações pendentes de aprovação (apenas da regional do supervisor)
 export async function GET(request: NextRequest) {
   try {
-    // ✅ BUSCA COM JOINS PARA DADOS REAIS - INCLUINDO HISTÓRICO
-    const { data: participacoes, error } = await supabase
+    // ✅ ISOLAMENTO POR REGIONAL: Obter contexto do supervisor
+    const supervisorRegionalId = request.headers.get('X-Regional-Id');
+
+    // ✅ BUSCA COM JOINS PARA DADOS REAIS - INCLUINDO HISTÓRICO (filtrado por regional)
+    let query = supabase
       .from('participacao')
       .select(`
         *,
@@ -16,17 +19,26 @@ export async function GET(request: NextRequest) {
           tipo,
           data_operacao,
           turno,
-          limite_participantes
+          limite_participantes,
+          janela:janela_operacional!inner(regional_id)
         ),
         servidor!inner(
           id,
           nome,
-          matricula
+          matricula,
+          regional_id
         )
       `)
       .in('status_interno', ['AGUARDANDO_SUPERVISOR', 'APROVADO', 'REJEITADO'])
-      .eq('ativa', true)
-      .order('data_participacao', { ascending: false });
+      .eq('ativa', true);
+
+    // ✅ FILTRO POR REGIONAL DO SUPERVISOR
+    if (supervisorRegionalId) {
+      query = query.eq('operacao.janela.regional_id', parseInt(supervisorRegionalId));
+      console.log(`🔒 [ISOLAMENTO] Supervisor da Regional ${supervisorRegionalId} - solicitações filtradas`);
+    }
+
+    const { data: participacoes, error } = await query.order('data_participacao', { ascending: false });
 
     if (error) {
       smartLogger.error('Erro Supabase solicitações:', error);

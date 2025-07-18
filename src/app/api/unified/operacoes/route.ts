@@ -115,6 +115,28 @@ export async function GET(request: NextRequest) {
       query = query.in('status', ['APROVADA', 'AGUARDANDO_DIRETORIA', 'APROVADA_DIRETORIA', 'REJEITADA_DIRETORIA']);
     }
 
+    // ✅ ISOLAMENTO POR REGIONAL: Filtrar operações apenas da regional do membro
+    if (membroId && portal !== 'supervisor' && portal !== 'diretoria') {
+      // Buscar regional do membro primeiro
+      const { data: membro } = await supabase
+        .from('servidor')
+        .select('regional_id')
+        .eq('id', membroId)
+        .eq('ativo', true)
+        .single();
+        
+      if (membro?.regional_id) {
+        // Garantir que o JOIN com janela_operacional seja INNER para filtrar por regional
+        selectQuery = selectQuery.replace(
+          'janela:janela_operacional(',
+          'janela:janela_operacional!inner('
+        );
+        query = query.eq('janela.regional_id', membro.regional_id);
+        
+        logInfo(`🔒 [ISOLAMENTO] Membro ${membroId} da Regional ${membro.regional_id} - operações filtradas`);
+      }
+    }
+
     // Aplica filtros de data se fornecidos
     if (startDate) {
       query = query.gte('data_operacao', startDate);
