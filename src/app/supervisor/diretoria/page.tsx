@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import TabelaOperacoesDiretoria from '@/components/supervisor/TabelaOperacoesDiretoria';
 import ExcelViewer from '@/components/supervisor/ExcelViewer';
+import { getSupervisorHeaders } from '@/lib/auth-utils';
 
 interface Participante {
   id: number;
@@ -132,7 +133,9 @@ export default function DiretoriaPage() {
   const carregarOperacoes = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/unified/operacoes?portal=diretoria');
+      const response = await fetch('/api/unified/operacoes?portal=diretoria', {
+        headers: getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
+      });
       const data = await response.json();
 
       if (data.success) {
@@ -177,7 +180,9 @@ export default function DiretoriaPage() {
     try {
       setLoadingJanelas(true);
       console.log('🔍 Carregando janelas operacionais...');
-      const response = await fetch('/api/supervisor/janelas-operacionais');
+      const response = await fetch('/api/supervisor/janelas-operacionais', {
+        headers: getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
+      });
       const data = await response.json();
       
       console.log('📊 Resposta da API janelas:', data);
@@ -187,7 +192,9 @@ export default function DiretoriaPage() {
         const janelasComContadores = await Promise.all(
           data.data.map(async (janela: any) => {
             try {
-              const responseOp = await fetch(`/api/unified/operacoes?janela_id=${janela.id}&tipo=PLANEJADA`);
+              const responseOp = await fetch(`/api/unified/operacoes?janela_id=${janela.id}&tipo=PLANEJADA`, {
+                headers: getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
+              });
               const dataOp = await responseOp.json();
               
               const totalOperacoesPlanejadas = dataOp.success ? dataOp.data.length : 0;
@@ -241,7 +248,9 @@ export default function DiretoriaPage() {
     try {
       // 🚨 FORÇAR ATUALIZAÇÃO - Adicionar timestamp para evitar cache
       const timestamp = new Date().getTime();
-      const responseOp = await fetch(`/api/unified/operacoes?janela_id=${janelaSelecionada}&tipo=PLANEJADA&_t=${timestamp}`);
+      const responseOp = await fetch(`/api/unified/operacoes?janela_id=${janelaSelecionada}&tipo=PLANEJADA&_t=${timestamp}`, {
+        headers: getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
+      });
       const dataOp = await responseOp.json();
       
       if (dataOp.success) {
@@ -255,7 +264,9 @@ export default function DiretoriaPage() {
         for (const operacao of dataOp.data) {
           try {
             // Buscar participações confirmadas diretamente - FORÇA ATUALIZAÇÃO
-            const responseParticipacoes = await fetch(`/api/agendamento/operacoes/${operacao.id}/participacoes?_t=${timestamp}`);
+            const responseParticipacoes = await fetch(`/api/agendamento/operacoes/${operacao.id}/participacoes?_t=${timestamp}`, {
+              headers: getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
+            });
             const dataParticipacoes = await responseParticipacoes.json();
             
             if (dataParticipacoes.success && dataParticipacoes.data) {
@@ -303,7 +314,10 @@ export default function DiretoriaPage() {
       setProcessando(operacaoId);
       const response = await fetch(`/api/supervisor/operacoes/${operacaoId}/${acao}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
+        },
         body: JSON.stringify(params || {})
       });
 

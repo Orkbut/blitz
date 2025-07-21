@@ -11,6 +11,8 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
 import styles from './Calendario.module.css';
 
+
+
 interface Operacao {
   id: number;
   dataOperacao: string;
@@ -704,35 +706,33 @@ export const CalendarioMembro: React.FC = () => {
                             {hasUniqueOperation ? (
                               // ✅ OPERAÇÃO ÚNICA: Mostrar com botão rápido
                               <div className={styles.singleOperationInfo}>
-                                <div className={styles.operationTitle}>
-                                  <span className={styles.operationIcon}>
-                                    {uniqueOperation.modalidade === 'BLITZ' ? '🚨' : '⚖️'}
-                                  </span>
-                                  <span className={styles.operationName}>
-                                    {uniqueOperation.modalidade}
-                                    {uniqueOperation.horario && (
-                                      <span className={styles.operationTime}>
-                                        {' '}{uniqueOperation.horario}
-                                      </span>
-                                    )}
-                                  </span>
-                                </div>
-
-                                <div className={styles.operationStats}>
-                                  <span className={styles.participantCount}>
-                                    {uniqueOperation.participantes_confirmados || 0}/{uniqueOperation.limite_participantes}
-                                  </span>
-                                  {(uniqueOperation.total_solicitacoes || uniqueOperation.pessoas_na_fila || 0) > 0 && (
-                                    <span className={styles.queueCount}>
-                                      +{uniqueOperation.total_solicitacoes || uniqueOperation.pessoas_na_fila} fila
+                                {/* Header compacto com layout vertical */}
+                                <div className={styles.compactHeader}>
+                                  <div className={styles.modalidadeRow}>
+                                    <span 
+                                      className={styles.modalidadeName}
+                                      data-modalidade={uniqueOperation.modalidade}
+                                    >
+                                      {uniqueOperation.modalidade}
                                     </span>
-                                  )}
+                                  </div>
+                                  <div className={styles.statsRow}>
+                                    <span className={styles.participantStats}>
+                                      {uniqueOperation.participantes_confirmados || 0}/{uniqueOperation.limite_participantes}
+                                      {(uniqueOperation.total_solicitacoes || uniqueOperation.pessoas_na_fila || 0) > 0 && (
+                                        <span className={styles.queueIndicator}>
+                                          +{uniqueOperation.total_solicitacoes || uniqueOperation.pessoas_na_fila}
+                                        </span>
+                                      )}
+                                    </span>
+                                  </div>
                                 </div>
 
-                                {/* ✅ BOTÃO RÁPIDO */}
+                                {/* ✅ BOTÃO RÁPIDO - CSS-ONLY RESPONSIVO */}
                                 {quickActionInfo && quickActionInfo.available && (
                                   <button
                                     className={`${styles.quickActionButton} ${quickActionInfo.className}`}
+                                    data-action={quickActionInfo.action}
                                     onClick={(e) => {
                                       if (quickActionInfo.action === 'cancelar') {
                                         handleQuickCancelar(uniqueOperation.id, e);
@@ -752,7 +752,7 @@ export const CalendarioMembro: React.FC = () => {
                                             ''
                                     }
                                   >
-                                    {loading === uniqueOperation.id ? '...' : quickActionInfo.text}
+                                    {loading === uniqueOperation.id ? '...' : ''}
                                   </button>
                                 )}
                               </div>
@@ -788,9 +788,6 @@ export const CalendarioMembro: React.FC = () => {
                                       className={`${styles.operacaoItem} ${styles[op.modalidade.toLowerCase()]}`}
                                     >
                                       <div className={styles.operacaoHeader}>
-                                        <span className={styles.operacaoIcon}>
-                                          {op.modalidade === 'BLITZ' ? '🚨' : '⚖️'}
-                                        </span>
                                         <span className={styles.operacaoName}>
                                           {op.modalidade} - {op.turno}
                                           {op.horario && (
@@ -831,15 +828,7 @@ export const CalendarioMembro: React.FC = () => {
                 </div>
               </div>
 
-              {/* Info da data atual */}
-              <div className={styles.currentDateInfo}>
-                <strong>Hoje:</strong> {format(new Date(), 'dd/MM/yyyy', { locale: ptBR })} |
-                <strong> Selecionado:</strong> {
-                  selectedDate
-                    ? format(selectedDate, 'dd/MM/yyyy', { locale: ptBR })
-                    : 'Nenhum dia selecionado'
-                }
-              </div>
+
             </div>
           </div>
         </main>

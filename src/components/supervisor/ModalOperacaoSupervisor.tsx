@@ -155,7 +155,7 @@ export const ModalOperacaoSupervisor: React.FC<ModalOperacaoSupervisorProps> = (
                 <span className={`${styles.modalidadeBadge} ${
                   operacao.modalidade === 'BLITZ' ? styles.blitz : styles.balanca
                 }`}>
-                  {operacao.modalidade === 'BLITZ' ? '🚨' : '⚖️'} {operacao.modalidade}
+                  {operacao.modalidade}
                 </span>
                 <span className={styles.tipoBadge}>
                   {operacao.tipo}

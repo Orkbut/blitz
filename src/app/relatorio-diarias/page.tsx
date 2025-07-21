@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { getSupervisorHeaders } from '@/lib/auth-utils';
 import { MultiDateCalendar } from '@/components/supervisor/MultiDateCalendar';
 
 interface EstatisticasServidor {
@@ -72,7 +73,9 @@ export default function RelatorioDiariasPage() {
         url += '?' + params.toString();
       }
       
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
+      });
       const data = await response.json();
       
       if (data.success) {
@@ -100,7 +103,9 @@ export default function RelatorioDiariasPage() {
         url += `&data_inicio=${dataInicio}&data_fim=${dataFim}`;
       }
       
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
+      });
       const texto = await response.text();
       
       const blob = new Blob([texto], { type: 'text/plain; charset=utf-8' });

@@ -69,7 +69,7 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
   const [loadingDetalhes, setLoadingDetalhes] = useState(false);
   const [loadingMembros, setLoadingMembros] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Hook para modais modernos
   const modal = useModal();
 
@@ -143,27 +143,27 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
   useEffect(() => {
     // Salvar posição atual do scroll
     const scrollY = window.scrollY;
-    
+
     // ✅ MONITORAMENTO MÍNIMO - Logs removidos para performance
     const handleResize = () => {
       // Resize handler simplificado sem logs
     };
-    
+
     window.addEventListener('resize', handleResize);
-    
+
     // Prevenir scroll no body
     document.body.style.overflow = 'hidden';
     document.body.style.position = 'fixed';
     document.body.style.top = `-${scrollY}px`;
     document.body.style.width = '100%';
-    
+
     // ✅ MODAL DIAGNOSTICS REMOVED - Melhor performance
-    
+
     // Prevenir eventos de scroll no modal
     const handleWheel = (event: WheelEvent) => {
       const target = event.target as Element;
       const modalContent = target.closest(`.${styles.container}`);
-      
+
       // Se o scroll está acontecendo fora do modal, prevenir
       if (!modalContent) {
         event.preventDefault();
@@ -174,26 +174,26 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
     const handleTouchMove = (event: TouchEvent) => {
       const target = event.target as Element;
       const modalContent = target.closest(`.${styles.container}`);
-      
+
       // Se o toque está acontecendo fora do modal, prevenir
       if (!modalContent) {
         event.preventDefault();
       }
     };
-    
+
     document.addEventListener('wheel', handleWheel, { passive: false });
     document.addEventListener('touchmove', handleTouchMove, { passive: false });
-    
+
     // Cleanup: restaurar scroll quando modal fechar
     return () => {
       document.body.style.overflow = '';
       document.body.style.position = '';
       document.body.style.top = '';
       document.body.style.width = '';
-      
+
       // Restaurar posição do scroll
       window.scrollTo(0, scrollY);
-      
+
       document.removeEventListener('wheel', handleWheel);
       document.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('resize', handleResize);
@@ -221,13 +221,13 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
           ...getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
         }
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         setMembros(data.data || []);
         // Members list updated logging removed for performance
@@ -246,17 +246,17 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
   // ✅ FUNÇÃO: Carregar dados otimizados para o modal
   const carregarDadosOtimizado = useCallback(async () => {
     if (!operacaoEspecifica) return;
-    
+
     // Optimized data loading logging removed for performance
     // Operation ID logging removed for performance
-    
+
     setLoadingDetalhes(true);
-    
+
     try {
       // ✅ REQUISIÇÃO OTIMIZADA: Buscar apenas dados essenciais
       const startDate = format(parseISO(operacaoEspecifica.data_operacao), 'yyyy-MM-dd');
       const endDate = startDate;
-      
+
       const params = new URLSearchParams({
         startDate,
         endDate,
@@ -265,48 +265,48 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
         mode: 'light',
         _t: Date.now().toString()
       });
-      
+
       const url = `/api/unified/operacoes?${params}`;
-      
+
       const response = await fetch(url, {
         headers: {
           'Cache-Control': 'no-cache',
           'Pragma': 'no-cache'
         }
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         // ✅ ENCONTRAR A OPERAÇÃO ESPECÍFICA
         const operacaoAtualizada = data.data?.find((op: any) => op.id === operacaoEspecifica.id);
-        
+
         if (operacaoAtualizada) {
-                  // Operation found logging removed for performance
-        // Operation ID logging removed for performance
-          
+          // Operation found logging removed for performance
+          // Operation ID logging removed for performance
+
           // ✅ PROCESSAR PARTICIPANTES POR ESTADO
           const participantes = operacaoAtualizada.participantes || [];
-          
+
           const confirmados = participantes.filter((p: any) => p.estado_visual === 'CONFIRMADO');
           const pendentes = participantes.filter((p: any) => p.estado_visual === 'PENDENTE' || p.estado_visual === 'NA_FILA');
           const aguardandoSupervisor = participantes.filter((p: any) => p.estado_visual === 'AGUARDANDO_SUPERVISOR');
-          
-                      // Participants processing logging removed for performance
-            // Confirmed count logging removed for performance
-            // Pending/queue count logging removed for performance
-            // Waiting supervisor count logging removed for performance
-          
+
+          // Participants processing logging removed for performance
+          // Confirmed count logging removed for performance
+          // Pending/queue count logging removed for performance
+          // Waiting supervisor count logging removed for performance
+
           // ✅ ATUALIZAR ESTADOS
           setOperacoes(data.data || []);
           setOperacaoSelecionada(operacaoAtualizada);
-          
-                      // States updated successfully logging removed for performance
-          
+
+          // States updated successfully logging removed for performance
+
           // ✅ BUSCAR LISTA DE MEMBROS SE NECESSÁRIO
           if (membros.length === 0) {
             // Loading members list logging removed for performance
@@ -324,8 +324,8 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
       setError(error instanceof Error ? error.message : 'Erro ao carregar dados');
     } finally {
       setLoadingDetalhes(false);
-              // Loading finished logging removed for performance
-      
+      // Loading finished logging removed for performance
+
       // 🔍 CRITICAL: Setar loadingInicial para false APÓS carregar tudo
       setLoadingInicial(false);
     }
@@ -336,10 +336,10 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
     // 🔍 FILTRAR MEMBROS ATIVOS
     let membrosParaExibir = membros.filter(m => {
       if (!m.ativo) return false;
-      
+
       // Se não há termo de busca, mostra todos os membros ativos
       if (!searchTerm.trim()) return true;
-      
+
       // Se há termo de busca, filtra por nome ou matrícula
       const termo = searchTerm.toLowerCase().trim();
       return (
@@ -353,34 +353,34 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
       // Sorting diagnosis logging removed for performance
       // Operation ID logging removed for performance
       // Total participants logging removed for performance
-      
+
       // 🔍 DIAGNÓSTICO ESPECÍFICO: Verificar se as datas estão chegando do backend
       // API participants diagnosis logging removed for performance
       // Individual participant logging removed for performance
-      
+
       // 📋 SEPARAR PARTICIPANTES POR ESTADO VISUAL
       const participantesConfirmados = operacaoSelecionada.participantes.filter(p => p.estado_visual === 'CONFIRMADO');
       const participantesPendentes = operacaoSelecionada.participantes.filter(p => p.estado_visual === 'PENDENTE');
       const participantesNaFila = operacaoSelecionada.participantes.filter(p => p.estado_visual === 'NA_FILA');
-      
+
       // Confirmed participants logging removed for performance
       // Pending participants logging removed for performance
       // Queued participants logging removed for performance
-      
+
       // 📋 ORDENAR POR DATA DE PARTICIPAÇÃO (CRONOLÓGICA) dentro de cada grupo
       const ordenarPorDataParticipacao = (a: any, b: any) => {
         const participacaoA = operacaoSelecionada.participantes?.find(p => p.membro_id === a.id);
         const participacaoB = operacaoSelecionada.participantes?.find(p => p.membro_id === b.id);
-        
+
         if (participacaoA && participacaoB) {
           const dataA = new Date(participacaoA.data_participacao || 0).getTime();
           const dataB = new Date(participacaoB.data_participacao || 0).getTime();
           return dataA - dataB; // Quem solicitou primeiro vem primeiro
         }
-        
+
         return a.nome.localeCompare(b.nome);
       };
-      
+
       const resultado = membrosParaExibir.sort((membroA, membroB) => {
         const participacaoA = operacaoSelecionada.participantes?.find(p => p.membro_id === membroA.id);
         const participacaoB = operacaoSelecionada.participantes?.find(p => p.membro_id === membroB.id);
@@ -388,7 +388,7 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
         // Função para determinar prioridade do grupo
         const obterPrioridadeGrupo = (participacao: any) => {
           if (!participacao) return 3; // DISPONÍVEL = menor prioridade
-          
+
           switch (participacao.estado_visual) {
             case 'CONFIRMADO': return 1; // CONFIRMADO = maior prioridade (aparece primeiro)
             case 'NA_FILA':
@@ -409,20 +409,20 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
         if (participacaoA && participacaoB) {
           const dataA = new Date(participacaoA.data_participacao || 0).getTime();
           const dataB = new Date(participacaoB.data_participacao || 0).getTime();
-          
+
           // Date comparison diagnosis logging removed for performance
-          
+
           return dataA - dataB; // Quem solicitou primeiro vem primeiro
         }
 
         // 📊 PRIORIDADE 3: Se não têm participação, ordem alfabética
         return membroA.nome.localeCompare(membroB.nome);
       });
-      
+
       // 🔍 LOG DA ORDEM FINAL
       // Final order diagnosis logging removed for performance
       // Individual member order logging removed for performance
-      
+
       return resultado;
     }
 
@@ -438,7 +438,7 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
     try {
       const responseValidacao = await fetch('/api/supervisor/validar-limites-servidor', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           ...getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
         },
@@ -451,7 +451,7 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
       });
 
       const validacao = await responseValidacao.json();
-      
+
       if (validacao.success && !validacao.data.podeConfirmar) {
         modal.showAlert(
           '🚫 Limite Atingido',
@@ -464,29 +464,29 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
       console.error('❌ Erro na validação de limites:', error);
       // Continuar mesmo com erro na validação para não bloquear totalmente
     }
-    
+
     // 🎯 VERIFICAR QUEBRA DE FIFO: Se há gente na fila mas ainda há vagas
     const confirmados = operacaoSelecionada.participantes?.filter((p: any) => p.estado_visual === 'CONFIRMADO').length || 0;
     const naFila = operacaoSelecionada.participantes?.filter((p: any) => p.estado_visual === 'NA_FILA' || p.estado_visual === 'PENDENTE') || [];
     const vagasDisponiveis = operacaoSelecionada.limite_participantes - confirmados;
-    
+
     // ✅ DETECTAR SE É PROMOÇÃO DA FILA
     const participacaoExistente = operacaoSelecionada.participantes?.find(p => p.membro_id === membroId);
     const isPromocaoDaFila = participacaoExistente?.estado_visual === 'NA_FILA';
-    
+
     // 🚨 DETECÇÃO DE QUEBRA FIFO: Há pessoas na fila + supervisor quer adicionar alguém novo OU promover fora da ordem
     if (naFila.length > 0 && !justificativaFifo && !isPromocaoDaFila) {
       const membroSelecionado = membrosDisponiveis.find(m => m.id === membroId);
-      
+
       // ⚠️ MOSTRAR AVISO DE FIFO: Com lista das pessoas na fila
       const filaOrdenada = naFila.slice(0, 5); // Primeiros 5 da fila
-      
-      const listaFila = filaOrdenada.map((p: any, index: number) => 
+
+      const listaFila = filaOrdenada.map((p: any, index: number) =>
         `${index + 1}º - ${p.nome} (${p.matricula})`
       ).join('\n');
-      
+
       const maisNaFila = naFila.length > 5 ? `\n... e mais ${naFila.length - 5} pessoas` : '';
-      
+
       modal.showInput(
         '📋 Quebra de Ordem FIFO Detectada',
         `Você está adicionando "${membroSelecionado?.nome}" diretamente, passando na frente de ${naFila.length} pessoa(s) na fila:\n\n${listaFila}${maisNaFila}\n\n🎯 Como supervisor, você tem PODER TOTAL para isso, mas precisa justificar para que as pessoas "furadas" sejam notificadas do motivo:`,
@@ -505,23 +505,23 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
       );
       return; // Interromper execução aqui
     }
-    
+
     // 🚨 DETECÇÃO DE PROMOÇÃO FORA DE ORDEM: Promovendo alguém que não é o primeiro da fila
     if (isPromocaoDaFila && naFila.length > 1 && !justificativaFifo) {
       const posicaoAtual = participacaoExistente.posicao_fila;
       const membroSelecionado = membrosDisponiveis.find(m => m.id === membroId);
-      
+
       if (posicaoAtual && posicaoAtual > 1) {
         // Mostrar quem vai ser "furado"
         const pessoasNaFrente = naFila
           .filter(p => p.posicao_fila < posicaoAtual)
           .sort((a, b) => a.posicao_fila - b.posicao_fila)
           .slice(0, 3);
-        
-        const listaFurados = pessoasNaFrente.map(p => 
+
+        const listaFurados = pessoasNaFrente.map(p =>
           `${p.posicao_fila}º - ${p.nome} (${p.matricula})`
         ).join('\n');
-        
+
         modal.showInput(
           '⬆️ Promoção Fora de Ordem Detectada',
           `Você está promovendo "${membroSelecionado?.nome}" da ${posicaoAtual}ª posição, passando na frente de:\n\n${listaFurados}\n\n🎯 Como supervisor, você tem PODER TOTAL para isso, mas precisa justificar para que as pessoas "furadas" sejam notificadas do motivo:`,
@@ -541,12 +541,12 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
         return; // Interromper execução aqui
       }
     }
-    
+
     setLoading(true);
     try {
       const response = await fetch('/api/supervisor/gerenciar-participacao', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           ...getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
         },
@@ -559,11 +559,11 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
       });
 
       const result = await response.json();
-      
+
       if (result.success) {
         await atualizarOperacoes();
         onUpdate();
-        
+
         // 🎯 FEEDBACK POSITIVO: Informar se houve quebra de FIFO
         if (justificativaFifo) {
           modal.showAlert(
@@ -608,7 +608,7 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
     try {
       const response = await fetch('/api/supervisor/gerenciar-participacao', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           ...getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
         },
@@ -658,7 +658,7 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
       if (result.success) {
         await atualizarOperacoes();
         onUpdate();
-        
+
         // ✅ Mostrar mensagem de sucesso
         modal.showAlert(
           '✅ Sucesso',
@@ -705,7 +705,7 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
     try {
       const responseValidacao = await fetch('/api/supervisor/validar-limites-servidor', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           ...getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
         },
@@ -718,7 +718,7 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
       });
 
       const validacao = await responseValidacao.json();
-      
+
       if (validacao.success && !validacao.data.podeConfirmar) {
         modal.showAlert(
           '🚫 Limite Atingido',
@@ -731,25 +731,25 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
       console.error('❌ Erro na validação de limites:', error);
       // Continuar mesmo com erro na validação para não bloquear totalmente
     }
-    
+
     const naFila = operacaoSelecionada.participantes
-        ?.filter((p: any) => p.estado_visual === 'NA_FILA' || p.estado_visual === 'PENDENTE')
-        .sort((a,b) => new Date((a as any).data_participacao || 0).getTime() - new Date((b as any).data_participacao || 0).getTime());
+      ?.filter((p: any) => p.estado_visual === 'NA_FILA' || p.estado_visual === 'PENDENTE')
+      .sort((a, b) => new Date((a as any).data_participacao || 0).getTime() - new Date((b as any).data_participacao || 0).getTime());
 
     if (naFila && naFila.length > 0 && !justificativaFifo) {
-        const primeiroDaFila = naFila[0];
-        if (primeiroDaFila.id !== participacaoId) {
-            const membroSelecionado = membros.find(m => m.id === participacaoParaAprovar.membro_id);
-            const listaNomesFurados = naFila.filter(p => p.id !== participacaoId).slice(0, 3).map((p: any) => p.nome || 'Membro').join(', ');
+      const primeiroDaFila = naFila[0];
+      if (primeiroDaFila.id !== participacaoId) {
+        const membroSelecionado = membros.find(m => m.id === participacaoParaAprovar.membro_id);
+        const listaNomesFurados = naFila.filter(p => p.id !== participacaoId).slice(0, 3).map((p: any) => p.nome || 'Membro').join(', ');
 
-            modal.showInput(
-                '⬆️ Aprovação Fora de Ordem Detectada',
-                `Você está aprovando "${membroSelecionado?.nome}" na frente de outros (${listaNomesFurados}, etc.). Por favor, justifique:`,
-                (justificativa: string) => { aprovarSolicitacao(participacaoId, justificativa.trim()); },
-                () => {}, 'Ex: "Servidor com experiência específica necessária"', '', 10, 'Aprovar com Justificativa', 'Cancelar'
-            );
-            return;
-        }
+        modal.showInput(
+          '⬆️ Aprovação Fora de Ordem Detectada',
+          `Você está aprovando "${membroSelecionado?.nome}" na frente de outros (${listaNomesFurados}, etc.). Por favor, justifique:`,
+          (justificativa: string) => { aprovarSolicitacao(participacaoId, justificativa.trim()); },
+          () => { }, 'Ex: "Servidor com experiência específica necessária"', '', 10, 'Aprovar com Justificativa', 'Cancelar'
+        );
+        return;
+      }
     }
 
     setLoading(true);
@@ -785,50 +785,50 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
       // No participation logging removed for performance
       return { tipo: 'DISPONIVEL', label: null, acoes: ['adicionar'] };
     }
-    
+
     switch (participacao.estado_visual) {
       case 'CONFIRMADO':
         // Confirmed status logging removed for performance
-        return { 
-          tipo: 'CONFIRMADO', 
-          label: '✅ Confirmado', 
+        return {
+          tipo: 'CONFIRMADO',
+          label: '✅ Confirmado',
           className: styles.confirmado,
-          acoes: ['remover'] 
+          acoes: ['remover']
         };
-        
+
       case 'ADICIONADO_SUP':
         // Added by supervisor logging removed for performance
         return {
-          tipo: 'ADICIONADO_SUP', 
-          label: '👑 Adicionado pelo Supervisor', 
+          tipo: 'ADICIONADO_SUP',
+          label: '👑 Adicionado pelo Supervisor',
           className: styles.adicionadoSupervisor,
-          acoes: ['remover'] 
+          acoes: ['remover']
         };
-        
+
       case 'PENDENTE':
         // Pending status logging removed for performance
-        return { 
-          tipo: 'PENDENTE', 
-          label: '⏳ Aguardando Aprovação', 
+        return {
+          tipo: 'PENDENTE',
+          label: '⏳ Aguardando Aprovação',
           className: styles.pendente,
-          acoes: ['aprovar', 'rejeitar'] 
+          acoes: ['aprovar', 'rejeitar']
         };
-        
-              case 'NA_FILA':
+
+      case 'NA_FILA':
         // Queue status logging removed for performance
-        return { 
-          tipo: 'NA_FILA', 
-          label: '⏳ Na Fila', 
+        return {
+          tipo: 'NA_FILA',
+          label: '⏳ Na Fila',
           className: styles.na_fila,
-          acoes: ['aprovar', 'rejeitar'] 
+          acoes: ['aprovar', 'rejeitar']
         };
-        
+
       default:
         // Unknown status logging removed for performance
         return { tipo: 'DISPONIVEL', label: null, acoes: ['adicionar'] };
     }
   };
-  
+
   const statusInfo = getStatusParticipacao(operacaoSelecionada?.participantes);
 
   const formatarData = (data: string) => {
@@ -847,12 +847,12 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
       const date = new Date(data);
       const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
       const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-      
+
       const diaSemana = diasSemana[date.getDay()];
       const dia = date.getDate().toString().padStart(2, '0');
       const mes = meses[date.getMonth()];
       const ano = date.getFullYear();
-      
+
       return {
         diaMes: dia,
         mes: mes,
@@ -886,11 +886,11 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
                 'Gerenciar Participações'
               )}
             </h2>
-            
+
             {/* 🚀 NOVO: Indicador de status do realtime */}
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
               gap: '8px',
               fontSize: '12px',
               color: realtimeHook.isConnected ? '#10b981' : '#f59e0b'
@@ -907,11 +907,11 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
               </span>
 
             </div>
-            
+
             {operacaoEspecifica && (
               <div className={styles.operacaoDetails}>
                 <div className={styles.operacaoType}>
-                  {operacaoEspecifica.modalidade === 'BLITZ' ? '🚨' : '⚖️'} 
+                  {operacaoEspecifica.modalidade}
                   <strong>{operacaoEspecifica.modalidade} {operacaoEspecifica.tipo}</strong>
                 </div>
                 <div className={styles.operacaoMeta}>
@@ -953,14 +953,14 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
             <div className={styles.operacoesList}>
               {operacoes.map(operacao => {
                 const dataInfo = formatarDataCompleta(operacao.data_operacao);
-                const confirmados = operacao.participantes?.filter((p: any) => 
+                const confirmados = operacao.participantes?.filter((p: any) =>
                   p.estado_visual === 'CONFIRMADO' || p.estado_visual === 'ADICIONADO_SUP'
                 ).length || 0;
                 const naFila = operacao.participantes?.filter((p: any) => p.estado_visual === 'NA_FILA').length || 0;
                 const pendentes = operacao.participantes?.filter((p: any) => p.estado_visual === 'PENDENTE').length || 0;
-                
+
                 return (
-                  <div 
+                  <div
                     key={operacao.id}
                     className={`${styles.operacaoCard} ${operacaoSelecionada?.id === operacao.id ? styles.selecionada : ''}`}
                     onClick={() => setOperacaoSelecionada(operacao)}
@@ -979,13 +979,13 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
                     <div className={styles.operacaoInfo}>
                       <div className={styles.operacaoHeader}>
                         <div className={`${styles.modalidadeBadge} ${styles[operacao.modalidade.toLowerCase()]}`}>
-                          {operacao.modalidade === 'BLITZ' ? '🚨' : '⚖️'} {operacao.modalidade}
+                          {operacao.modalidade}
                         </div>
                         <div className={`${styles.tipoBadge} ${styles[operacao.tipo.toLowerCase()]}`}>
                           {operacao.tipo}
                         </div>
                       </div>
-                      
+
                       <div className={styles.turnoInfo}>
                         🕐 <strong>{operacao.turno}</strong>
                       </div>
@@ -997,7 +997,7 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
                             {confirmados}/{operacao.limite_participantes}
                           </span>
                         </div>
-                        
+
                         {naFila > 0 && (
                           <div className={styles.participacaoItem}>
                             <span className={styles.label}>Na fila:</span>
@@ -1006,7 +1006,7 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
                             </span>
                           </div>
                         )}
-                        
+
                         {pendentes > 0 && (
                           <div className={styles.participacaoItem}>
                             <span className={styles.label}>Pendentes:</span>
@@ -1034,7 +1034,7 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
         {operacaoSelecionada && !loadingInicial && (
           <>
             {/* Conteúdo Otimizado - Foco Total nos Membros */}
-            <div className={styles.content}>              
+            <div className={styles.content}>
               <div className={styles.adicionarTab}>
                 <div className={styles.searchBox}>
                   <Search size={20} />
@@ -1076,22 +1076,22 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
                             // No participation background logging removed for performance
                             return '';
                           }
-                          
+
                           switch (participacao.estado_visual) {
                             case 'CONFIRMADO':
-                            case 'ADICIONADO_SUP': 
+                            case 'ADICIONADO_SUP':
                               // Confirmed/added background logging removed for performance
                               return styles.membroConfirmado;
                             case 'NA_FILA':
-                            case 'PENDENTE': 
+                            case 'PENDENTE':
                               // Queue/pending background logging removed for performance
                               return styles.membroAguardando;
-                            default: 
+                            default:
                               // Unknown state background logging removed for performance
                               return '';
                           }
                         };
-                        
+
                         return (
                           <div key={membro.id} className={`${styles.membroCard} ${obterClasseFundo()}`}>
                             <div className={styles.membroInfo}>
@@ -1105,14 +1105,14 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
                               </div>
                               <p>Mat: {membro.matricula} • {membro.perfil}</p>
                             </div>
-                            
+
                             <div className={styles.membroActions}>
                               {statusInfo.label && (
                                 <span className={`${styles.statusBadge} ${statusInfo.className}`}>
                                   {statusInfo.label}
                                 </span>
                               )}
-                              
+
                               <div className={styles.actionButtons}>
                                 {statusInfo.acoes.includes('adicionar') && (
                                   <button
@@ -1124,7 +1124,7 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
                                     Adicionar
                                   </button>
                                 )}
-                                
+
                                 {statusInfo.acoes.includes('aprovar') && participacao && (
                                   <button
                                     onClick={() => aprovarSolicitacao(participacao.id)}
@@ -1134,7 +1134,7 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
                                     ✓ Aprovar
                                   </button>
                                 )}
-                                
+
                                 {statusInfo.acoes.includes('rejeitar') && participacao && (
                                   <button
                                     onClick={() => rejeitarSolicitacao(participacao.id)}
@@ -1144,7 +1144,7 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
                                     ✗ Rejeitar
                                   </button>
                                 )}
-                                
+
                                 {statusInfo.acoes.includes('remover') && participacao && (
                                   <button
                                     onClick={() => removerMembro(participacao.id)}
@@ -1175,7 +1175,7 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
           </div>
         )}
       </div>
-      
+
       {/* Modal Universal para substituir alerts e confirms */}
       <UniversalModal
         isOpen={modal.isOpen}

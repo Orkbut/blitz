@@ -20,10 +20,13 @@ export async function GET(request: NextRequest) {
     const data_fim = searchParams.get('data_fim');
     const servidor_id = searchParams.get('servidor_id');
 
-    console.log('🔍 Calculando relatório de diárias...');
-    console.log('📊 Parâmetros:', { formato, janela_id, data_inicio, data_fim, servidor_id });
+    // ✅ ISOLAMENTO POR REGIONAL: Obter contexto do supervisor
+    const supervisorRegionalId = request.headers.get('X-Regional-Id');
 
-    // 1. BUSCAR OPERAÇÕES
+    console.log('🔍 Calculando relatório de diárias...');
+    console.log('📊 Parâmetros:', { formato, janela_id, data_inicio, data_fim, servidor_id, supervisorRegionalId });
+
+    // 1. BUSCAR OPERAÇÕES (FILTRADAS POR REGIONAL)
     let queryOperacoes = supabase
       .from('operacao')
       .select(`
@@ -32,11 +35,19 @@ export async function GET(request: NextRequest) {
         modalidade,
         tipo,
         status,
-        janela_id
+        janela_id,
+        janela:janela_operacional!inner(
+          regional_id
+        )
       `)
       .eq('ativa', true)
       .eq('tipo', 'PLANEJADA')
       .in('status', ['APROVADA', 'AGUARDANDO_DIRETORIA', 'APROVADA_DIRETORIA', 'AGUARDANDO_SOLICITACOES']);
+
+    // ✅ FILTRAR POR REGIONAL se contexto disponível
+    if (supervisorRegionalId) {
+      queryOperacoes = queryOperacoes.eq('janela.regional_id', parseInt(supervisorRegionalId));
+    }
 
     // Filtros opcionais
     if (janela_id) {
@@ -54,8 +65,8 @@ export async function GET(request: NextRequest) {
 
     if (errorOperacoes) {
       console.error('❌ Erro ao buscar operações:', errorOperacoes);
-      return NextResponse.json({ 
-        success: false, 
+      return NextResponse.json({
+        success: false,
         error: 'Erro ao buscar operações',
         details: errorOperacoes
       }, { status: 500 });
@@ -97,8 +108,8 @@ export async function GET(request: NextRequest) {
 
     if (errorParticipacoes) {
       console.error('❌ Erro ao buscar participações:', errorParticipacoes);
-      return NextResponse.json({ 
-        success: false, 
+      return NextResponse.json({
+        success: false,
         error: 'Erro ao buscar participações',
         details: errorParticipacoes
       }, { status: 500 });
@@ -118,11 +129,11 @@ export async function GET(request: NextRequest) {
     const participacoesMapeadas = (participacoes || []).map(p => {
       // O servidor pode vir como array ou objeto único devido ao relacionamento
       const servidorData = Array.isArray(p.servidor) ? p.servidor[0] : p.servidor;
-      
+
       // Buscar a data da operação correspondente
       const operacaoCorrespondente = operacoesMapeadas.find(op => op.id === p.operacao_id);
       const dataOperacao = operacaoCorrespondente?.data_operacao || p.data_participacao;
-      
+
       return {
         membro_id: p.membro_id,
         servidor_nome: servidorData?.nome || 'Servidor',
@@ -149,7 +160,7 @@ export async function GET(request: NextRequest) {
     // 5. RETORNAR RESPOSTA NO FORMATO SOLICITADO
     if (formato === 'texto') {
       const relatorioTexto = CalculadorDiariasServidor.gerarRelatorioResumo(estatisticas);
-      
+
       return new NextResponse(relatorioTexto, {
         status: 200,
         headers: {
@@ -184,8 +195,8 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Erro geral no relatório de diárias:', error);
-    return NextResponse.json({ 
-      success: false, 
+    return NextResponse.json({
+      success: false,
       error: 'Erro interno do servidor',
       details: error instanceof Error ? error.message : 'Erro desconhecido'
     }, { status: 500 });

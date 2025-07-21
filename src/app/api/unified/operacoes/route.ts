@@ -129,14 +129,24 @@ export async function GET(request: NextRequest) {
         .single();
 
       if (membro?.regional_id) {
-        // Garantir que o JOIN com janela_operacional seja INNER para filtrar por regional
-        selectQuery = selectQuery.replace(
-          'janela:janela_operacional(',
-          'janela:janela_operacional!inner('
-        );
-        query = query.eq('janela.regional_id', membro.regional_id);
+        // ✅ CORREÇÃO: Usar uma abordagem diferente para filtrar por regional
+        // Primeiro buscar as janelas operacionais da regional do membro
+        const { data: janelasRegional } = await supabase
+          .from('janela_operacional')
+          .select('id')
+          .eq('regional_id', membro.regional_id);
 
-        logInfo(`🔒 [ISOLAMENTO] Membro ${membroId} da Regional ${membro.regional_id} (${(membro.regional as any)?.nome || 'Nome não encontrado'}) - operações filtradas`);
+        const janelaIds = janelasRegional?.map(j => j.id) || [];
+
+        if (janelaIds.length > 0) {
+          // Filtrar operações apenas das janelas da regional do membro
+          query = query.in('janela_id', janelaIds);
+        } else {
+          // Se não há janelas para esta regional, não retornar nenhuma operação
+          query = query.eq('id', -1); // Filtro impossível para retornar 0 resultados
+        }
+
+        logInfo(`🔒 [ISOLAMENTO] Membro ${membroId} da Regional ${membro.regional_id} (${(membro.regional as any)?.nome || 'Nome não encontrado'}) - operações filtradas por ${janelaIds.length} janelas`);
       }
     }
 
@@ -165,6 +175,8 @@ export async function GET(request: NextRequest) {
         error: error.message
       }, { status: 500 });
     }
+
+
 
     // ✅ OTIMIZADO: Log resumido apenas quando necessário
     // if (portal === 'diretoria') {

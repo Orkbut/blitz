@@ -4,7 +4,6 @@ import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { Operacao } from '@/shared/types';
 import { useRealtimeCentralized } from '@/hooks/useRealtimeCentralized';
 import { ElegantInlineLoader } from '@/shared/components/ui/LoadingSpinner';
-import { clickInspector, limparTodosOsLogs } from '@/lib/logger';
 import styles from './TimelineOperacoes.module.css';
 
 interface TimelineOperacoesProps {
@@ -34,53 +33,54 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
 }) => {
   const [dataSelecionada, setDataSelecionada] = useState<string | null>(null);
   const [showModalDetalhes, setShowModalDetalhes] = useState(false);
-  // Modo removido - sempre timeline - versão simplificada
-  const [showInspectorModal, setShowInspectorModal] = useState(false);
-  const [inspectorResult, setInspectorResult] = useState<{ discrepancias: any[], success: boolean, isCleanup?: boolean } | null>(null);
 
-  // Funcionalidade de modo removida
-
-  // 🚀 NOVO: Estado para solicitações em tempo real
+  // Estados essenciais simplificados
   const [solicitacoesPorOperacao, setSolicitacoesPorOperacao] = useState<{ [key: number]: any[] }>({});
   const [loadingSolicitacoes, setLoadingSolicitacoes] = useState(false);
 
-  // 🎯 CONTROLE DE PERFORMANCE: Request deduplication sem cache
-  const lastRequestRef = useRef<Promise<any> | null>(null);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const requestCounterRef = useRef<number>(0);
-
-  // 🔥 LOGS ESPECÍFICOS: Event tracking para sobrecarga
-  const eventCounterRef = useRef<number>(0);
-  const eventTimestampsRef = useRef<number[]>([]);
-  const lastSetStateRef = useRef<number>(0);
-  const renderCounterRef = useRef<number>(0);
-
-  // 🚀 MEMOIZAÇÃO CORRETA: IDs de todas as operações ordenados e estáveis
+  // IDs das operações para controle de estado
   const operacaoIds = useMemo(() => {
-    return operacoes.map(op => op.id).sort((a, b) => a - b);
-  }, [operacoes.map(op => op.id).sort((a, b) => a - b).join(',')]);
-
-  // 🚀 NOVA FUNCIONALIDADE: Calcular range de datas das operações para o hook unificado
-  const dateRange = useMemo(() => {
-    if (operacoes.length === 0) {
-      const hoje = new Date();
-      return {
-        startDate: hoje,
-        endDate: hoje
-      };
-    }
-
-    const datas = operacoes.map(op => new Date(op.data_operacao));
-    const minData = new Date(Math.min(...datas.map(d => d.getTime())));
-    const maxData = new Date(Math.max(...datas.map(d => d.getTime())));
-
-    return {
-      startDate: minData,
-      endDate: maxData
-    };
+    return operacoes.map(op => op.id);
   }, [operacoes]);
 
-  // � FNOVO: Versão silenciosa para reload de garantia (seguindo padrão CalendarioSupervisor)
+  // Função simplificada para carregar solicitações
+  const carregarSolicitacoes = useCallback(async (operacaoIdEspecifica?: number) => {
+    if (operacaoIds.length === 0 || loadingSolicitacoes) return;
+
+    setLoadingSolicitacoes(true);
+    try {
+      const operacoesIds = operacaoIdEspecifica ? [operacaoIdEspecifica] : operacaoIds;
+      const response = await fetch('/api/debug/debug-operacoes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ operacoes_ids: operacoesIds })
+      });
+
+      const result = await response.json();
+      if (!result.success) return;
+
+      const todasSolicitacoes = result.data || [];
+      const solicitacoesPorOp: { [key: number]: any[] } = {};
+
+      operacoesIds.forEach(id => { solicitacoesPorOp[id] = []; });
+      todasSolicitacoes.forEach((solicitacao: any) => {
+        if (solicitacao.ativa && solicitacao.estado_visual === 'PENDENTE') {
+          if (!solicitacoesPorOp[solicitacao.operacao_id]) {
+            solicitacoesPorOp[solicitacao.operacao_id] = [];
+          }
+          solicitacoesPorOp[solicitacao.operacao_id].push(solicitacao);
+        }
+      });
+
+      setSolicitacoesPorOperacao(solicitacoesPorOp);
+    } catch (error) {
+      // Erro silencioso
+    } finally {
+      setLoadingSolicitacoes(false);
+    }
+  }, [operacaoIds, loadingSolicitacoes]);
+
+  // Reload silencioso para garantir consistência
   const reloadOperacoesSilencioso = useCallback(async () => {
     if (operacaoIds.length === 0) return;
 
@@ -93,194 +93,29 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
       });
       const result = await response.json();
 
-      if (result.success) {
-        let operacoesData = Array.isArray(result.data) ? result.data : [];
-
-        // Filtrar apenas as operações que estamos monitorando
-        const operacoesFiltradas = operacoesData.filter((op: any) =>
-          operacaoIds.includes(op.id)
-        );
-
-        // Trigger refresh do componente pai para atualizar dados
-        if (onRefresh) {
-          onRefresh();
-        }
+      if (result.success && onRefresh) {
+        onRefresh();
       }
     } catch (error) {
       // Erro silencioso
     }
-  }, [operacaoIds]);
+  }, [operacaoIds, onRefresh]);
 
-  // 🚀 FUNÇÃO OTIMIZADA: Carregar solicitações sempre com dados frescos
-  const carregarSolicitacoes = useCallback(async (operacaoIdEspecifica?: number) => {
-    const requestId = ++requestCounterRef.current;
-    const startTime = Date.now();
-
-    if (operacaoIds.length === 0) {
-      return;
-    }
-
-    // 🎯 CONTROLE DE CONCORRÊNCIA: Se já há uma requisição em andamento, reutilizar
-    if (lastRequestRef.current) {
-      try {
-        return await lastRequestRef.current;
-      } catch (error) {
-        // Erro silencioso
-      }
-    }
-
-    // 🚀 NOVA REQUISIÇÃO
-    const promise = (async () => {
-      setLoadingSolicitacoes(true);
-
-      try {
-        const operacoesIds = operacaoIdEspecifica ? [operacaoIdEspecifica] : operacaoIds;
-
-        const response = await fetch('/api/debug/debug-operacoes', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ operacoes_ids: operacoesIds })
-        });
-
-        const result = await response.json();
-
-        if (!result.success) {
-          // Erro silencioso
-          return;
-        }
-
-        const todasSolicitacoes = result.data || [];
-
-        // 🎯 AGRUPAR POR OPERAÇÃO
-        const solicitacoesPorOp: { [key: number]: any[] } = {};
-        operacoesIds.forEach(id => { solicitacoesPorOp[id] = []; });
-
-        todasSolicitacoes.forEach((solicitacao: any) => {
-          if (solicitacao.ativa && solicitacao.estado_visual === 'PENDENTE') {
-            if (!solicitacoesPorOp[solicitacao.operacao_id]) {
-              solicitacoesPorOp[solicitacao.operacao_id] = [];
-            }
-            solicitacoesPorOp[solicitacao.operacao_id].push(solicitacao);
-          }
-        });
-
-        // ✅ ATUALIZAR ESTADO
-        if (operacaoIdEspecifica) {
-          setSolicitacoesPorOperacao(prev => {
-            const newState = { ...prev };
-            if (solicitacoesPorOp[operacaoIdEspecifica].length > 0) {
-              newState[operacaoIdEspecifica] = solicitacoesPorOp[operacaoIdEspecifica];
-            } else {
-              delete newState[operacaoIdEspecifica];
-            }
-            return newState;
-          });
-        } else {
-          // ✅ LIMPEZA: Remover operações que não estão mais sendo monitoradas
-          setSolicitacoesPorOperacao(prevState => {
-            const newState = { ...solicitacoesPorOp };
-            const operacoesRemovidas = Object.keys(prevState).filter(id => !operacaoIds.includes(parseInt(id)));
-            return newState;
-          });
-        }
-
-      } catch (error) {
-        // Erro silencioso
-      } finally {
-        setLoadingSolicitacoes(false);
-        lastRequestRef.current = null;
-      }
-    })();
-
-    lastRequestRef.current = promise;
-    return promise;
-  }, [operacaoIds]);
-
-  // 🎯 DEBOUNCE INTELIGENTE: Função para agendar carregamento com cancelamento
-  const agendarCarregamento = useCallback((motivo: string, delay: number = 200, operacaoIdEspecifica?: number) => {
-    // Debounce scheduling logging removed for performance
-
-    // ✅ CANCELAR TIMER ANTERIOR
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-
-    // ✅ AGENDAR NOVO TIMER
-    debounceTimerRef.current = setTimeout(() => {
-      // Debounce execution logging removed for performance
-      debounceTimerRef.current = null;
-      carregarSolicitacoes(operacaoIdEspecifica);
-    }, delay);
-  }, [carregarSolicitacoes]);
-
-  // 🚀 CALLBACK OTIMIZADO: Para realtime verdadeiro ao invés de polling
-  const handleRealtimeUpdate = useCallback((operacaoId: number, eventType?: string) => {
-    const eventTime = Date.now();
-    const eventId = ++eventCounterRef.current;
-
-    // ✅ OTIMIZADO: Event overload detection com logs mínimos
-    eventTimestampsRef.current.push(eventTime);
-    const recentEvents = eventTimestampsRef.current.filter(t => eventTime - t < 5000);
-    eventTimestampsRef.current = recentEvents;
-
-    // ✅ OTIMIZADO: Detectar sobrecarga crítica
-    if (recentEvents.length > 20) {
-      return; // Ignorar evento para evitar sobrecarga
-    }
-
-    // 🎯 OTIMIZADO: Detectar cancelamentos com mais precisão
-    const ehCancelamento = eventType === 'participacao-cancelada' || eventType === 'UPDATE';
-    if (ehCancelamento) {
-      // Atualizar apenas a operação específica para cancelamentos
-      carregarSolicitacoes(operacaoId);
-      return;
-    }
-
-    // 🔄 OUTROS EVENTOS: Atualização seletiva
-    if (operacaoIds.includes(operacaoId)) {
-      const shouldRefreshGlobal = ['operacao-criada', 'operacao-atualizada'].includes(eventType || '');
-
-      if (shouldRefreshGlobal) {
-        carregarSolicitacoes(); // Refresh global
-      } else {
-        carregarSolicitacoes(operacaoId); // Refresh específico
-      }
-    }
-  }, [operacaoIds, carregarSolicitacoes]);
-
-  // ✅ HOOK REALTIME UNIFICADO: Seguindo padrão do CalendarioSupervisor
-  const {
-    isConnected
-  } = useRealtimeCentralized({
+  // Hook realtime unificado
+  const { isConnected } = useRealtimeCentralized({
     enabled: operacaoIds.length > 0 && !loading,
     debug: false,
     onOperacaoChange: useCallback((payload: any) => {
-      // ✅ ATUALIZAR TODOS OS DADOS DO BACKEND (seguindo padrão CalendarioSupervisor)
-      if (payload.eventType === 'UPDATE') {
-        const operacaoId = payload.new.id;
-
-        // Trigger refresh do componente pai para atualizar dados
-        if (onRefresh) {
-          onRefresh();
-        }
-
-        return; // Processado com sucesso
+      if (payload.eventType === 'UPDATE' && onRefresh) {
+        onRefresh();
       }
-
-      // Processar outros tipos de eventos (INSERT/DELETE)
       if (payload.eventType === 'INSERT' || payload.eventType === 'DELETE') {
-        // Trigger refresh do componente pai para atualizar dados
-        if (onRefresh) {
-          onRefresh();
-        }
+        if (onRefresh) onRefresh();
       }
-    }, []),
+    }, [onRefresh]),
     onParticipacaoChange: useCallback((payload: any) => {
-      // ✅ ESTRATÉGIA SIMPLIFICADA: Trigger reload silencioso para garantir consistência
       const operacaoId = payload.new?.operacao_id || payload.old?.operacao_id;
-
       if (operacaoId && operacaoIds.includes(operacaoId)) {
-        // Trigger reload silencioso após pequeno delay
         setTimeout(() => {
           reloadOperacoesSilencioso();
         }, 1000);
@@ -288,38 +123,32 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
     }, [operacaoIds, reloadOperacoesSilencioso])
   });
 
-  // Funcionalidade removida - não há mais modo compacto
-
-  // ✅ OTIMIZADO: CARREGAR SOLICITAÇÕES INICIALMENTE
+  // Carregar solicitações inicialmente
   useEffect(() => {
     if (operacaoIds.length > 0 && !loadingSolicitacoes) {
-      carregarSolicitacoes(); // ✅ CARREGAMENTO COMPLETO para carregamento inicial
+      carregarSolicitacoes();
     }
   }, [operacaoIds.length]);
 
-  // ✅ NOVA FUNCIONALIDADE: Limpeza de estado para operações que não existem mais
+  // Limpeza de estado quando operações mudam
   useEffect(() => {
     setSolicitacoesPorOperacao(prevState => {
       const newState = { ...prevState };
-      let foiLimpeza = false;
+      let changed = false;
 
-      // Remover solicitações de operações que não estão mais sendo monitoradas
       Object.keys(newState).forEach(operacaoIdStr => {
         const operacaoId = parseInt(operacaoIdStr);
-        if (!operacaoIds.includes(operacaoId)) {
+        if (!operacoes.find(op => op.id === operacaoId)) {
           delete newState[operacaoId];
-          foiLimpeza = true;
-          // Limpeza silenciosa
+          changed = true;
         }
       });
 
-      // Limpeza silenciosa
-
-      return foiLimpeza ? newState : prevState;
+      return changed ? newState : prevState;
     });
-  }, [operacaoIds]);
+  }, [operacoes]);
 
-  // ✅ CONTROLE DE SCROLL DO MODAL
+  // Controle de scroll do modal
   useEffect(() => {
     if (showModalDetalhes) {
       document.body.style.overflow = 'hidden';
@@ -332,7 +161,7 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
     };
   }, [showModalDetalhes]);
 
-  // ✅ REABRIR MODAL APÓS OPERAÇÕES (ex: salvar horário)
+  // Reabrir modal após operações
   useEffect(() => {
     if (dataParaReabrir && !showModalDetalhes) {
       setDataSelecionada(dataParaReabrir);
@@ -340,33 +169,17 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
     }
   }, [dataParaReabrir, showModalDetalhes]);
 
-  // ✅ NOVA FUNCIONALIDADE: Limpeza periódica de estado órfão
+  // Hook para fechar modal com ESC
   useEffect(() => {
-    const intervalLimpeza = setInterval(() => {
-      setSolicitacoesPorOperacao(prevState => {
-        const newState = { ...prevState };
-        let houveLimpeza = false;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showModalDetalhes) {
+        setShowModalDetalhes(false);
+      }
+    };
 
-        // Verificar se há solicitações órfãs (operações que não existem mais)
-        Object.keys(newState).forEach(operacaoIdStr => {
-          const operacaoId = parseInt(operacaoIdStr);
-          const operacaoExiste = operacoes.find(op => op.id === operacaoId);
-
-          if (!operacaoExiste) {
-            delete newState[operacaoId];
-            houveLimpeza = true;
-            // Limpeza silenciosa
-          }
-        });
-
-        return houveLimpeza ? newState : prevState;
-      });
-    }, 30000); // Limpeza a cada 30 segundos
-
-    return () => clearInterval(intervalLimpeza);
-  }, [operacoes]);
-
-  // ✅ OTIMIZADO: Monitor de solicitações removido (logs excessivos)
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showModalDetalhes]);
 
   const timelineRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -375,34 +188,18 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
 
-  // Hook para fechar modal do inspetor com ESC
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && showInspectorModal) {
-        setShowInspectorModal(false);
-      }
-      if (e.key === 'Enter' && showInspectorModal) {
-        setShowInspectorModal(false);
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [showInspectorModal]);
-
   // Agrupar operações por data e mês
   const operacoesPorData = useMemo(() => {
     const grupos: { [key: string]: Operacao[] } = {};
 
     operacoes.forEach(operacao => {
-      const data = operacao.data_operacao.split('T')[0]; // YYYY-MM-DD
+      const data = operacao.data_operacao.split('T')[0];
       if (!grupos[data]) {
         grupos[data] = [];
       }
       grupos[data].push(operacao);
     });
 
-    // Ordenar datas (mais recentes primeiro)
     const datasOrdenadas = Object.keys(grupos).sort((a, b) => b.localeCompare(a));
     const resultado: { [key: string]: Operacao[] } = {};
 
@@ -429,12 +226,10 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
       grupos[mesAno][data] = operacoes;
     });
 
-    // Ordenar meses (mais recentes primeiro) e dentro de cada mês, ordenar datas do início para o fim
     const mesesOrdenados = Object.keys(grupos).sort((a, b) => b.localeCompare(a));
     const resultado: { [key: string]: { [key: string]: Operacao[] } } = {};
 
     mesesOrdenados.forEach(mes => {
-      // Ordenar datas dentro do mês do início para o fim (crescente)
       const datasDoMes = Object.keys(grupos[mes]).sort((a, b) => a.localeCompare(b));
       const mesOrdenado: { [key: string]: Operacao[] } = {};
 
@@ -507,15 +302,6 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
     }
   }, [operacoesPorData]);
 
-  // Funções de navegação
-  const scrollTimeline = (direction: 'left' | 'right') => {
-    if (timelineRef.current) {
-      const scrollAmount = 300;
-      const newScrollLeft = timelineRef.current.scrollLeft + (direction === 'left' ? -scrollAmount : scrollAmount);
-      timelineRef.current.scrollTo({ left: newScrollLeft, behavior: 'smooth' });
-    }
-  };
-
   // Funções de drag
   const handleMouseDown = (e: React.MouseEvent) => {
     if (timelineRef.current) {
@@ -582,7 +368,7 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
               className={styles.botaoAcao}
               onClick={onNovaOperacao}
             >
-              🚨 Nova Operação
+              Nova Operação
             </button>
           )}
 
@@ -596,7 +382,7 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
             </button>
           )}
 
-          {/* ✅ NOVO: Indicador de Conexão Realtime */}
+          {/* Indicador de Conexão Realtime */}
           <div
             className={styles.realtimeIndicator}
             title={isConnected ? 'Realtime conectado' : 'Realtime desconectado'}
@@ -623,8 +409,6 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
               {isConnected ? 'Real-time ativo' : 'Reconectando...'}
             </div>
           </div>
-
-
         </div>
       </div>
 
@@ -736,7 +520,6 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
                                 <span className={styles.modalidadeIcon} title="BALANÇA">⚖️</span>
                               )}
                             </div>
-
                           </div>
                         );
                       })}
@@ -754,7 +537,6 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
                       <span className={styles.navArrow}>›</span>
                     </button>
                   </div>
-
                 </div>
               ))}
             </div>
@@ -894,163 +676,10 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
               </div>
             </div>
           )}
-
-          {/* Modal do Inspetor */}
-          {showInspectorModal && inspectorResult && (
-            <div
-              className={styles.modalOverlay}
-              onClick={() => setShowInspectorModal(false)}
-            >
-              <div
-                className={styles.modalContent}
-                onClick={(e) => e.stopPropagation()}
-                style={{ maxWidth: '500px' }}
-              >
-                <div className={styles.modalHeader}>
-                  <div className={styles.modalTitle}>
-                    <h3>
-                      {inspectorResult.isCleanup
-                        ? '🧹 Limpeza Concluída'
-                        : inspectorResult.success
-                          ? '✅ Resultado do Inspetor'
-                          : '🚨 Resultado do Inspetor'
-                      }
-                    </h3>
-                    <p>
-                      {inspectorResult.isCleanup
-                        ? 'Dados do inspetor foram limpos'
-                        : inspectorResult.success
-                          ? 'Verificação de integridade concluída'
-                          : `${inspectorResult.discrepancias.length} discrepância(s) encontrada(s)`
-                      }
-                    </p>
-                  </div>
-
-                  <button
-                    className={styles.modalCloseButton}
-                    onClick={() => setShowInspectorModal(false)}
-                    title="Fechar"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                <div className={styles.modalBody}>
-                  {inspectorResult.success ? (
-                    <div style={{
-                      textAlign: 'center',
-                      padding: '40px 20px',
-                      color: '#16a34a'
-                    }}>
-                      <div style={{ fontSize: '48px', marginBottom: '16px' }}>
-                        {inspectorResult.isCleanup ? '🧹' : '✅'}
-                      </div>
-                      <h4 style={{ margin: '0 0 8px 0', color: '#16a34a' }}>
-                        {inspectorResult.isCleanup ? 'Dados Limpos!' : 'Perfeito!'}
-                      </h4>
-                      <p style={{ margin: '0', color: '#65a30d' }}>
-                        {inspectorResult.isCleanup
-                          ? 'Todos os dados do inspetor foram removidos. Pronto para novo teste!'
-                          : 'Todos os clicks foram renderizados corretamente.'
-                        }
-                      </p>
-                    </div>
-                  ) : (
-                    <div style={{
-                      padding: '20px',
-                      backgroundColor: '#fef2f2',
-                      border: '1px solid #fecaca',
-                      borderRadius: '8px'
-                    }}>
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        marginBottom: '16px',
-                        color: '#dc2626'
-                      }}>
-                        <span style={{ fontSize: '24px', marginRight: '12px' }}>🚨</span>
-                        <strong>Atenção: Discrepâncias detectadas!</strong>
-                      </div>
-
-                      <p style={{
-                        margin: '0 0 16px 0',
-                        color: '#991b1b',
-                        fontSize: '14px'
-                      }}>
-                        {inspectorResult.discrepancias.length} problema(s) encontrado(s) na sincronização
-                        entre clicks e renderizações.
-                      </p>
-
-                      <div style={{
-                        backgroundColor: '#fff',
-                        padding: '12px',
-                        borderRadius: '6px',
-                        border: '1px solid #fecaca',
-                        fontSize: '13px',
-                        color: '#7f1d1d'
-                      }}>
-                        💡 <strong>Como resolver:</strong><br />
-                        • Verifique o console do navegador para detalhes<br />
-                        • Use o botão "🧹 Limpar" para resetar os dados<br />
-                        • Execute um novo teste após a limpeza
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div style={{
-                  padding: '20px',
-                  borderTop: '1px solid #e5e7eb',
-                  display: 'flex',
-                  justifyContent: 'flex-end',
-                  gap: '12px'
-                }}>
-                  {!inspectorResult.success && (
-                    <button
-                      onClick={() => {
-                        // ✅ OTIMIZADO: Log removido (performance)
-                        setShowInspectorModal(false);
-                      }}
-                      style={{
-                        padding: '8px 16px',
-                        backgroundColor: '#f3f4f6',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '14px'
-                      }}
-                    >
-                      📋 Ver Detalhes no Console
-                    </button>
-                  )}
-
-                  <button
-                    onClick={() => setShowInspectorModal(false)}
-                    style={{
-                      padding: '8px 16px',
-                      backgroundColor: inspectorResult.success ? '#16a34a' : '#dc2626',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      fontSize: '14px'
-                    }}
-                  >
-                    {inspectorResult.isCleanup
-                      ? '🧹 Fechar'
-                      : inspectorResult.success
-                        ? '✅ Fechar'
-                        : '🚨 Entendi'
-                    }
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </>
       )}
     </div>
   );
 };
 
-export default TimelineOperacoes; 
+export default TimelineOperacoes;

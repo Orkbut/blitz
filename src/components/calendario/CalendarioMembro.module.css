@@ -67,12 +67,7 @@
   flex-wrap: wrap;
 }
 
-.operacaoIcon {
-  font-size: 0.75rem;
-  flex-shrink: 0;
-  line-height: 1;
-  filter: saturate(1.2);
-}
+
 
 .operacaoName {
   font-weight: 600;
@@ -212,9 +207,7 @@
     min-height: auto;
   }
   
-  .operacaoIcon {
-    font-size: 0.7rem;
-  }
+
   
   .operacaoName {
     font-size: 0.6rem;
@@ -250,9 +243,7 @@
     min-height: auto;
   }
   
-  .operacaoIcon {
-    font-size: 0.8rem;
-  }
+
   
   .operacaoName {
     font-size: 0.65rem;
@@ -287,9 +278,7 @@
     min-height: auto;
   }
   
-  .operacaoIcon {
-    font-size: 0.9rem;
-  }
+
   
   .operacaoName {
     font-size: 0.75rem;

@@ -273,7 +273,7 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
             flexShrink: 0,
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
           }}>
-            🚨 Nova Operação
+            Nova Operação
           </h2>
           <button
             onClick={onClose}
@@ -542,10 +542,10 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
                   >
                     <option value="">{isJanelaSelecionada ? "Selecione a modalidade" : "Selecione uma janela primeiro"}</option>
                     {(!limitesJanela.modalidadesPermitidas || limitesJanela.modalidadesPermitidas.includes('BLITZ')) && (
-                      <option value="BLITZ">🚨 BLITZ</option>
+                      <option value="BLITZ">BLITZ</option>
                     )}
                     {(!limitesJanela.modalidadesPermitidas || limitesJanela.modalidadesPermitidas.includes('BALANCA')) && (
-                      <option value="BALANCA">⚖️ BALANÇA</option>
+                      <option value="BALANCA">BALANÇA</option>
                     )}
                   </select>
                   {limitesJanela.modalidadesPermitidas && (
@@ -823,7 +823,7 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
              !isJanelaSelecionada ? '🚫 Selecione uma Janela' :
              selectedDates.length === 0 ? '📅 Selecione uma Data' :
              !novaOperacao.modalidade ? '🏷️ Selecione Modalidade' :
-             selectedDates.length <= 1 ? '🚨 Criar Operação' : `🚨 Criar ${selectedDates.length} Operações`}
+             selectedDates.length <= 1 ? 'Criar Operação' : `Criar ${selectedDates.length} Operações`}
           </button>
         </div>
       </div>

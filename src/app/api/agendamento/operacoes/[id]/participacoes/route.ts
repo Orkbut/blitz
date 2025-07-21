@@ -8,11 +8,16 @@ export async function GET(
   const { id } = await params;
   const operacaoId = id;
 
-  console.log(`📊 [PARTICIPACOES-API] Buscando participações da operação ${operacaoId}`);
+  // ✅ ISOLAMENTO POR REGIONAL: Obter contexto do supervisor
+  const supervisorRegionalId = request.headers.get('X-Regional-Id');
+
+  console.log(`📊 [PARTICIPACOES-API] Buscando participações da operação ${operacaoId}`, {
+    supervisorRegionalId
+  });
 
   try {
-    // Buscar participações com dados dos servidores
-    const { data: participacoes, error } = await supabase
+    // Buscar participações com dados dos servidores (FILTRADAS POR REGIONAL)
+    let query = supabase
       .from('participacao')
       .select(`
         *,
@@ -24,8 +29,14 @@ export async function GET(
         )
       `)
       .eq('operacao_id', operacaoId)
-      .eq('ativa', true)
-      .order('data_participacao', { ascending: true });
+      .eq('ativa', true);
+
+    // ✅ FILTRAR POR REGIONAL se contexto disponível
+    if (supervisorRegionalId) {
+      query = query.eq('servidor.regional_id', parseInt(supervisorRegionalId));
+    }
+
+    const { data: participacoes, error } = await query.order('data_participacao', { ascending: true });
 
     if (error) {
       console.error('❌ Erro ao buscar participações:', error);
