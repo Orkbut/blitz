@@ -350,8 +350,8 @@
   /* Padding leve e charmoso */
   height: calc(100vh - 100px);
   /* Altura otimizada sem barra de controles */
-  overflow: hidden;
-  /* Evita scroll vertical */
+  overflow: visible !important;
+  /* NUNCA CORTAR CONTEÚDO */
 }
 
 .calendarGridWrapper {
@@ -361,9 +361,10 @@
   /* Bordas suaves e charmosas */
   padding: 0.15rem;
   /* Padding reduzido para menos gap */
-  overflow: hidden;
-  height: 100%;
-  /* Usa toda altura disponível */
+  overflow: visible !important;
+  /* NUNCA CORTAR CONTEÚDO */
+  height: auto !important;
+  /* ALTURA AUTOMÁTICA PARA SE AJUSTAR AO CONTEÚDO */
   display: flex;
   flex-direction: column;
   border: 1px solid rgba(255, 255, 255, 0.05);
@@ -375,27 +376,15 @@
 .calendarGrid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  /* Grid robusto: cabeçalho fixo + 6 semanas com altura mínima e máxima */
-  grid-template-rows: auto repeat(6, minmax(60px, 1fr));
-  /* Altura original restaurada */
+  grid-template-rows: auto repeat(6, minmax(120px, auto));
+  /* ✅ ALTURA MÍNIMA SUFICIENTE + AUTO PARA EXPANDIR */
   gap: 2px;
-  /* Gap ajustado para criar efeito losango com chanfros */
   justify-content: stretch;
-  /* Estica para usar todo espaço */
   max-width: 100%;
-  /* USA toda largura disponível */
   margin: 0;
-  /* ZERO margem */
-  flex: 1;
-  /* Ocupa todo espaço disponível */
-  height: 100%;
-  /* Usa toda altura disponível */
   width: 100%;
-  /* Força largura total */
   border-radius: 6px;
-  /* Bordas internas suaves */
-  overflow: hidden;
-  /* Mantém bordas arredondadas nas células */
+  overflow: visible !important;
 }
 
 /* Dias da Semana - ULTRA COMPACTOS PARA OTIMIZAR ESPAÇO */
@@ -440,8 +429,8 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  /* Altura controlada pelo grid-template-rows */
+  overflow: visible;
+  /* Permitir que conteúdo seja visível */
   min-height: 50px;
   /* Altura confortável */
   max-width: none;
@@ -456,6 +445,8 @@
   /* Garantir distribuição adequada do espaço interno */
   justify-content: flex-start;
   gap: clamp(0.05rem, 0.8%, 0.15rem);
+  /* Z-INDEX BAIXO PARA NÃO INTERFERIR COM MODALIDADES */
+  z-index: 1;
 }
 
 .dayCell:hover {
@@ -533,15 +524,20 @@
 
 /* Informações da operação única */
 .singleOperationInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  margin-top: 0.2rem;
-  flex: 1;
-  overflow: hidden;
-  /* Garantir que o conteúdo se adapte ao container */
-  min-height: 0;
-  max-width: 100%;
+  padding: 0 !important;
+  margin: 0 !important;
+  gap: 0.1rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  position: relative;
+  z-index: 100 !important;
 }
 
 /* ✅ NOVO: Header compacto para BLITZ/BALANÇA sempre visível no topo */
@@ -561,15 +557,15 @@
   margin-bottom: clamp(0.15rem, 1.8vw, 0.3rem);
 
   /* Visual */
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.98);
   border-radius: clamp(3px, 1.2vw, 5px);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 
-  /* Comportamento */
+  /* Comportamento - Z-INDEX ALTO PARA FICAR ACIMA DE TUDO */
   flex-shrink: 0;
   position: relative;
-  z-index: 2;
+  z-index: 50 !important;
   overflow: visible;
   box-sizing: border-box;
 }
@@ -582,6 +578,8 @@
   flex-shrink: 0;
   min-height: 0;
   /* Remove flex para que o span interno ocupe 100% */
+  position: relative;
+  z-index: 55 !important;
 }
 
 /* ✅ LINHA DAS ESTATÍSTICAS - compacta */
@@ -601,33 +599,41 @@
 /* Nome da modalidade (BLITZ/BALANÇA) - SOLUÇÃO DEFINITIVA ANTI-CORTE */
 .modalidadeName {
   /* Font-size responsivo mas generoso */
-  font-size: clamp(0.5rem, 2.5vw, 0.75rem);
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: clamp(0.01em, 0.3vw, 0.05em);
-  color: #1f2937;
+  font-size: clamp(0.6rem, 3vw, 0.8rem) !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: clamp(0.01em, 0.3vw, 0.05em) !important;
+  color: #1f2937 !important;
 
   /* FORÇA O SPAN A OCUPAR TODA A LARGURA DA DIV PAI */
-  display: block;
+  display: block !important;
   width: 100% !important;
   min-width: 100% !important;
   max-width: 100% !important;
 
   /* Box model otimizado */
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 0.1rem 0 !important;
 
   /* NUNCA cortar o texto - sempre mostrar completo */
-  white-space: nowrap;
-  overflow: visible;
-  text-overflow: clip;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
 
   /* Layout otimizado para ocupar toda a linha */
-  text-align: left;
+  text-align: left !important;
 
   /* Sem transformações que podem causar cortes */
-  transform: none;
+  transform: none !important;
+
+  /* Z-INDEX MÁXIMO PARA FICAR SEMPRE VISÍVEL */
+  position: relative !important;
+  z-index: 100 !important;
+  
+  /* Garantir altura suficiente */
+  line-height: 1.2 !important;
+  min-height: 1rem !important;
 }
 
 /* Estatísticas de participantes - ULTRA COMPACTAS PARA DAR ESPAÇO AO NOME */
@@ -667,166 +673,74 @@
   font-size: 0.9em;
 }
 
-/* ✅ RESPONSIVIDADE ESPECÍFICA PARA HEADER COMPACTO - SOLUÇÃO DEFINITIVA */
+/* ✅ LAYOUT FIXO PARA TODAS AS RESOLUÇÕES - BASEADO NA RESOLUÇÃO MAIS BAIXA */
 
-/* Desktop e telas grandes - header compacto padrão */
-@media (min-width: 769px) {
-  .compactHeader {
-    padding: 0.2rem 0.3rem;
-    min-height: 24px;
-    gap: 0.4rem;
-  }
-
-  .modalidadeName {
-    font-size: 0.75rem;
-    /* REMOVE LIMITAÇÃO - usa toda largura da linha */
-    max-width: none;
-  }
-
-  .participantStats {
-    font-size: 0.65rem;
-    min-width: 2.5rem;
-  }
+/* CORREÇÃO MILIMÉTRICA: Configurações otimizadas da singleOperationInfo */
+.singleOperationInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-top: 0.25rem;
+  flex: 1;
+  overflow: visible !important;
+  min-height: 0;
+  max-width: 100%;
+  position: relative;
+  z-index: 10;
 }
 
-/* Tablets - ajuste moderado */
-@media (min-width: 481px) and (max-width: 768px) {
-  .compactHeader {
-    padding: 0.18rem 0.28rem;
-    min-height: 22px;
-    gap: 0.35rem;
-  }
-
-  .modalidadeName {
-    font-size: 0.7rem;
-    max-width: none;
-    /* REMOVE LIMITAÇÃO */
-  }
-
-  .participantStats {
-    font-size: 0.6rem;
-    min-width: 2.3rem;
-  }
-}
-
-/* Mobile grande - compacto mas legível */
-@media (min-width: 376px) and (max-width: 480px) {
-  .compactHeader {
-    padding: 0.15rem 0.25rem;
-    min-height: 20px;
-    margin-bottom: 0.25rem;
-    gap: 0.3rem;
-  }
-
-  .modalidadeName {
-    font-size: 0.65rem;
-    letter-spacing: 0.03em;
-    max-width: none;
-    /* REMOVE LIMITAÇÃO */
-  }
-
-  .participantStats {
-    font-size: 0.55rem;
-    min-width: 2rem;
-  }
-}
-
-/* Mobile médio - mais compacto */
-@media (min-width: 321px) and (max-width: 375px) {
-  .compactHeader {
-    padding: 0.12rem 0.2rem;
-    min-height: 18px;
-    margin-bottom: 0.2rem;
-    gap: 0.25rem;
-  }
-
-  .modalidadeName {
-    font-size: 0.6rem;
-    letter-spacing: 0.02em;
-    max-width: none;
-    /* REMOVE LIMITAÇÃO */
-  }
-
-  .participantStats {
-    font-size: 0.5rem;
-    min-width: 1.8rem;
-  }
-}
-
-/* Mobile pequeno - ultra compacto mas sempre visível */
-@media (max-width: 320px) {
-  .compactHeader {
-    padding: 0.1rem 0.15rem;
-    min-height: 16px;
-    margin-bottom: 0.15rem;
-    border-radius: 3px;
-    gap: 0.2rem;
-  }
-
-  .modalidadeName {
-    font-size: 0.55rem;
-    letter-spacing: 0.01em;
-    max-width: none;
-    /* REMOVE LIMITAÇÃO */
-  }
-
-  .participantStats {
-    font-size: 0.45rem;
-    min-width: 1.5rem;
-  }
-
-  .queueIndicator {
-    font-size: 0.85em;
-  }
-}
-
-/* BREAKPOINT EXTREMO: Telas muito pequenas (< 280px) */
-@media (max-width: 280px) {
-  .compactHeader {
-    padding: 0.08rem 0.12rem;
-    min-height: 14px;
-    gap: 0.15rem;
-  }
-
-  .modalidadeName {
-    font-size: 0.5rem;
-    letter-spacing: 0;
-    max-width: none;
-    /* REMOVE LIMITAÇÃO */
-  }
-
-  .participantStats {
-    font-size: 0.4rem;
-    min-width: 1.3rem;
-  }
+/* Header compacto com proporções fixas */
+.compactHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.2rem 0.15rem !important;
+  min-height: 20px !important;
+  margin-bottom: 0.15rem !important;
+  border-radius: 3px !important;
+  position: relative;
+  z-index: 20;
+  overflow: visible !important;
 }
 
 /* ✅ CORES ESPECÍFICAS PARA MODALIDADES NO HEADER COMPACTO */
 .lightBLITZ .compactHeader {
-  background: rgba(254, 242, 242, 0.98);
-  border-color: rgba(248, 113, 113, 0.3);
+  background: rgba(254, 242, 242, 0.98) !important;
+  border-color: rgba(248, 113, 113, 0.3) !important;
+  z-index: 60 !important;
+  position: relative !important;
 }
 
 .lightBLITZ .modalidadeName {
-  color: #dc2626;
+  color: #dc2626 !important;
+  z-index: 65 !important;
+  position: relative !important;
 }
 
 .lightBALANCA .compactHeader {
-  background: rgba(240, 253, 244, 0.98);
-  border-color: rgba(134, 239, 172, 0.3);
+  background: rgba(240, 253, 244, 0.98) !important;
+  border-color: rgba(134, 239, 172, 0.3) !important;
+  z-index: 60 !important;
+  position: relative !important;
 }
 
 .lightBALANCA .modalidadeName {
-  color: #16a34a;
+  color: #16a34a !important;
+  z-index: 65 !important;
+  position: relative !important;
 }
 
 .lightMultiple .compactHeader {
-  background: rgba(250, 245, 255, 0.98);
-  border-color: rgba(196, 181, 253, 0.3);
+  background: rgba(250, 245, 255, 0.98) !important;
+  border-color: rgba(196, 181, 253, 0.3) !important;
+  z-index: 60 !important;
+  position: relative !important;
 }
 
 .lightMultiple .modalidadeName {
-  color: #7c3aed;
+  color: #7c3aed !important;
+  z-index: 65 !important;
+  position: relative !important;
 }
 
 /* ✅ SOLUÇÃO ESPECÍFICA PARA CADA MODALIDADE - NUNCA CORTAR TEXTO */
@@ -860,45 +774,33 @@
   /* Stats menores para dar espaço */
 }
 
-/* ✅ RESPONSIVIDADE ESPECÍFICA PARA BALANÇA EM TELAS PEQUENAS */
-@media (max-width: 480px) {
-  .modalidadeName[data-modalidade="BALANCA"] {
-    font-size: clamp(0.45rem, 3vw, 0.65rem);
-    letter-spacing: 0.01em;
-    font-weight: 900;
-    /* Mais bold para compensar tamanho menor */
-  }
+/* ✅ LAYOUT UNIFICADO PARA TODAS AS RESOLUÇÕES - BASEADO NA RESOLUÇÃO MAIS BAIXA */
 
-  .modalidadeName[data-modalidade="BALANCA"]+.participantStats {
-    font-size: clamp(0.35rem, 2vw, 0.45rem);
-    min-width: 0.8rem;
-  }
+/* BALANÇA: Texto + Caminhãozinho em todas as resoluções */
+.lightBALANCA .modalidadeName {
+  font-size: 0.65rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.02em !important;
+  color: #16a34a !important;
 }
 
-@media (max-width: 375px) {
-  .modalidadeName[data-modalidade="BALANCA"] {
-    font-size: clamp(0.4rem, 3.2vw, 0.6rem);
-    letter-spacing: 0;
-  }
-
-  .modalidadeName[data-modalidade="BALANCA"]+.participantStats {
-    font-size: clamp(0.3rem, 2.2vw, 0.4rem);
-    min-width: 0.7rem;
-  }
+.lightBALANCA .modalidadeName::after {
+  content: "🚛" !important;
+  font-size: 0.7rem !important;
+  display: inline-block !important;
+  margin-left: 0.15rem !important;
+  vertical-align: middle !important;
 }
 
-@media (max-width: 320px) {
-  .modalidadeName[data-modalidade="BALANCA"] {
-    font-size: clamp(0.35rem, 3.5vw, 0.55rem);
-    letter-spacing: -0.01em;
-    /* Ligeiramente mais compacto */
-  }
-
-  .modalidadeName[data-modalidade="BALANCA"]+.participantStats {
-    font-size: clamp(0.28rem, 2.5vw, 0.38rem);
-    min-width: 0.6rem;
-  }
+/* BLITZ: Texto padrão em todas as resoluções */
+.lightBLITZ .modalidadeName {
+  font-size: 0.65rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.02em !important;
+  color: #dc2626 !important;
 }
+
+/* ✅ LAYOUT FIXO REMOVIDO - APLICADO GLOBALMENTE ACIMA PARA TODAS AS RESOLUÇÕES */
 
 /* Container para título e stats ficarem lado a lado */
 .operationHeader {
@@ -1032,46 +934,33 @@
   /* Garantir que sempre se ajuste ao container pai */
   position: relative;
   flex-shrink: 0;
+  /* Z-INDEX BAIXO PARA NÃO SOBREPOR MODALIDADES */
+  z-index: 10 !important;
 }
 
-/* Texto responsivo dos botões via CSS */
+/* ✅ ÍCONES UNIFICADOS PARA TODAS AS RESOLUÇÕES - PADRÃO DA RESOLUÇÃO MAIS BAIXA */
 .quickActionButton[data-action="cancelar"]::after {
-  content: "CANCELAR";
+  content: "✕" !important;
+  font-size: 1.2em !important;
+  font-weight: 900 !important;
 }
 
 .quickActionButton[data-action="participar"]::after {
-  content: "EU VOU";
+  content: "✓" !important;
+  font-size: 1.2em !important;
+  font-weight: 900 !important;
 }
 
 .quickActionButton[data-action="fila"]::after {
-  content: "ENTRAR NA FILA";
+  content: "✓" !important;
+  font-size: 1.2em !important;
+  font-weight: 900 !important;
 }
 
 .quickActionButton[data-action="lotado"]::after {
-  content: "LOTADO";
-}
-
-/* Breakpoints para texto dos botões */
-@media (max-width: 425px) {
-  .quickActionButton[data-action="fila"]::after {
-    content: "FILA";
-  }
-}
-
-@media (max-width: 375px) {
-  .quickActionButton[data-action="cancelar"]::after {
-    content: "CANCEL";
-  }
-}
-
-@media (max-width: 320px) {
-  .quickActionButton[data-action="cancelar"]::after {
-    content: "CANCEL";
-  }
-
-  .quickActionButton[data-action="participar"]::after {
-    content: "VOU";
-  }
+  content: "✕" !important;
+  font-size: 1.2em !important;
+  font-weight: 900 !important;
 }
 
 .quickActionButton:hover:not(:disabled) {
@@ -1292,646 +1181,233 @@
   color: var(--text-primary);
 }
 
-/* Responsividade OTIMIZADA - ESTILO GOOGLE CALENDAR */
-@media (max-width: 1200px) {
-  .calendarContainer {
-    max-width: 95vw;
-  }
+/* ✅ SOLUÇÃO DEFINITIVA - REMOVER TODAS AS LIMITAÇÕES DE ALTURA */
 
-  .dayCell {
-    height: 65px;
-    /* Altura original restaurada */
-  }
+/* Container sem limitações */
+.calendarContainer {
+  border-radius: 4px !important;
+  box-shadow: var(--shadow-sm) !important;
+  max-width: 100vw !important;
+  margin: 0 !important;
+  overflow: visible !important;
+  height: auto !important;
+  max-height: none !important;
 }
 
-/* BREAKPOINT ESPECÍFICO: DESKTOPS GRANDES (1025px+) */
-@media (min-width: 1025px) {
-  .calendarContainer {
-    max-width: 100vw;
-    /* USA toda largura da tela */
-    margin: 0;
-  }
-
-  .calendarGrid {
-    gap: 2px;
-    /* Mantém gap para efeito losango */
-    max-width: 100%;
-    /* USA toda largura disponível */
-    margin: 0;
-    border: none;
-    /* Remove borda externa para máximo espaço */
-    /* Grid robusto para desktop */
-    grid-template-rows: auto repeat(6, minmax(65px, 1fr));
-    /* Altura original restaurada */
-  }
-
-  .dayCell {
-    /* Altura controlada pelo grid para caber tudo na tela */
-    max-width: none;
-    /* Remove limitação de largura */
-    min-width: auto;
-    /* Chamfered Corners mantido em desktop */
-    clip-path: polygon(8px 0%, 100% 0%, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0% 100%, 0% 8px);
-    min-height: 40px;
-    /* Altura original restaurada */
-    padding: 0.25rem;
-    /* Mantém padding consistente */
-  }
-
-  .dayCell:nth-child(7n) {
-    border-right: none;
-    /* Remove borda da última coluna */
-  }
-
-  .calendarContent {
-    height: calc(100vh - 50px);
-    /* Altura otimizada sem barra de controles */
-  }
+/* Área do calendário sem limitações */
+.calendarArea {
+  padding: 0.3rem !important;
+  overflow: visible !important;
+  height: auto !important;
+  max-height: none !important;
 }
 
-/* BREAKPOINT ESPECÍFICO: TELAS EXTRA GRANDES (1400px+) - Um pouco mais de espaço */
-@media (min-width: 1400px) {
-  .calendarGrid {
-    grid-template-rows: auto repeat(6, minmax(75px, 1fr));
-    /* Ligeiramente maior em telas grandes */
-  }
-
-  .dayCell {
-    min-height: 50px;
-    padding: 0.375rem;
-    /* Um pouco mais de padding em telas grandes */
-  }
-
-  /* Permitir fontes ligeiramente maiores em telas muito grandes */
-  .operationTitle {
-    font-size: 0.75rem;
-  }
-
-  .operationIcon {
-    font-size: 0.875rem;
-  }
-
-  .quickActionButton {
-    font-size: 0.65rem;
-    padding: 0.45rem 0.65rem;
-    min-height: 28px;
-    border-radius: 8px;
-  }
-
-  .dayNumber {
-    font-size: 1rem;
-  }
+/* Wrapper sem limitações */
+.calendarGridWrapper {
+  overflow: visible !important;
+  height: auto !important;
+  max-height: none !important;
 }
 
-/* BREAKPOINT ESPECÍFICO: 768px - 1024px (TABLETS E LAPTOPS PEQUENOS) */
-@media (min-width: 768px) and (max-width: 1024px) {
-  .calendarContainer {
-    max-width: 100vw;
-    margin: 0;
-  }
-
-  .calendarGrid {
-    gap: 2px;
-    height: 100%;
-    /* Grid robusto para tablets */
-    grid-template-rows: auto repeat(6, minmax(55px, 1fr));
-    /* Altura mínima para tablets */
-  }
-
-  .dayCell {
-    height: auto;
-    min-height: 50px;
-    max-width: none;
-    min-width: auto;
-    /* Chamfered Corners menores para tablets */
-    clip-path: polygon(6px 0%, 100% 0%, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0% 100%, 0% 6px);
-    aspect-ratio: 1.1;
-    /* Proporção adequada para tablets */
-  }
-
-  .dayCell:nth-child(7n) {
-    border-right: none;
-  }
-
-  .calendarGridWrapper {
-    padding: 0.4rem;
-    border-radius: 8px;
-  }
-
-  .calendarContent {
-    height: auto;
-    /* Altura automática para tablets */
-  }
+/* Conteúdo sem limitações */
+.calendarContent {
+  overflow: visible !important;
+  height: auto !important;
+  max-height: none !important;
 }
 
-/* BREAKPOINT GERAL: OCULTAR SIDEBAR EM DISPOSITIVOS MENORES */
-@media (max-width: 1024px) {
-  .sidebarLeft {
-    display: none;
-  }
+/* Grid com altura completamente automática */
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: auto repeat(6, auto) !important;
+  /* ✅ ALTURA COMPLETAMENTE AUTOMÁTICA - SEM LIMITAÇÕES */
+  gap: 2px !important;
+  justify-content: stretch;
+  max-width: 100% !important;
+  margin: 0;
+  width: 100%;
+  border-radius: 6px;
+  border: none !important;
+  overflow: visible !important;
+  height: auto !important;
+  max-height: none !important;
 }
 
-/* BREAKPOINT MOBILE: 481px - 767px (MOBILE LANDSCAPE E PEQUENOS TABLETS) */
-@media (min-width: 481px) and (max-width: 767px) {
-  .calendarContainer {
-    border-radius: 6px;
-    box-shadow: var(--shadow-md);
-    max-width: 100vw;
-    margin: 0;
-  }
-
-  .calendarArea {
-    padding: 0.4rem;
-  }
-
-  .calendarHeader {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem;
-    min-height: 60px;
-  }
-
-  .leftButtons {
-    gap: 0.4rem;
-  }
-
-  .monthYear {
-    font-size: 1.1rem;
-    /* Tamanho ajustado para mobile landscape */
-    font-weight: 600;
-    flex: 1;
-    text-align: center;
-    /* Remove qualquer fundo em mobile landscape */
-    background: none;
-    padding: 0;
-    border: none;
-  }
-
-  .navButton {
-    padding: 0.5rem 0.8rem;
-    font-size: 0.8rem;
-    min-height: 42px;
-    flex-shrink: 0;
-  }
-
-  .todayButton {
-    padding: 0.5rem 0.8rem;
-    font-size: 0.8rem;
-    min-height: 42px;
-    flex-shrink: 0;
-  }
-
-  .calendarContent {
-    padding: 0.4rem;
-    height: auto;
-    /* Altura automática para mobile landscape */
-  }
-
-  .calendarGridWrapper {
-    padding: 0.4rem;
-    border-radius: 8px;
-  }
-
-  .calendarGrid {
-    gap: 2px;
-    /* Gap adequado para mobile landscape */
-    grid-template-rows: auto repeat(6, minmax(50px, 1fr));
-    /* Altura mínima para mobile landscape */
-    max-width: 100%;
-    border: none;
-    /* Remove borda externa em mobile */
-  }
-
-  .dayName {
-    padding: 0.2rem;
-    /* Mais compacto */
-    font-size: 0.65rem;
-    /* Menor */
-    height: 18px;
-    /* Altura fixa pequena */
-  }
-
-  .dayCell {
-    height: auto;
-    /* Altura automática */
-    min-height: 55px;
-    /* Altura mínima adequada */
-    max-width: none;
-    /* Remove limitação de largura */
-    min-width: auto;
-    /* Largura automática */
-    padding: 0.3rem;
-    border: 1px solid var(--border-light);
-    /* Chamfered Corners menores para mobile landscape */
-    clip-path: polygon(4px 0%, 100% 0%, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0% 100%, 0% 4px);
-    aspect-ratio: 1.2;
-    /* Proporção adequada para mobile */
-  }
-
-  .dayNumber {
-    font-size: 0.9rem;
-    font-weight: 600;
-  }
-
-  .operacaoIndicator {
-    width: 6px;
-    height: 6px;
-  }
-
-  .currentDateInfo {
-    margin-top: 0.75rem;
-    padding: 0.6rem;
-    font-size: 0.8rem;
-  }
+/* Células completamente livres para expandir */
+.dayCell {
+  height: auto !important;
+  min-height: 150px !important;
+  /* ✅ ALTURA MÍNIMA MUITO MAIOR PARA ACOMODAR MODALIDADES */
+  max-height: none !important;
+  /* ✅ REMOVER COMPLETAMENTE LIMITE DE ALTURA */
+  max-width: none !important;
+  min-width: auto !important;
+  padding: 0.4rem !important;
+  border: 1px solid var(--border-light) !important;
+  /* ✅ MANTER BORDAS SIMPLES */
+  clip-path: none !important;
+  border-radius: 4px !important;
+  /* ✅ BORDAS ARREDONDADAS SIMPLES */
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  align-items: stretch !important;
+  gap: 0.2rem !important;
+  overflow: visible !important;
+  /* ✅ NUNCA CORTAR CONTEÚDO */
+  position: relative !important;
+  z-index: 1 !important;
 }
 
-/* BREAKPOINT MOBILE GRANDE: 320px - 480px (MOBILE PORTRAIT PADRÃO) */
-@media (min-width: 320px) and (max-width: 480px) {
-  .calendarContainer {
-    border-radius: 4px;
-    box-shadow: var(--shadow-sm);
-    max-width: 100vw;
-    margin: 0;
-  }
-
-  .calendarArea {
-    padding: 0.3rem;
-  }
-
-  .calendarHeader {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.3rem;
-    padding: 0.6rem;
-    min-height: 54px;
-  }
-
-  .leftButtons {
-    gap: 0.3rem;
-  }
-
-  .monthYear {
-    font-size: 1rem;
-    /* Tamanho ajustado para mobile portrait */
-    font-weight: 600;
-    flex: 1;
-    text-align: center;
-    /* Remove qualquer fundo em mobile portrait */
-    background: none;
-    padding: 0;
-    border: none;
-  }
-
-  .navButton {
-    padding: 0.4rem 0.7rem;
-    font-size: 0.75rem;
-    min-height: 38px;
-    flex-shrink: 0;
-  }
-
-  .todayButton {
-    padding: 0.4rem 0.7rem;
-    font-size: 0.75rem;
-    min-height: 38px;
-    flex-shrink: 0;
-  }
-
-  .calendarContent {
-    padding: 0.3rem;
-    height: auto;
-  }
-
-  .calendarGridWrapper {
-    padding: 0.25rem;
-    border-radius: 6px;
-  }
-
-  .calendarGrid {
-    gap: 2px;
-    grid-template-rows: auto repeat(6, minmax(80px, 1fr));
-    /* Altura maior para acomodar botões */
-    max-width: 100%;
-    border: none;
-  }
-
-  .dayName {
-    padding: 0.2rem;
-    font-size: 0.65rem;
-    height: 18px;
-    font-weight: 600;
-  }
-
-  .dayCell {
-    height: auto;
-    min-height: 85px;
-    /* Altura maior para botões */
-    max-width: none;
-    min-width: auto;
-    padding: 0.3rem;
-    border: 1px solid var(--border-light);
-    border-right: none;
-    border-bottom: none;
-    aspect-ratio: 1.1;
-    /* Ligeiramente retangular */
-  }
-
-  .dayNumber {
-    font-size: 0.85rem;
-    font-weight: 600;
-    line-height: 1.1;
-  }
-
-  .operacaoIndicator {
-    width: 5px;
-    height: 5px;
-  }
-
-  .currentDateInfo {
-    margin-top: 0.6rem;
-    padding: 0.5rem;
-    font-size: 0.75rem;
-    min-height: 30px;
-  }
+/* ✅ HEADER DO CALENDÁRIO - SEMPRE ESTILO 469x303 PORTRAIT */
+.calendarHeader {
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 0.3rem !important;
+  /* Gap menor do portrait */
+  padding: 0.6rem !important;
+  /* Padding menor do portrait */
+  min-height: 54px !important;
+  /* Altura menor do portrait */
 }
 
-/* BREAKPOINT MOBILE PEQUENO: ≤320px (MOBILE EXTRA PEQUENO) */
-@media (max-width: 320px) {
-  .calendarContainer {
-    border-radius: 0;
-    box-shadow: none;
-    max-width: 100vw;
-    margin: 0;
-  }
-
-  .calendarArea {
-    padding: 0.25rem;
-  }
-
-  .calendarHeader {
-    flex-direction: column;
-    /* Vertical em telas muito pequenas */
-    gap: 0.5rem;
-    padding: 0.5rem;
-    min-height: auto;
-  }
-
-  .leftButtons {
-    gap: 0.3rem;
-  }
-
-  .monthYear {
-    font-size: 0.95rem;
-    /* Tamanho ajustado para mobile pequeno */
-    font-weight: 600;
-    order: 1;
-    /* Remove qualquer fundo em mobile pequeno */
-    background: none;
-    padding: 0;
-    border: none;
-  }
-
-  .navButton {
-    padding: 0.4rem 0.6rem;
-    font-size: 0.75rem;
-    min-height: 36px;
-    flex: 1;
-    max-width: 120px;
-  }
-
-  .todayButton {
-    padding: 0.4rem 0.6rem;
-    font-size: 0.75rem;
-    min-height: 36px;
-    flex-shrink: 0;
-  }
-
-  .calendarContent {
-    padding: 0.25rem;
-    height: auto;
-  }
-
-  .calendarGridWrapper {
-    padding: 0.2rem;
-    border-radius: 6px;
-  }
-
-  .calendarGrid {
-    gap: 1px;
-    /* Gap mínimo para máximo aproveitamento */
-    grid-template-rows: auto repeat(6, minmax(40px, 1fr));
-    /* Altura mínima para mobile pequeno */
-    max-width: 100%;
-    border: none;
-  }
-
-  .dayName {
-    padding: 0.1rem;
-    /* Padding mínimo */
-    font-size: 0.55rem;
-    /* Tamanho ultra compacto */
-    height: 14px;
-    /* Altura fixa bem pequena */
-    font-weight: 700;
-  }
-
-  .dayCell {
-    height: auto;
-    min-height: 42px;
-    /* Altura ultra compacta */
-    max-width: none;
-    min-width: auto;
-    padding: 0.15rem;
-    border: 1px solid var(--border-light);
-    border-right: none;
-    border-bottom: none;
-    aspect-ratio: 0.95;
-    /* Ligeiramente mais largo que alto */
-  }
-
-  .dayNumber {
-    font-size: 0.8rem;
-    font-weight: 600;
-    line-height: 1;
-  }
-
-  .operacaoIndicator {
-    width: 4px;
-    height: 4px;
-  }
-
-  .currentDateInfo {
-    margin-top: 0.5rem;
-    padding: 0.4rem;
-    font-size: 0.7rem;
-    min-height: 28px;
-  }
-
-  /* Navegação horizontal em mobile pequeno */
-  .calendarHeader {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .navButton:first-child {
-    order: 1;
-  }
-
-  .monthYear {
-    order: 2;
-    flex: 1;
-    text-align: center;
-    /* Remove qualquer fundo no breakpoint final */
-    background: none;
-    padding: 0;
-    border: none;
-  }
-
-  .navButton:last-child {
-    order: 3;
-  }
+.leftButtons {
+  gap: 0.3rem !important;
+  /* Gap menor do portrait */
 }
 
-/* Tema escuro para breakpoints responsivos - COR CLARA VISÍVEL COM !IMPORTANT */
-@media (min-width: 481px) and (max-width: 767px) {
-  [data-theme='dark'] .monthYear {
-    /* Cor clara específica para visibilidade */
-    color: #f8fafc !important;
-    /* !important para sobrescrever regra global */
-    background: none;
-    border: none;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  }
+.monthYear {
+  font-size: 1rem !important;
+  /* Tamanho menor do portrait */
+  font-weight: 600 !important;
+  flex: 1 !important;
+  text-align: center !important;
+  background: none !important;
+  padding: 0 !important;
+  border: none !important;
 }
 
-@media (min-width: 320px) and (max-width: 480px) {
-  [data-theme='dark'] .monthYear {
-    /* Cor clara específica para visibilidade */
-    color: #f8fafc !important;
-    /* !important para sobrescrever regra global */
-    background: none;
-    border: none;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  }
+.navButton {
+  padding: 0.4rem 0.7rem !important;
+  /* Padding menor do portrait */
+  font-size: 0.75rem !important;
+  /* Font menor do portrait */
+  min-height: 38px !important;
+  /* Altura menor do portrait */
+  flex-shrink: 0 !important;
 }
 
-@media (max-width: 320px) {
-  [data-theme='dark'] .monthYear {
-    /* Cor clara específica para visibilidade */
-    color: #f8fafc !important;
-    /* !important para sobrescrever regra global */
-    background: none;
-    border: none;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  }
+.todayButton {
+  padding: 0.4rem 0.7rem !important;
+  /* Padding menor do portrait */
+  font-size: 0.75rem !important;
+  /* Font menor do portrait */
+  min-height: 38px !important;
+  /* Altura menor do portrait */
+  flex-shrink: 0 !important;
 }
 
-/* Tema escuro removido - mantendo apenas tema claro */
-
-/* ===== RESPONSIVIDADE DOS BOTÕES RÁPIDOS - OTIMIZADO PARA CLIQUES ===== */
-
-/* Mobile Portrait (320px - 480px) */
-@media (max-width: 480px) {
-  .quickActionButton {
-    /* Ajustes específicos para mobile - valores mais conservadores */
-    font-size: clamp(0.5rem, 3.2vw, 0.62rem);
-    min-height: clamp(18px, 14%, 30px);
-    max-height: 30%;
-    /* Otimizações para toque */
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-  }
+/* ✅ CONTEÚDO DO CALENDÁRIO - SEMPRE ESTILO 469x303 PORTRAIT */
+.calendarContent {
+  padding: 0.3rem !important;
+  /* Padding menor do portrait */
+  height: auto !important;
 }
 
-/* Mobile Landscape & Tablet Portrait (481px - 768px) */
-@media (min-width: 481px) and (max-width: 768px) {
-  .quickActionButton {
-    /* Valores mais generosos para tablets */
-    font-size: clamp(0.55rem, 2.5vw, 0.65rem);
-    min-height: clamp(20px, 13%, 28px);
-    max-height: 28%;
-  }
+.calendarGridWrapper {
+  padding: 0.25rem !important;
+  /* Padding menor do portrait */
+  border-radius: 6px !important;
+  /* Border radius menor do portrait */
 }
 
-/* Tablet Landscape & Desktop (769px - 1024px) */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .quickActionButton {
-    /* Ajuste para tablets landscape */
-    font-size: clamp(0.58rem, 2.2vw, 0.68rem);
-    min-height: clamp(22px, 12%, 30px);
-    max-height: 26%;
-  }
+/* ✅ DIAS DA SEMANA - SEMPRE ESTILO 469x303 PORTRAIT */
+.dayName {
+  padding: 0.2rem !important;
+  font-size: 0.65rem !important;
+  /* Font menor do portrait */
+  height: 18px !important;
+  /* Altura menor do portrait */
+  font-weight: 600 !important;
 }
 
-/* Large Desktop (1025px - 1399px) */
-@media (min-width: 1025px) and (max-width: 1399px) {
-  .quickActionButton {
-    /* Desktop padrão - mais espaço disponível */
-    font-size: clamp(0.6rem, 1.8vw, 0.7rem);
-    min-height: clamp(22px, 11%, 28px);
-    max-height: 24%;
-  }
+/* ✅ NÚMERO DO DIA - SEMPRE ESTILO 469x303 PORTRAIT */
+.dayNumber {
+  font-size: 0.85rem !important;
+  /* Font menor do portrait */
+  font-weight: 600 !important;
+  line-height: 1.1 !important;
 }
 
-/* Extra Large Desktop (1400px+) - Já definido acima */
+/* ✅ SIDEBAR SEMPRE OCULTA (como no portrait) */
+.sidebarLeft {
+  display: none !important;
+}
 
-/* Hover effects otimizados para diferentes tamanhos de tela */
+/* ✅ OPERAÇÃO INDICADORES - SEMPRE ESTILO 469x303 PORTRAIT */
+.operacaoIndicator {
+  width: 5px !important;
+  height: 5px !important;
+}
+
+/* ✅ INFO DA DATA ATUAL - SEMPRE ESTILO 469x303 PORTRAIT */
+.currentDateInfo {
+  margin-top: 0.6rem !important;
+  padding: 0.5rem !important;
+  font-size: 0.75rem !important;
+  min-height: 30px !important;
+}
+
+/* ✅ REMOVIDO - LAYOUT UNIFICADO 469x303 PORTRAIT APLICADO GLOBALMENTE */
+
+/* ✅ TEMA ESCURO - SEMPRE ESTILO 469x303 PORTRAIT */
+[data-theme='dark'] .monthYear {
+  color: #f8fafc !important;
+  /* Cor clara específica para visibilidade */
+  background: none !important;
+  border: none !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ✅ BOTÕES RÁPIDOS - SEMPRE ESTILO 469x303 PORTRAIT COM OTIMIZAÇÕES TOUCH */
+.quickActionButton {
+  /* ✅ CONFIGURAÇÕES FIXAS DO 469x303 PORTRAIT */
+  font-size: clamp(0.5rem, 3.2vw, 0.62rem) !important;
+  /* Font menor do portrait */
+  min-height: clamp(18px, 14%, 30px) !important;
+  /* Altura mínima do portrait */
+  max-height: 30% !important;
+  /* Altura máxima maior do portrait */
+
+  /* ✅ OTIMIZAÇÕES ESPECÍFICAS DE TOUCH (469x303 PORTRAIT) */
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  -khtml-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+
+  /* ✅ COMPORTAMENTO TOUCH OTIMIZADO */
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+/* ✅ HOVER EFFECTS - OTIMIZADO PARA TOUCH (469x303 PORTRAIT) */
 @media (hover: hover) and (pointer: fine) {
   .quickActionButton:hover:not(:disabled) {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    transform: translateY(-2px) scale(1.02) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
   }
 }
 
-/* Para dispositivos apenas de toque (sem hover) */
+/* ✅ DISPOSITIVOS TOUCH - COMPORTAMENTO 469x303 PORTRAIT */
 @media (hover: none) and (pointer: coarse) {
   .quickActionButton:active:not(:disabled) {
-    transform: scale(0.98);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transform: scale(0.98) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
   }
-}
-
-/* ===== CONTROLE ESPECÍFICO PARA ZOOMS ALTOS ===== */
-/* Quando o zoom está alto, reduzir ainda mais os tamanhos para garantir visibilidade */
-@media (min-resolution: 144dpi),
-(min-resolution: 1.5dppx) {
-  .quickActionButton {
-    /* Em zooms altos, usar valores mais conservadores */
-    font-size: clamp(0.45rem, 2.2vw, 0.6rem);
-    min-height: clamp(16px, 10%, 26px);
-    max-height: 22%;
-    padding: clamp(0.15rem, 2%, 0.4rem) clamp(0.25rem, 3.5%, 0.6rem);
-  }
-}
-
-/* Para zooms muito altos (200%+) */
-@media (min-resolution: 192dpi),
-(min-resolution: 2dppx) {
-  .quickActionButton {
-    /* Em zooms muito altos, priorizar a visibilidade */
-    font-size: clamp(0.4rem, 2vw, 0.55rem);
-    min-height: clamp(14px, 9%, 22px);
-    max-height: 20%;
-    padding: clamp(0.1rem, 1.8%, 0.35rem) clamp(0.2rem, 3%, 0.5rem);
-    /* Forçar quebra de linha se necessário */
-    white-space: normal;
-    overflow-wrap: break-word;
-    hyphens: auto;
-  }
-}
-
-/* Fallback para garantir que o botão nunca seja maior que o container */
-.quickActionButton {
-  /* Forçar tamanho máximo baseado no container pai */
-  max-height: min(35%, 40px);
-  max-width: calc(100% - 2px);
 }
 
 .lightBLITZ .quickActionButton.quickQueue {
@@ -2242,7 +1718,8 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center; /* Centraliza verticalmente */
+  align-items: center; /* Centraliza horizontalmente */
   min-height: 0;
   overflow: hidden;
 }
@@ -2251,7 +1728,8 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center; /* Centraliza verticalmente */
+  align-items: center; /* Centraliza horizontalmente */
   min-height: 0;
 }
 
@@ -5413,82 +4891,26 @@ SOLUÇÃO PARA EVITAR COLISÃO DOS SPANS NO HEADER COMPACTO ===== */
   }
 }
 
-/* 7. SOLUÇÃO COM ÍCONES - USAR CAMINHÃO PARA BALANÇA */
-@media (max-width: 600px) {
+/* ✅ LAYOUT UNIFICADO APLICADO - PADRÃO DA RESOLUÇÃO MAIS BAIXA PARA TODAS AS RESOLUÇÕES */
 
-  /* BALANÇA → 🚛 (ícone do caminhão) */
-  .lightBALANCA .modalidadeName::after {
-    content: "🚛" !important;
-    font-size: 0.8rem !important;
-    display: inline-block !important;
-  }
-
-  .lightBALANCA .modalidadeName {
-    font-size: 0 !important;
-    /* Esconder texto "BALANÇA" */
-  }
-
-  /* BLITZ mantém o texto normal mas menor */
-  .lightBLITZ .modalidadeName {
-    font-size: 0.45rem !important;
-    letter-spacing: -0.01em !important;
-  }
+/* ✅ AJUSTES FINAIS PARA GARANTIR VISIBILIDADE EM TODAS AS RESOLUÇÕES */
+.compactHeader {
+  min-width: 0 !important;
+  width: auto !important;
+  flex: 0 0 auto !important;
 }
 
-@media (max-width: 480px) {
-
-  /* BALANÇA → 🚛 (ícone menor) */
-  .lightBALANCA .modalidadeName::after {
-    content: "🚛" !important;
-    font-size: 0.7rem !important;
-    display: inline-block !important;
-  }
-
-  /* BLITZ ainda menor */
-  .lightBLITZ .modalidadeName {
-    font-size: 0.4rem !important;
-    letter-spacing: -0.02em !important;
-  }
+/* Garantir que os spans nunca quebrem linha */
+.modalidadeName,
+.participantStats {
+  display: inline-block !important;
+  vertical-align: middle !important;
+  line-height: 1 !important;
 }
 
-@media (max-width: 375px) {
-
-  /* BALANÇA → 🚛 (ícone compacto) */
-  .lightBALANCA .modalidadeName::after {
-    content: "🚛" !important;
-    font-size: 0.6rem !important;
-    display: inline-block !important;
-  }
-
-  /* BLITZ compacto */
-  .lightBLITZ .modalidadeName {
-    font-size: 0.35rem !important;
-    letter-spacing: -0.02em !important;
-  }
-}
-
-/* 8. AJUSTES FINAIS PARA GARANTIR VISIBILIDADE */
-@media (max-width: 736px) {
-
-  /* Garantir que o header sempre caiba */
-  .compactHeader {
-    min-width: 0 !important;
-    width: auto !important;
-    flex: 0 0 auto !important;
-  }
-
-  /* Garantir que os spans nunca quebrem linha */
-  .modalidadeName,
-  .participantStats {
-    display: inline-block !important;
-    vertical-align: middle !important;
-    line-height: 1 !important;
-  }
-
-  /* Garantir espaçamento mínimo entre elementos */
-  .compactHeader>*+* {
-    margin-left: 0.05rem !important;
-  }
+/* Garantir espaçamento mínimo entre elementos */
+.compactHeader>*+* {
+  margin-left: 0.05rem !important;
 }
 
 /* ✅ SO
@@ -5648,24 +5070,29 @@ LUÇÃO CIRÚRGICA ESPECÍFICA PARA BALANÇA - NÃO AFETAR OUTROS ELEMENTOS */
   box-sizing: border-box !important;
 }
 
-/* ✅ CORREÇÃO DO Z-INDEX - HEADER NÃO DEVE SOBREPOR BOTÃO */
+/* ✅ PADRONIZAÇÃO COMPLETA - TODAS AS MODALIDADES IGUAIS À BALANÇA */
 
-/* Reduzir z-index do header compacto */
+/* Header compacto sempre acima do botão (padrão BALANÇA) */
 .compactHeader {
-  z-index: 1 !important;
+  z-index: 10 !important;
   position: relative !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 4px !important;
+  padding: 0.15rem 0.2rem !important;
+  margin-bottom: 0.3rem !important;
 }
 
-/* Garantir que o botão fique acima quando necessário */
+/* Botão sempre abaixo do header (padrão BALANÇA) */
 .quickActionButton {
-  z-index: 2 !important;
+  z-index: 5 !important;
   position: relative !important;
-  margin-top: 0.2rem !important;
+  margin-top: auto !important;
 }
 
-/* Estatísticas com z-index intermediário */
+/* Estatísticas sempre visíveis (padrão BALANÇA) */
 .statsRow {
-  z-index: 1 !important;
+  z-index: 10 !important;
   position: relative !important;
   margin-bottom: 0.1rem !important;
 }
@@ -5751,39 +5178,85 @@ LUÇÃO CIRÚRGICA ESPECÍFICA PARA BALANÇA - NÃO AFETAR OUTROS ELEMENTOS */
   box-sizing: border-box !important;
 }
 
-/* ✅
- CORREÇÃO PONTUAL - NÚMERO DO DIA NÃO DEVE FICAR NA FRENTE DO HEADER COMPACTO */
+/* ✅ CORREÇÃO DEFINITIVA - LAYOUT SIMPLES PARA CALENDÁRIO */
 
-/* Ajustar z-index do número do dia para ficar atrás do header compacto */
+/* Número do dia - POSIÇÃO RELATIVA (não absoluta) */
 .dayNumber {
-  z-index: 0 !important;
+  z-index: auto !important;
   position: relative !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  padding: 0.2rem 0.3rem !important;
+  border-radius: 4px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+  font-weight: 700 !important;
+  font-size: 0.9rem !important;
+  align-self: flex-start !important;
+  margin-bottom: 0.3rem !important;
+  width: auto !important;
+  flex-shrink: 0 !important;
 }
 
-/* Garantir que o header compacto fique sempre acima do número do dia */
+/* Header compacto LOGO APÓS o número - SEM MARGIN-TOP */
 .compactHeader {
-  z-index: 3 !important;
+  z-index: auto !important;
   position: relative !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 6px !important;
+  padding: 0.4rem 0.5rem !important;
+  margin-top: 0 !important;
+  margin-bottom: 0.4rem !important;
+  min-height: 32px !important;
+  flex-shrink: 0 !important;
 }
 
-/* Ajustar o container da operação para ter z-index intermediário */
+/* Container da operação com posicionamento correto */
 .singleOperationInfo {
-  z-index: 2 !important;
+  z-index: auto !important;
   position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  flex: 1 !important;
+  min-height: 0 !important;
 }
 
-/* Garantir que o botão fique no nível correto */
+/* Botão sempre na parte inferior */
 .quickActionButton {
-  z-index: 1 !important;
+  z-index: auto !important;
   position: relative !important;
+  margin-top: auto !important;
+  flex-shrink: 0 !important;
+  min-height: 36px !important;
+  padding: 0.5rem 0.7rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  border-radius: 6px !important;
 }
 
-/* ✅ AJUSTE ESPECÍFICO PARA CÉLULAS COM OPERAÇÕES */
+/* Container da operação com posicionamento correto (padrão BALANÇA) */
+.singleOperationInfo {
+  z-index: 8 !important;
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  height: 100% !important;
+}
 
-/* Quando a célula tem operações, ajustar o layout para evitar sobreposição */
+/* Botão sempre abaixo do header (padrão BALANÇA) */
+.quickActionButton {
+  z-index: 5 !important;
+  position: relative !important;
+  margin-top: auto !important;
+}
+
+/* ✅ PADRONIZAÇÃO COMPLETA - TODAS AS MODALIDADES IGUAIS À BALANÇA */
+
+/* Quando a célula tem operações, manter hierarquia correta (padrão BALANÇA) */
 .dayCell.hasOperacoes .dayNumber {
-  /* Reduzir ainda mais o z-index quando há operações */
-  z-index: -1 !important;
+  /* Número sempre visível no canto (padrão BALANÇA) */
+  z-index: 15 !important;
 
   /* Garantir que não interfira no layout */
   margin-bottom: 0.1rem !important;
@@ -6387,10 +5860,13 @@ Hierarquia de z-index (do mais baixo para o mais alto):
     margin-top: 0.25rem !important;
     transform: translateY(3px) !important;
   }
-}/*
+}
+
+/*
  ✅ CORREÇÃO ESPECÍFICA - BALANÇA SOBREPONDO NÚMERO DO DIA EM 376x520+ */
 
 @media (min-width: 376px) and (min-height: 520px) {
+
   /* Garantir que o número do dia fique SEMPRE na frente da BALANÇA */
   .lightBALANCA .dayNumber {
     z-index: 10 !important;
@@ -6402,20 +5878,20 @@ Hierarquia de z-index (do mais baixo para o mais alto):
     font-weight: 700 !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
   }
-  
+
   /* Ajustar o compactHeader da BALANÇA para ficar atrás */
   .lightBALANCA .compactHeader {
     z-index: 2 !important;
     position: relative !important;
     margin-top: 0.2rem !important;
   }
-  
+
   /* Ajustar especificamente a modalidadeRow da BALANÇA */
   .lightBALANCA .modalidadeRow {
     z-index: 2 !important;
     position: relative !important;
   }
-  
+
   /* Garantir que o nome BALANÇA fique atrás do número */
   .lightBALANCA .modalidadeName[data-modalidade="BALANCA"] {
     z-index: 2 !important;
@@ -6436,7 +5912,9 @@ Hierarquia de z-index (do mais baixo para o mais alto):
     z-index: 20 !important;
     margin-bottom: 0.4rem !important;
   }
-}/* ✅ CO
+}
+
+/* ✅ CO
 RREÇÃO UNIVERSAL - DAYNUMBER NO CANTO PARA TODO O CALENDÁRIO */
 
 /* SOBRESCREVER todas as regras anteriores do dayNumber */
@@ -6445,32 +5923,32 @@ RREÇÃO UNIVERSAL - DAYNUMBER NO CANTO PARA TODO O CALENDÁRIO */
   position: absolute !important;
   top: 1px !important;
   left: 1px !important;
-  
+
   /* Z-index SUPREMO - nunca fica atrás de NADA */
   z-index: 999 !important;
-  
+
   /* Tamanho proporcional e responsivo */
   font-size: clamp(0.6rem, 1.5vw, 0.85rem) !important;
   font-weight: 800 !important;
   line-height: 1 !important;
-  
+
   /* Visual consistente e elegante */
   background: rgba(255, 255, 255, 0.95) !important;
   color: #1f2937 !important;
   border-radius: 3px !important;
   padding: 2px 4px !important;
-  
+
   /* Sombra para destacar */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15) !important;
   border: 1px solid rgba(0, 0, 0, 0.1) !important;
-  
+
   /* Dimensões controladas */
   margin: 0 !important;
   width: auto !important;
   height: auto !important;
   min-width: 16px !important;
   text-align: center !important;
-  
+
   /* Transição suave */
   transition: all 0.2s ease !important;
 }
@@ -6546,10 +6024,12 @@ RREÇÃO UNIVERSAL - DAYNUMBER NO CANTO PARA TODO O CALENDÁRIO */
   color: #9ca3af !important;
   border-color: rgba(156, 163, 175, 0.3) !important;
 }
+
 /* ✅ C
 ORREÇÃO CIRÚRGICA PONTUAL - EXCLUSIVAMENTE PARA RESOLUÇÕES ≥ 650x600 */
 /* PROBLEMA: Calendario_compactHeader__jEVkG sobrepõe Calendario_dayNumber__vfCwm em telas wide */
 @media (min-width: 650px) and (min-height: 600px) {
+
   /* SOLUÇÃO: Forçar dayNumber sempre no topo com z-index máximo */
   .dayNumber {
     z-index: 9999 !important;
@@ -6557,7 +6037,7 @@ ORREÇÃO CIRÚRGICA PONTUAL - EXCLUSIVAMENTE PARA RESOLUÇÕES ≥ 650x600 */
     background: rgba(255, 255, 255, 0.95) !important;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
   }
-  
+
   /* SOLUÇÃO: Empurrar compactHeader para baixo criando espaço físico */
   .compactHeader {
     margin-top: 1.3rem !important;
@@ -6573,22 +6053,25 @@ ORREÇÃO CIRÚRGICA PONTUAL - EXCLUSIVAMENTE PARA RESOLUÇÕES ≥ 650x600 */
     background: rgba(255, 255, 255, 0.95) !important;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
   }
-  
+
   .compactHeader {
     margin-top: 1.5rem !important;
     z-index: 1 !important;
   }
-}/* ✅ CO
+}
+
+/* ✅ CO
 RREÇÃO CIRÚRGICA DEFINITIVA - EXCLUSIVAMENTE PARA RESOLUÇÕES ≥ 650x600 */
 /* PROBLEMA: Calendario_compactHeader__jEVkG sobrepõe Calendario_dayNumber__vfCwm em telas wide */
 
 @media (min-width: 650px) and (min-height: 600px) {
+
   /* SOLUÇÃO 1: Criar novo stacking context para dayCell */
   .dayCell {
     position: relative !important;
     z-index: 1 !important;
   }
-  
+
   /* SOLUÇÃO 2: Posicionamento absoluto para dayNumber - sempre no topo */
   .dayNumber {
     position: absolute !important;
@@ -6602,7 +6085,7 @@ RREÇÃO CIRÚRGICA DEFINITIVA - EXCLUSIVAMENTE PARA RESOLUÇÕES ≥ 650x600 */
     font-weight: 800 !important;
     color: #1f2937 !important;
   }
-  
+
   /* SOLUÇÃO 3: Empurrar compactHeader para baixo criando espaço físico */
   .compactHeader {
     position: relative !important;
@@ -6617,7 +6100,7 @@ RREÇÃO CIRÚRGICA DEFINITIVA - EXCLUSIVAMENTE PARA RESOLUÇÕES ≥ 650x600 */
     position: relative !important;
     z-index: 1 !important;
   }
-  
+
   .dayNumber {
     position: absolute !important;
     top: 2px !important;
@@ -6630,7 +6113,7 @@ RREÇÃO CIRÚRGICA DEFINITIVA - EXCLUSIVAMENTE PARA RESOLUÇÕES ≥ 650x600 */
     font-weight: 800 !important;
     color: #1f2937 !important;
   }
-  
+
   .compactHeader {
     position: relative !important;
     margin-top: 2rem !important;
@@ -6646,8 +6129,427 @@ RREÇÃO CIRÚRGICA DEFINITIVA - EXCLUSIVAMENTE PARA RESOLUÇÕES ≥ 650x600 */
     top: 3px !important;
     left: 3px !important;
   }
-  
+
   .compactHeader {
     margin-top: 2.2rem !important;
+  }
+}
+
+/* ✅ 
+MELHORIAS DE RESPONSIVIDADE PARA DESKTOP - EXCLUSIVAMENTE ≥768px */
+/* BASEADO EM: Context7 Tailwind CSS responsive design best practices */
+
+@media (min-width: 768px) and (min-height: 520px) {
+
+  /* 🎯 MELHORIA 1: Proporções balanceadas para células do grid */
+  .dayCell {
+    min-height: 85px !important;
+    padding: 0.4rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    gap: 0.3rem !important;
+  }
+
+  /* 🎯 MELHORIA 2: Números dos dias mais proeminentes */
+  .dayNumber {
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    padding: 0.15rem 0.3rem !important;
+    margin-bottom: 0.25rem !important;
+    line-height: 1.1 !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* 🎯 MELHORIA 3: Headers compactos mais proporcionais */
+  .compactHeader {
+    padding: 0.25rem 0.3rem !important;
+    margin-bottom: 0.4rem !important;
+    min-height: 28px !important;
+    border-radius: 4px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .modalidadeName {
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.02em !important;
+  }
+
+  .participantStats {
+    font-size: 0.6rem !important;
+    font-weight: 600 !important;
+  }
+
+  /* 🎯 MELHORIA 4: Botões com proporções adequadas */
+  .quickActionButton {
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 36px !important;
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    padding: 0.4rem 0.6rem !important;
+    border-radius: 4px !important;
+    margin-top: auto !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* 🎯 MELHORIA 5: Grid com altura otimizada */
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(85px, 1fr)) !important;
+    gap: 3px !important;
+  }
+
+  /* 🎯 MELHORIA 6: Headers dos dias da semana */
+  .dayName {
+    height: 20px !important;
+    font-size: 0.65rem !important;
+    padding: 0.15rem !important;
+    font-weight: 600 !important;
+  }
+}
+
+/* ✅ MELHORIAS ESPECÍFICAS PARA TABLETS GRANDES (≥1024px) */
+@media (min-width: 1024px) and (min-height: 600px) {
+  .dayCell {
+    min-height: 95px !important;
+    padding: 0.5rem !important;
+    gap: 0.35rem !important;
+  }
+
+  .dayNumber {
+    font-size: 1.2rem !important;
+    padding: 0.2rem 0.35rem !important;
+    margin-bottom: 0.3rem !important;
+  }
+
+  .compactHeader {
+    padding: 0.3rem 0.35rem !important;
+    margin-bottom: 0.45rem !important;
+    min-height: 32px !important;
+  }
+
+  .modalidadeName {
+    font-size: 0.75rem !important;
+  }
+
+  .participantStats {
+    font-size: 0.65rem !important;
+  }
+
+  .quickActionButton {
+    height: 36px !important;
+    min-height: 36px !important;
+    max-height: 40px !important;
+    font-size: 0.75rem !important;
+    padding: 0.5rem 0.7rem !important;
+  }
+
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(95px, 1fr)) !important;
+    gap: 4px !important;
+  }
+
+  .dayName {
+    height: 22px !important;
+    font-size: 0.7rem !important;
+  }
+}
+
+/* ✅ MELHORIAS PARA DESKTOPS GRANDES (≥1280px) */
+@media (min-width: 1280px) and (min-height: 720px) {
+  .dayCell {
+    min-height: 105px !important;
+    padding: 0.6rem !important;
+    gap: 0.4rem !important;
+  }
+
+  .dayNumber {
+    font-size: 1.3rem !important;
+    padding: 0.25rem 0.4rem !important;
+    margin-bottom: 0.35rem !important;
+  }
+
+  .compactHeader {
+    padding: 0.35rem 0.4rem !important;
+    margin-bottom: 0.5rem !important;
+    min-height: 36px !important;
+  }
+
+  .modalidadeName {
+    font-size: 0.8rem !important;
+  }
+
+  .participantStats {
+    font-size: 0.7rem !important;
+  }
+
+  .quickActionButton {
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 44px !important;
+    font-size: 0.8rem !important;
+    padding: 0.6rem 0.8rem !important;
+  }
+
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(105px, 1fr)) !important;
+    gap: 5px !important;
+  }
+
+  .dayName {
+    height: 24px !important;
+    font-size: 0.75rem !important;
+  }
+}
+
+/* ✅ MELHORIAS PARA TELAS ULTRA-WIDE (≥1536px) */
+@media (min-width: 1536px) and (min-height: 800px) {
+  .dayCell {
+    min-height: 120px !important;
+    padding: 0.7rem !important;
+    gap: 0.45rem !important;
+  }
+
+  .dayNumber {
+    font-size: 1.4rem !important;
+    padding: 0.3rem 0.45rem !important;
+    margin-bottom: 0.4rem !important;
+  }
+
+  .compactHeader {
+    padding: 0.4rem 0.45rem !important;
+    margin-bottom: 0.55rem !important;
+    min-height: 40px !important;
+  }
+
+  .modalidadeName {
+    font-size: 0.85rem !important;
+  }
+
+  .participantStats {
+    font-size: 0.75rem !important;
+  }
+
+  .quickActionButton {
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 48px !important;
+    font-size: 0.85rem !important;
+    padding: 0.7rem 0.9rem !important;
+  }
+
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(120px, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  .dayName {
+    height: 26px !important;
+    font-size: 0.8rem !important;
+  }
+}
+
+/* ✅ CORREÇ
+ÃO ESPECÍFICA PARA DESKTOP - dayNumber sempre visível */
+/* PROBLEMA: Calendario_dayNumber__vfCwm fica atrás do Calendario_modalidadeName__QAoZr */
+
+@media (min-width: 768px) and (min-height: 520px) {
+
+  /* 🎯 SOLUÇÃO PRINCIPAL: dayNumber sempre no topo absoluto */
+  .dayNumber {
+    position: absolute !important;
+    top: 4px !important;
+    left: 4px !important;
+    z-index: 1000 !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    padding: 0.15rem 0.25rem !important;
+    border-radius: 3px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+    font-size: 0.9rem !important;
+    font-weight: 800 !important;
+    color: #1f2937 !important;
+    line-height: 1 !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* 🎯 AJUSTE: compactHeader empurrado para baixo */
+  .compactHeader {
+    margin-top: 1.8rem !important;
+    position: relative !important;
+    z-index: 2 !important;
+  }
+
+  /* 🎯 AJUSTE: dayCell com posicionamento relativo */
+  .dayCell {
+    position: relative !important;
+    min-height: 75px !important;
+  }
+
+  /* 🎯 AJUSTE: Grid com altura mínima adequada */
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(75px, 1fr)) !important;
+  }
+}
+
+/* ✅ AJUSTES PARA TELAS MAIORES */
+@media (min-width: 1024px) and (min-height: 600px) {
+  .dayNumber {
+    font-size: 1rem !important;
+    padding: 0.2rem 0.3rem !important;
+    top: 5px !important;
+    left: 5px !important;
+  }
+
+  .compactHeader {
+    margin-top: 2rem !important;
+  }
+
+  .dayCell {
+    min-height: 85px !important;
+  }
+
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(85px, 1fr)) !important;
+  }
+}
+
+@media (min-width: 1280px) and (min-height: 720px) {
+  .dayNumber {
+    font-size: 1.1rem !important;
+    padding: 0.25rem 0.35rem !important;
+    top: 6px !important;
+    left: 6px !important;
+  }
+
+  .compactHeader {
+    margin-top: 2.2rem !important;
+  }
+
+  .dayCell {
+    min-height: 95px !important;
+  }
+
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(95px, 1fr)) !important;
+  }
+}
+
+/* ✅ 
+SOLUÇÃO ELEGANTE PARA DESKTOP (≥768px) - UNIR dayNumber + compactHeader */
+/* SUGESTÃO DO USUÁRIO: Criar layout onde elementos se respeitam mutuamente */
+
+@media (min-width: 768px) and (min-height: 520px) {
+
+  /* 🎯 CONTAINER: dayCell como flexbox para organizar elementos */
+  .dayCell {
+    position: relative !important;
+    min-height: 75px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 0.25rem !important;
+  }
+
+  /* 🎯 HEADER UNIFICADO: dayNumber + compactHeader lado a lado */
+  .dayCell::before {
+    content: '' !important;
+    display: block !important;
+    height: 1.5rem !important;
+    /* Espaço reservado para header unificado */
+    width: 100% !important;
+    position: relative !important;
+  }
+
+  /* 🎯 dayNumber: Canto superior esquerdo - posição fixa */
+  .dayNumber {
+    position: absolute !important;
+    top: 3px !important;
+    left: 3px !important;
+    z-index: 15 !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    padding: 0.1rem 0.2rem !important;
+    border-radius: 3px !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15) !important;
+    font-size: 0.85rem !important;
+    font-weight: 800 !important;
+    color: #1f2937 !important;
+    line-height: 1 !important;
+    /* Compacto para não interferir */
+    width: auto !important;
+    max-width: 2rem !important;
+    text-align: center !important;
+  }
+
+  /* 🎯 compactHeader: Lado direito - respeitando espaço do dayNumber */
+  .compactHeader {
+    position: absolute !important;
+    top: 3px !important;
+    right: 3px !important;
+    left: 2.8rem !important;
+    /* Espaço reservado para dayNumber */
+    z-index: 10 !important;
+    margin: 0 !important;
+    /* Flexível para ocupar espaço restante */
+    max-width: calc(100% - 3rem) !important;
+    min-width: 0 !important;
+    /* Permite compressão */
+  }
+
+  /* 🎯 AJUSTE: Conteúdo restante abaixo do header unificado */
+  .operacaoInfo,
+  .singleOperationInfo {
+    margin-top: 1.8rem !important;
+    position: relative !important;
+    z-index: 5 !important;
+  }
+
+  /* 🎯 GRID: Altura adequada para layout unificado */
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(75px, 1fr)) !important;
+  }
+}
+
+/* ✅ AJUSTES PROGRESSIVOS PARA TELAS MAIORES */
+@media (min-width: 1024px) and (min-height: 600px) {
+  .dayCell {
+    min-height: 85px !important;
+    padding: 0.3rem !important;
+  }
+
+  .dayNumber {
+    font-size: 0.9rem !important;
+    padding: 0.15rem 0.25rem !important;
+    max-width: 2.2rem !important;
+  }
+
+  .compactHeader {
+    left: 3rem !important;
+    max-width: calc(100% - 3.3rem) !important;
+  }
+
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(85px, 1fr)) !important;
+  }
+}
+
+@media (min-width: 1280px) and (min-height: 720px) {
+  .dayCell {
+    min-height: 95px !important;
+    padding: 0.35rem !important;
+  }
+
+  .dayNumber {
+    font-size: 1rem !important;
+    padding: 0.2rem 0.3rem !important;
+    max-width: 2.5rem !important;
+  }
+
+  .compactHeader {
+    left: 3.2rem !important;
+    max-width: calc(100% - 3.5rem) !important;
+  }
+
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(95px, 1fr)) !important;
   }
 }

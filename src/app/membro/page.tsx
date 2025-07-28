@@ -4,19 +4,19 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { CalendarioMembro } from '@/components/calendario/CalendarioMembro';
 import { ElegantPageLoader } from '@/shared/components/ui/LoadingSpinner';
+import { UserBar } from '@/shared/components/business';
 
 export default function MembroPage() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
 
-  // ✅ CONTROLE DE LOADING INICIAL E AUTENTICAÇÃO
+  // ✅ VERIFICAÇÃO DE AUTENTICAÇÃO IMEDIATA (SEM DELAY)
   useEffect(() => {
     const checkAuth = () => {
       const membroAuth = localStorage.getItem('membroAuth');
       
       if (!membroAuth) {
-        // Redirecionar para página de autenticação
         router.push('/membro/auth');
         return;
       }
@@ -24,9 +24,9 @@ export default function MembroPage() {
       try {
         const userData = JSON.parse(membroAuth);
         // ✅ CORREÇÃO: Permitir acesso tanto para Membros quanto para Supervisores
-        // Um supervisor também pode acessar o portal do membro
         if ((userData.perfil === 'Membro' || userData.perfil === 'Supervisor') && userData.regionalId) {
           setIsAuthenticated(true);
+          setInitialLoading(false);
         } else {
           router.push('/membro/auth');
           return;
@@ -36,12 +36,10 @@ export default function MembroPage() {
         router.push('/membro/auth');
         return;
       }
-
-      setInitialLoading(false);
     };
 
-    const timer = setTimeout(checkAuth, 1000); // 1 segundo para verificação
-    return () => clearTimeout(timer);
+    // ✅ EXECUÇÃO IMEDIATA - Remove o setTimeout que causava o problema
+    checkAuth();
   }, [router]);
 
   // ✅ LOADING INICIAL ELEGANTE
@@ -51,7 +49,8 @@ export default function MembroPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <UserBar />
       <CalendarioMembro />
     </div>
   );
-} 
+}

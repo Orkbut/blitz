@@ -1,0 +1,6893 @@
+/* Layout Principal */
+.mainLayout {
+  display: flex;
+  flex-direction: column;
+  /* Mudança: coluna para acomodar header */
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+
+/* Header Discreto do Usuário */
+.userHeader {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-light);
+  padding: 0.5rem 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.userHeaderContent {
+  max-width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.userAvatar {
+  width: 32px;
+  height: 32px;
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.userDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.userName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.userMatricula {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.2;
+}
+
+.logoutButton {
+  padding: 0.375rem 0.75rem;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.logoutButton:hover {
+  background: var(--danger);
+  color: white;
+  border-color: var(--danger);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Container Principal - Ajustado para layout com header */
+.mainContent {
+  display: flex;
+  flex-direction: row-reverse;
+  /* sidebar direita, calendário esquerda */
+  flex: 1;
+  min-height: 0;
+  /* Permite compressão */
+}
+
+/* Sidebar Direita - ESTILIZADA IGUAL AO CALENDÁRIO */
+.sidebarLeft {
+  width: 200px;
+  /* Reduzido de 250px para 200px */
+  background: var(--bg-secondary);
+  padding: 0.75rem;
+  /* Reduzido padding */
+  overflow-y: auto;
+  border-left: 1px solid var(--border-color);
+  /* Borda esquerda em vez de direita */
+  order: 1;
+  /* Garante que fique do lado direito */
+  flex-shrink: 0;
+  /* Não encolhe */
+}
+
+.sidebarPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.5rem 0.75rem;
+  /* Reduzido padding */
+  background: var(--bg-card);
+  border-radius: 12px;
+  /* Mesmo arredondamento do calendário */
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
+  /* Mesma sombra do calendário */
+}
+
+.sidebarPlaceholder .icon {
+  font-size: 2.5rem;
+  /* Reduzido */
+  margin-bottom: 0.75rem;
+  /* Reduzido */
+}
+
+.sidebarPlaceholder h3 {
+  font-size: 1rem;
+  /* Reduzido */
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.sidebarPlaceholder p {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  /* Reduzido */
+  font-size: 0.875rem;
+  /* Reduzido */
+}
+
+.sidebarPlaceholder ul {
+  list-style: none;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+}
+
+.sidebarPlaceholder li {
+  padding: 0.25rem 0;
+  /* Reduzido */
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  /* Reduzido */
+}
+
+/* Toggle de Tema na Sidebar */
+.sidebarThemeToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.sidebarThemeToggle:hover {
+  background: var(--bg-hover);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sidebarThemeIcon {
+  font-size: 1.1rem;
+}
+
+/* Área Principal - OTIMIZADA PARA LADO ESQUERDO */
+.calendarArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem;
+  /* Margem charmosa e leve */
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100vh;
+  /* Força altura da viewport */
+  box-sizing: border-box;
+  order: 2;
+  /* Garante que fique do lado esquerdo */
+}
+
+.calendarContainer {
+  width: 100%;
+  max-width: 100%;
+  /* Largura total do container pai */
+  margin: 0;
+  /* ZERO margem */
+  background: var(--bg-card);
+  border-radius: 12px;
+  /* Bordas suavemente arredondadas - charmoso */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
+  /* Sombra sutil e elegante */
+  overflow: hidden;
+  flex-shrink: 0;
+  min-height: 0;
+  /* Permite compressão vertical */
+  max-height: calc(100vh - 1.5rem);
+  /* Ajusta para o padding da área */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  /* Borda sutil para definição */
+}
+
+/* Barra de Controles REMOVIDA para ganhar espaço - toggle movido para sidebar */
+
+/* Header do Calendário - LAYOUT FLEXÍVEL PARA BOTÃO HOJE */
+.calendarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--bg-primary);
+  border-radius: 8px 8px 0 0;
+  border-bottom: 1px solid var(--border-color);
+  min-height: 60px;
+  /* Layout: [Anterior + Hoje] | Nome | Próximo */
+}
+
+.leftButtons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Nome do Mês - LAYOUT FIXO PARA EVITAR PULINHO */
+.monthYear {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-transform: capitalize;
+  margin: 0;
+  text-align: center;
+  flex: 1;
+  /* Estabilidade visual para evitar layout shift */
+  min-width: 180px;
+  /* Largura mínima para meses longos */
+  max-width: 200px;
+  /* Largura máxima controlada */
+  /* Fonte moderna e elegante */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", sans-serif;
+  letter-spacing: 0.02em;
+  /* Remove completamente qualquer fundo ou borda */
+  background: none;
+  padding: 0;
+  border: none;
+  /* Sombra sutil apenas para melhor legibilidade */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  /* Previne quebra de linha */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Tema escuro - cor clara para visibilidade com !important para sobrescrever globals.css */
+[data-theme='dark'] .monthYear {
+  color: #f8fafc !important;
+  /* !important para sobrescrever regra global */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  /* Sombra mais forte para contraste */
+}
+
+.navButton {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.5rem 0.8rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+  min-height: 42px;
+  flex-shrink: 0;
+}
+
+.navButton:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Botão Hoje - ESTILO ESPECIAL */
+.todayButton {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.5rem 0.8rem;
+  background: var(--success);
+  /* Verde para destaque */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+  min-height: 42px;
+  white-space: nowrap;
+  /* Evita quebra de linha */
+  flex-shrink: 0;
+}
+
+.todayButton:hover {
+  background: #059669;
+  /* Verde mais escuro */
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.todayButton:focus {
+  outline: 2px solid var(--success);
+  outline-offset: 2px;
+}
+
+/* Conteúdo do Calendário - ELEGANTE E CHARMOSO */
+.calendarContent {
+  padding: 0.5rem;
+  /* Padding leve e charmoso */
+  height: calc(100vh - 100px);
+  /* Altura otimizada sem barra de controles */
+  overflow: hidden;
+  /* Evita scroll vertical */
+}
+
+.calendarGridWrapper {
+  position: relative;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  /* Bordas suaves e charmosas */
+  padding: 0.15rem;
+  /* Padding reduzido para menos gap */
+  overflow: hidden;
+  height: 100%;
+  /* Usa toda altura disponível */
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  /* Borda quase imperceptível */
+}
+
+/* Efeito de luminescência removido conforme solicitado */
+
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  /* Grid robusto: cabeçalho fixo + 6 semanas com altura mínima e máxima */
+  grid-template-rows: auto repeat(6, minmax(60px, 1fr));
+  /* Altura original restaurada */
+  gap: 2px;
+  /* Gap ajustado para criar efeito losango com chanfros */
+  justify-content: stretch;
+  /* Estica para usar todo espaço */
+  max-width: 100%;
+  /* USA toda largura disponível */
+  margin: 0;
+  /* ZERO margem */
+  flex: 1;
+  /* Ocupa todo espaço disponível */
+  height: 100%;
+  /* Usa toda altura disponível */
+  width: 100%;
+  /* Força largura total */
+  border-radius: 6px;
+  /* Bordas internas suaves */
+  overflow: hidden;
+  /* Mantém bordas arredondadas nas células */
+}
+
+/* Dias da Semana - ULTRA COMPACTOS PARA OTIMIZAR ESPAÇO */
+.dayName {
+  text-align: center;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 0.1rem;
+  /* Padding mínimo para máxima compactação */
+  font-size: 0.6rem;
+  /* Tamanho ainda menor */
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  /* Maior espaçamento para elegância */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 16px;
+  /* Altura fixa bem pequena - 4px a menos */
+  background: var(--bg-primary);
+  /* Chamfered Corners ainda menores para headers */
+  clip-path: polygon(3px 0%, 100% 0%, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0% 100%, 0% 3px);
+  border: 1px solid var(--border-light);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  /* Sombra mais sutil */
+  transform: translateY(-0.5px);
+  /* Elevação mais sutil */
+}
+
+/* Células de Dias - ELEGANTES E CHARMOSAS COM CHAMFERED CORNERS */
+.dayCell {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  /* Borda sutil para definir os chanfros */
+  /* Chamfered Corners: cantos cortados suavemente criando efeito losango */
+  clip-path: polygon(10px 0%, 100% 0%, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0% 100%, 0% 10px);
+  padding: clamp(0.15rem, 1.5%, 0.4rem);
+  /* Padding responsivo */
+  cursor: pointer;
+  transition: all 0.3s ease;
+  /* Transição mais suave */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* Altura controlada pelo grid-template-rows */
+  min-height: 50px;
+  /* Altura confortável */
+  max-width: none;
+  /* Remove limitação de largura */
+  min-width: auto;
+  /* Largura automática */
+  width: 100%;
+  /* Força largura total */
+  box-sizing: border-box;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  /* Sombra sutil para profundidade */
+  /* Garantir distribuição adequada do espaço interno */
+  justify-content: flex-start;
+  gap: clamp(0.05rem, 0.8%, 0.15rem);
+}
+
+.dayCell:hover {
+  background: var(--bg-hover);
+  border-color: var(--primary);
+  transform: translateY(-1px) scale(1.01);
+  /* Levitação sutil sem exagero */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  /* Sombra mais pronunciada e elegante */
+  z-index: 1;
+}
+
+.dayCell:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.dayNumber {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  margin-bottom: 0.125rem;
+  line-height: 1;
+}
+
+.otherMonth .dayNumber {
+  color: var(--text-disabled);
+  opacity: 0.5;
+}
+
+.currentDay {
+  background: var(--primary-light);
+  border-color: var(--primary);
+}
+
+.currentDay .dayNumber {
+  color: var(--primary);
+}
+
+.selected {
+  background: var(--primary);
+  border-color: var(--primary-dark);
+}
+
+.selected .dayNumber {
+  color: white;
+}
+
+.selected:hover {
+  background: var(--primary-dark);
+}
+
+/* ✅ NOVAS CLASSES - CORES LEVES E INTUITIVAS */
+
+/* Operação única com botão rápido */
+.singleOperationCell {
+  border-width: 2px;
+}
+
+/* Cores leves para tipos de operação */
+.lightBLITZ {
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%);
+  border-color: #fca5a5;
+}
+
+.lightBALANCA {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-color: #86efac;
+}
+
+.lightMultiple {
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+  border-color: #c4b5fd;
+}
+
+/* Informações da operação única */
+.singleOperationInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  margin-top: 0.2rem;
+  flex: 1;
+  overflow: hidden;
+  /* Garantir que o conteúdo se adapte ao container */
+  min-height: 0;
+  max-width: 100%;
+}
+
+/* ✅ NOVO: Header compacto para BLITZ/BALANÇA sempre visível no topo */
+.compactHeader {
+  /* Layout VERTICAL - nome em cima, stats embaixo */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.1rem;
+
+  /* Dimensões responsivas */
+  width: 100%;
+  min-height: clamp(20px, 5vw, 32px);
+
+  /* Espaçamento mínimo */
+  padding: clamp(0.1rem, 1.2vw, 0.2rem) clamp(0.15rem, 2vw, 0.25rem);
+  margin-bottom: clamp(0.15rem, 1.8vw, 0.3rem);
+
+  /* Visual */
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: clamp(3px, 1.2vw, 5px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+
+  /* Comportamento */
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+  overflow: visible;
+  box-sizing: border-box;
+}
+
+/* ✅ LINHA DA MODALIDADE - prioridade máxima para o nome */
+.modalidadeRow {
+  display: block;
+  /* Muda para block para forçar o span a ocupar toda largura */
+  width: 100%;
+  flex-shrink: 0;
+  min-height: 0;
+  /* Remove flex para que o span interno ocupe 100% */
+}
+
+/* ✅ LINHA DAS ESTATÍSTICAS - compacta */
+.statsRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  flex-shrink: 0;
+  min-height: 0;
+  margin-top: 0.05rem;
+  /* CORREÇÃO: Garantir que fique acima do botão */
+  position: relative;
+  z-index: 3;
+}
+
+/* Nome da modalidade (BLITZ/BALANÇA) - SOLUÇÃO DEFINITIVA ANTI-CORTE */
+.modalidadeName {
+  /* Font-size responsivo mas generoso */
+  font-size: clamp(0.5rem, 2.5vw, 0.75rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: clamp(0.01em, 0.3vw, 0.05em);
+  color: #1f2937;
+
+  /* FORÇA O SPAN A OCUPAR TODA A LARGURA DA DIV PAI */
+  display: block;
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+
+  /* Box model otimizado */
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+
+  /* NUNCA cortar o texto - sempre mostrar completo */
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+
+  /* Layout otimizado para ocupar toda a linha */
+  text-align: left;
+
+  /* Sem transformações que podem causar cortes */
+  transform: none;
+}
+
+/* Estatísticas de participantes - ULTRA COMPACTAS PARA DAR ESPAÇO AO NOME */
+.participantStats {
+  /* Font-size bem pequeno para economizar espaço */
+  font-size: clamp(0.4rem, 1.8vw, 0.5rem);
+  font-weight: 700;
+  color: #374151;
+
+  /* Layout flexível ultra compacto */
+  display: flex;
+  align-items: center;
+  gap: 0.05rem;
+
+  /* LARGURA MÍNIMA REDUZIDA - prioridade para o nome */
+  flex: 0 0 auto;
+  min-width: 1.2rem;
+  /* Reduzido de 1.8rem para 1.2rem */
+  width: max-content;
+
+  /* Texto sempre visível */
+  white-space: nowrap;
+  overflow: visible;
+
+  /* Alinhamento otimizado */
+  justify-content: flex-end;
+  text-align: right;
+
+  /* Sem transformações para evitar problemas */
+  transform: none;
+}
+
+/* Indicador de fila */
+.queueIndicator {
+  color: #f59e0b;
+  font-weight: 600;
+  font-size: 0.9em;
+}
+
+/* ✅ LAYOUT FIXO PARA TODAS AS RESOLUÇÕES - BASEADO NA RESOLUÇÃO MAIS BAIXA */
+
+/* Header compacto com proporções fixas */
+.compactHeader {
+  padding: 0.1rem 0.15rem !important;
+  min-height: 16px !important;
+  margin-bottom: 0.15rem !important;
+  border-radius: 3px !important;
+  gap: 0.2rem !important;
+}
+
+/* Modalidade com tamanho fixo */
+.modalidadeName {
+  font-size: 0.55rem !important;
+  letter-spacing: 0.01em !important;
+  max-width: none !important;
+}
+
+/* Stats com tamanho fixo */
+.participantStats {
+  font-size: 0.45rem !important;
+  min-width: 1.5rem !important;
+}
+
+/* Indicador de fila com tamanho fixo */
+.queueIndicator {
+  font-size: 0.85em !important;
+}
+
+/* ✅ CORES ESPECÍFICAS PARA MODALIDADES NO HEADER COMPACTO */
+.lightBLITZ .compactHeader {
+  background: rgba(254, 242, 242, 0.98);
+  border-color: rgba(248, 113, 113, 0.3);
+}
+
+.lightBLITZ .modalidadeName {
+  color: #dc2626;
+}
+
+.lightBALANCA .compactHeader {
+  background: rgba(240, 253, 244, 0.98);
+  border-color: rgba(134, 239, 172, 0.3);
+}
+
+.lightBALANCA .modalidadeName {
+  color: #16a34a;
+}
+
+.lightMultiple .compactHeader {
+  background: rgba(250, 245, 255, 0.98);
+  border-color: rgba(196, 181, 253, 0.3);
+}
+
+.lightMultiple .modalidadeName {
+  color: #7c3aed;
+}
+
+/* ✅ SOLUÇÃO ESPECÍFICA PARA CADA MODALIDADE - NUNCA CORTAR TEXTO */
+
+/* BLITZ - texto menor, mais compacto */
+.modalidadeName[data-modalidade="BLITZ"] {
+  font-size: clamp(0.55rem, 2.8vw, 0.75rem);
+  letter-spacing: 0.05em;
+  min-width: fit-content;
+  flex: 0 0 auto;
+  /* Não encolhe */
+}
+
+/* BALANÇA - prioridade máxima, usa todo espaço necessário */
+.modalidadeName[data-modalidade="BALANCA"] {
+  font-size: clamp(0.5rem, 2.5vw, 0.7rem);
+  letter-spacing: 0.02em;
+  min-width: fit-content;
+  flex: 1 1 auto;
+  /* USA TODO o espaço disponível */
+  max-width: none;
+  /* Remove qualquer limitação */
+}
+
+/* Ajustar stats quando BALANÇA precisa de mais espaço */
+.modalidadeName[data-modalidade="BALANCA"]+.participantStats {
+  flex: 0 0 auto;
+  min-width: 1rem;
+  /* Reduz espaço mínimo das stats */
+  font-size: clamp(0.4rem, 1.5vw, 0.5rem);
+  /* Stats menores para dar espaço */
+}
+
+/* ✅ LAYOUT UNIFICADO PARA TODAS AS RESOLUÇÕES - BASEADO NA RESOLUÇÃO MAIS BAIXA */
+
+/* BALANÇA: Texto + Caminhãozinho em todas as resoluções */
+.lightBALANCA .modalidadeName {
+  font-size: 0.65rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.02em !important;
+  color: #16a34a !important;
+}
+
+.lightBALANCA .modalidadeName::after {
+  content: "🚛" !important;
+  font-size: 0.7rem !important;
+  display: inline-block !important;
+  margin-left: 0.15rem !important;
+  vertical-align: middle !important;
+}
+
+/* BLITZ: Texto padrão em todas as resoluções */
+.lightBLITZ .modalidadeName {
+  font-size: 0.65rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.02em !important;
+  color: #dc2626 !important;
+}
+
+/* ✅ LAYOUT FIXO REMOVIDO - APLICADO GLOBALMENTE ACIMA PARA TODAS AS RESOLUÇÕES */
+
+/* Container para título e stats ficarem lado a lado */
+.operationHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.2rem;
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.operationTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(0.1rem, 1%, 0.2rem);
+  font-size: clamp(0.6rem, 2.8vw, 0.75rem);
+  font-weight: 600;
+  /* Comportamento como dayNumber - apenas o espaço necessário */
+  width: auto;
+  flex-shrink: 0;
+  min-height: 0;
+  line-height: 1.2;
+  margin-right: 0.3rem;
+}
+
+.operationIcon {
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.operationName {
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ✅ NOVO: Estilos para horário das operações */
+.operationTime {
+  color: var(--primary);
+  font-weight: 500;
+  font-size: 0.65rem;
+  margin-left: 0.25rem;
+  background: rgba(59, 130, 246, 0.1);
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.operationStats {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(0.1rem, 1%, 0.3rem);
+  font-size: clamp(0.5rem, 2.5vw, 0.65rem);
+  color: var(--text-secondary);
+  /* Comportamento como dayNumber - apenas o espaço necessário */
+  width: auto;
+  flex-shrink: 0;
+  min-height: 0;
+}
+
+.participantCount {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.6rem;
+}
+
+.queueCount {
+  color: #f59e0b;
+  font-weight: 500;
+  font-size: 0.55rem;
+}
+
+/* ✅ BOTÃO RÁPIDO - ULTRA RESPONSIVO PARA TODAS AS RESOLUÇÕES */
+.quickActionButton {
+  /* Posicionamento otimizado */
+  margin-top: auto;
+  margin-bottom: 0.1rem;
+
+  /* Padding baseado no tamanho do container pai (dayCell) */
+  padding: min(8%, 0.5rem) min(6%, 0.4rem);
+
+  /* Sem bordas para máximo aproveitamento do espaço */
+  border: none;
+
+  /* Border radius proporcional ao container */
+  border-radius: min(4%, 6px);
+
+  /* Font size baseado na altura do container pai */
+  font-size: min(12%, 0.75rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+
+  /* Interação otimizada */
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+
+  /* Altura baseada no container pai - nunca ultrapassa 25% da altura da célula */
+  height: min(25%, 40px);
+  min-height: min(20%, 24px);
+  max-height: min(30%, 45px);
+  width: 100%;
+
+  /* Line height otimizado */
+  line-height: 1.1;
+
+  /* Touch otimizado */
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  /* Texto sempre visível - nunca truncado */
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+
+  /* Layout flexível */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Container responsivo */
+  max-width: 100%;
+  box-sizing: border-box;
+
+  /* Garantir que sempre se ajuste ao container pai */
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* ✅ ÍCONES UNIFICADOS PARA TODAS AS RESOLUÇÕES - PADRÃO DA RESOLUÇÃO MAIS BAIXA */
+.quickActionButton[data-action="cancelar"]::after {
+  content: "✕" !important;
+  font-size: 1.2em !important;
+  font-weight: 900 !important;
+}
+
+.quickActionButton[data-action="participar"]::after {
+  content: "✓" !important;
+  font-size: 1.2em !important;
+  font-weight: 900 !important;
+}
+
+.quickActionButton[data-action="fila"]::after {
+  content: "✓" !important;
+  font-size: 1.2em !important;
+  font-weight: 900 !important;
+}
+
+.quickActionButton[data-action="lotado"]::after {
+  content: "✕" !important;
+  font-size: 1.2em !important;
+  font-weight: 900 !important;
+}
+
+.quickActionButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.quickActionButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Variações do botão rápido */
+.quickParticipate {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.quickParticipate:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669, #047857);
+}
+
+.quickQueue {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+}
+
+.quickQueue:hover:not(:disabled) {
+  background: linear-gradient(135deg, #d97706, #b45309);
+}
+
+.quickCancel {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+}
+
+.quickCancel:hover:not(:disabled) {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+}
+
+.quickUnavailable {
+  background: #f3f4f6;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+/* ✅ NOVO: Classe para operação lotada (apenas visual - não funcional) */
+.quickLotado {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  cursor: default;
+  /* ✅ CORREÇÃO: cursor padrão - não clicável */
+  opacity: 0.8;
+  /* ✅ CORREÇÃO: opacidade para indicar não-funcional */
+  user-select: none;
+  /* ✅ CORREÇÃO: não selecionável */
+}
+
+.quickLotado:hover {
+  /* ✅ CORREÇÃO: sem hover - apenas visual */
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  transform: none;
+  /* ✅ CORREÇÃO: sem animação */
+}
+
+/* ✅ OPERAÇÕES MÚLTIPLAS - Compactas para células menores */
+.operacaoItem {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e5e7eb;
+  border-radius: 3px;
+  padding: 0.15rem;
+  margin-bottom: 0.125rem;
+  font-size: 0.6rem;
+}
+
+.operacaoHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.125rem;
+  margin-bottom: 0.0625rem;
+}
+
+.operacaoIcon {
+  font-size: 0.6rem;
+  flex-shrink: 0;
+}
+
+.operacaoName {
+  font-weight: 600;
+  font-size: 0.55rem;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.operacaoStats {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.participantesCount {
+  font-size: 0.5rem;
+  color: var(--text-secondary);
+}
+
+.filaIndicator {
+  font-size: 0.5rem;
+  color: #f59e0b;
+}
+
+.statusIndicator {
+  font-size: 0.5rem;
+}
+
+.statusDisponivel {
+  color: #10b981;
+}
+
+.statusFila {
+  color: #f59e0b;
+}
+
+.statusLotado {
+  color: #ef4444;
+}
+
+/* Tema escuro para operações múltiplas */
+[data-theme='dark'] .operacaoItem {
+  background: rgba(31, 41, 55, 0.9);
+  border-color: #4b5563;
+}
+
+[data-theme='dark'] .operacaoName {
+  color: #e5e7eb;
+}
+
+[data-theme='dark'] .participantesCount {
+  color: #9ca3af;
+}
+
+/* Indicadores de Operações */
+.operacoesIndicators {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+
+.operacaoIndicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-disabled);
+}
+
+.operacaoIndicator.modalidadeBLITZ {
+  background: var(--danger);
+}
+
+.operacaoIndicator.modalidadeBALANCA {
+  background: var(--warning);
+}
+
+.operacaoIndicator.confirmado {
+  box-shadow: 0 0 0 2px var(--success);
+}
+
+/* ✅ MODALIDADES ESPECÍFICAS */
+.blitz {
+  border-left: 3px solid #ef4444;
+}
+
+.balanca {
+  border-left: 3px solid #10b981;
+}
+
+/* Tema escuro para modalidades */
+[data-theme='dark'] .blitz {
+  border-left-color: #f87171;
+}
+
+[data-theme='dark'] .balanca {
+  border-left-color: #34d399;
+}
+
+.moreOperacoes {
+  font-size: 0.5rem;
+  color: var(--text-secondary);
+  margin-top: 0.125rem;
+  text-align: center;
+  font-weight: 500;
+  padding: 0.125rem;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 2px;
+}
+
+/* Info da Data Atual - COMPACTA */
+.currentDateInfo {
+  margin-top: 0.5rem;
+  /* Margem reduzida */
+  padding: 0.4rem;
+  /* Padding reduzido */
+  background: var(--bg-secondary);
+  border-radius: 6px;
+  text-align: center;
+  font-size: 0.75rem;
+  /* Tamanho reduzido */
+  color: var(--text-secondary);
+  min-height: 32px;
+  /* Altura controlada */
+}
+
+.currentDateInfo strong {
+  color: var(--text-primary);
+}
+
+/* Responsividade OTIMIZADA - ESTILO GOOGLE CALENDAR */
+@media (max-width: 1200px) {
+  .calendarContainer {
+    max-width: 95vw;
+  }
+
+  .dayCell {
+    height: 65px;
+    /* Altura original restaurada */
+  }
+}
+
+/* BREAKPOINT ESPECÍFICO: DESKTOPS GRANDES (1025px+) */
+@media (min-width: 1025px) {
+  .calendarContainer {
+    max-width: 100vw;
+    /* USA toda largura da tela */
+    margin: 0;
+  }
+
+  .calendarGrid {
+    gap: 2px;
+    /* Mantém gap para efeito losango */
+    max-width: 100%;
+    /* USA toda largura disponível */
+    margin: 0;
+    border: none;
+    /* Remove borda externa para máximo espaço */
+    /* Grid robusto para desktop */
+    grid-template-rows: auto repeat(6, minmax(65px, 1fr));
+    /* Altura original restaurada */
+  }
+
+  .dayCell {
+    /* Altura controlada pelo grid para caber tudo na tela */
+    max-width: none;
+    /* Remove limitação de largura */
+    min-width: auto;
+    /* Chamfered Corners mantido em desktop */
+    clip-path: polygon(8px 0%, 100% 0%, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0% 100%, 0% 8px);
+    min-height: 40px;
+    /* Altura original restaurada */
+    padding: 0.25rem;
+    /* Mantém padding consistente */
+  }
+
+  .dayCell:nth-child(7n) {
+    border-right: none;
+    /* Remove borda da última coluna */
+  }
+
+  .calendarContent {
+    height: calc(100vh - 50px);
+    /* Altura otimizada sem barra de controles */
+  }
+}
+
+/* BREAKPOINT ESPECÍFICO: TELAS EXTRA GRANDES (1400px+) - Um pouco mais de espaço */
+@media (min-width: 1400px) {
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(75px, 1fr));
+    /* Ligeiramente maior em telas grandes */
+  }
+
+  .dayCell {
+    min-height: 50px;
+    padding: 0.375rem;
+    /* Um pouco mais de padding em telas grandes */
+  }
+
+  /* Permitir fontes ligeiramente maiores em telas muito grandes */
+  .operationTitle {
+    font-size: 0.75rem;
+  }
+
+  .operationIcon {
+    font-size: 0.875rem;
+  }
+
+  .quickActionButton {
+    font-size: 0.65rem;
+    padding: 0.45rem 0.65rem;
+    min-height: 28px;
+    border-radius: 8px;
+  }
+
+  .dayNumber {
+    font-size: 1rem;
+  }
+}
+
+/* BREAKPOINT ESPECÍFICO: 768px - 1024px (TABLETS E LAPTOPS PEQUENOS) */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .calendarContainer {
+    max-width: 100vw;
+    margin: 0;
+  }
+
+  .calendarGrid {
+    gap: 2px;
+    height: 100%;
+    /* Grid robusto para tablets */
+    grid-template-rows: auto repeat(6, minmax(55px, 1fr));
+    /* Altura mínima para tablets */
+  }
+
+  .dayCell {
+    height: auto;
+    min-height: 50px;
+    max-width: none;
+    min-width: auto;
+    /* Chamfered Corners menores para tablets */
+    clip-path: polygon(6px 0%, 100% 0%, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0% 100%, 0% 6px);
+    aspect-ratio: 1.1;
+    /* Proporção adequada para tablets */
+  }
+
+  .dayCell:nth-child(7n) {
+    border-right: none;
+  }
+
+  .calendarGridWrapper {
+    padding: 0.4rem;
+    border-radius: 8px;
+  }
+
+  .calendarContent {
+    height: auto;
+    /* Altura automática para tablets */
+  }
+}
+
+/* BREAKPOINT GERAL: OCULTAR SIDEBAR EM DISPOSITIVOS MENORES */
+@media (max-width: 1024px) {
+  .sidebarLeft {
+    display: none;
+  }
+}
+
+/* BREAKPOINT MOBILE: 481px - 767px (MOBILE LANDSCAPE E PEQUENOS TABLETS) */
+@media (min-width: 481px) and (max-width: 767px) {
+  .calendarContainer {
+    border-radius: 6px;
+    box-shadow: var(--shadow-md);
+    max-width: 100vw;
+    margin: 0;
+  }
+
+  .calendarArea {
+    padding: 0.4rem;
+  }
+
+  .calendarHeader {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    min-height: 60px;
+  }
+
+  .leftButtons {
+    gap: 0.4rem;
+  }
+
+  .monthYear {
+    font-size: 1.1rem;
+    /* Tamanho ajustado para mobile landscape */
+    font-weight: 600;
+    flex: 1;
+    text-align: center;
+    /* Remove qualquer fundo em mobile landscape */
+    background: none;
+    padding: 0;
+    border: none;
+  }
+
+  .navButton {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.8rem;
+    min-height: 42px;
+    flex-shrink: 0;
+  }
+
+  .todayButton {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.8rem;
+    min-height: 42px;
+    flex-shrink: 0;
+  }
+
+  .calendarContent {
+    padding: 0.4rem;
+    height: auto;
+    /* Altura automática para mobile landscape */
+  }
+
+  .calendarGridWrapper {
+    padding: 0.4rem;
+    border-radius: 8px;
+  }
+
+  .calendarGrid {
+    gap: 2px;
+    /* Gap adequado para mobile landscape */
+    grid-template-rows: auto repeat(6, minmax(50px, 1fr));
+    /* Altura mínima para mobile landscape */
+    max-width: 100%;
+    border: none;
+    /* Remove borda externa em mobile */
+  }
+
+  .dayName {
+    padding: 0.2rem;
+    /* Mais compacto */
+    font-size: 0.65rem;
+    /* Menor */
+    height: 18px;
+    /* Altura fixa pequena */
+  }
+
+  .dayCell {
+    height: auto;
+    /* Altura automática */
+    min-height: 55px;
+    /* Altura mínima adequada */
+    max-width: none;
+    /* Remove limitação de largura */
+    min-width: auto;
+    /* Largura automática */
+    padding: 0.3rem;
+    border: 1px solid var(--border-light);
+    /* Chamfered Corners menores para mobile landscape */
+    clip-path: polygon(4px 0%, 100% 0%, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0% 100%, 0% 4px);
+    aspect-ratio: 1.2;
+    /* Proporção adequada para mobile */
+  }
+
+  .dayNumber {
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .operacaoIndicator {
+    width: 6px;
+    height: 6px;
+  }
+
+  .currentDateInfo {
+    margin-top: 0.75rem;
+    padding: 0.6rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* BREAKPOINT MOBILE GRANDE: 320px - 480px (MOBILE PORTRAIT PADRÃO) */
+@media (min-width: 320px) and (max-width: 480px) {
+  .calendarContainer {
+    border-radius: 4px;
+    box-shadow: var(--shadow-sm);
+    max-width: 100vw;
+    margin: 0;
+  }
+
+  .calendarArea {
+    padding: 0.3rem;
+  }
+
+  .calendarHeader {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.6rem;
+    min-height: 54px;
+  }
+
+  .leftButtons {
+    gap: 0.3rem;
+  }
+
+  .monthYear {
+    font-size: 1rem;
+    /* Tamanho ajustado para mobile portrait */
+    font-weight: 600;
+    flex: 1;
+    text-align: center;
+    /* Remove qualquer fundo em mobile portrait */
+    background: none;
+    padding: 0;
+    border: none;
+  }
+
+  .navButton {
+    padding: 0.4rem 0.7rem;
+    font-size: 0.75rem;
+    min-height: 38px;
+    flex-shrink: 0;
+  }
+
+  .todayButton {
+    padding: 0.4rem 0.7rem;
+    font-size: 0.75rem;
+    min-height: 38px;
+    flex-shrink: 0;
+  }
+
+  .calendarContent {
+    padding: 0.3rem;
+    height: auto;
+  }
+
+  .calendarGridWrapper {
+    padding: 0.25rem;
+    border-radius: 6px;
+  }
+
+  .calendarGrid {
+    gap: 2px;
+    grid-template-rows: auto repeat(6, minmax(80px, 1fr));
+    /* Altura maior para acomodar botões */
+    max-width: 100%;
+    border: none;
+  }
+
+  .dayName {
+    padding: 0.2rem;
+    font-size: 0.65rem;
+    height: 18px;
+    font-weight: 600;
+  }
+
+  .dayCell {
+    height: auto;
+    min-height: 85px;
+    /* Altura maior para botões */
+    max-width: none;
+    min-width: auto;
+    padding: 0.3rem;
+    border: 1px solid var(--border-light);
+    border-right: none;
+    border-bottom: none;
+    aspect-ratio: 1.1;
+    /* Ligeiramente retangular */
+  }
+
+  .dayNumber {
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+
+  .operacaoIndicator {
+    width: 5px;
+    height: 5px;
+  }
+
+  .currentDateInfo {
+    margin-top: 0.6rem;
+    padding: 0.5rem;
+    font-size: 0.75rem;
+    min-height: 30px;
+  }
+}
+
+/* BREAKPOINT MOBILE PEQUENO: ≤320px (MOBILE EXTRA PEQUENO) */
+@media (max-width: 320px) {
+  .calendarContainer {
+    border-radius: 0;
+    box-shadow: none;
+    max-width: 100vw;
+    margin: 0;
+  }
+
+  .calendarArea {
+    padding: 0.25rem;
+  }
+
+  .calendarHeader {
+    flex-direction: column;
+    /* Vertical em telas muito pequenas */
+    gap: 0.5rem;
+    padding: 0.5rem;
+    min-height: auto;
+  }
+
+  .leftButtons {
+    gap: 0.3rem;
+  }
+
+  .monthYear {
+    font-size: 0.95rem;
+    /* Tamanho ajustado para mobile pequeno */
+    font-weight: 600;
+    order: 1;
+    /* Remove qualquer fundo em mobile pequeno */
+    background: none;
+    padding: 0;
+    border: none;
+  }
+
+  .navButton {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.75rem;
+    min-height: 36px;
+    flex: 1;
+    max-width: 120px;
+  }
+
+  .todayButton {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.75rem;
+    min-height: 36px;
+    flex-shrink: 0;
+  }
+
+  .calendarContent {
+    padding: 0.25rem;
+    height: auto;
+  }
+
+  .calendarGridWrapper {
+    padding: 0.2rem;
+    border-radius: 6px;
+  }
+
+  .calendarGrid {
+    gap: 1px;
+    /* Gap mínimo para máximo aproveitamento */
+    grid-template-rows: auto repeat(6, minmax(40px, 1fr));
+    /* Altura mínima para mobile pequeno */
+    max-width: 100%;
+    border: none;
+  }
+
+  .dayName {
+    padding: 0.1rem;
+    /* Padding mínimo */
+    font-size: 0.55rem;
+    /* Tamanho ultra compacto */
+    height: 14px;
+    /* Altura fixa bem pequena */
+    font-weight: 700;
+  }
+
+  .dayCell {
+    height: auto;
+    min-height: 42px;
+    /* Altura ultra compacta */
+    max-width: none;
+    min-width: auto;
+    padding: 0.15rem;
+    border: 1px solid var(--border-light);
+    border-right: none;
+    border-bottom: none;
+    aspect-ratio: 0.95;
+    /* Ligeiramente mais largo que alto */
+  }
+
+  .dayNumber {
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .operacaoIndicator {
+    width: 4px;
+    height: 4px;
+  }
+
+  .currentDateInfo {
+    margin-top: 0.5rem;
+    padding: 0.4rem;
+    font-size: 0.7rem;
+    min-height: 28px;
+  }
+
+  /* Navegação horizontal em mobile pequeno */
+  .calendarHeader {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .navButton:first-child {
+    order: 1;
+  }
+
+  .monthYear {
+    order: 2;
+    flex: 1;
+    text-align: center;
+    /* Remove qualquer fundo no breakpoint final */
+    background: none;
+    padding: 0;
+    border: none;
+  }
+
+  .navButton:last-child {
+    order: 3;
+  }
+}
+
+/* Tema escuro para breakpoints responsivos - COR CLARA VISÍVEL COM !IMPORTANT */
+@media (min-width: 481px) and (max-width: 767px) {
+  [data-theme='dark'] .monthYear {
+    /* Cor clara específica para visibilidade */
+    color: #f8fafc !important;
+    /* !important para sobrescrever regra global */
+    background: none;
+    border: none;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
+}
+
+@media (min-width: 320px) and (max-width: 480px) {
+  [data-theme='dark'] .monthYear {
+    /* Cor clara específica para visibilidade */
+    color: #f8fafc !important;
+    /* !important para sobrescrever regra global */
+    background: none;
+    border: none;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
+}
+
+@media (max-width: 320px) {
+  [data-theme='dark'] .monthYear {
+    /* Cor clara específica para visibilidade */
+    color: #f8fafc !important;
+    /* !important para sobrescrever regra global */
+    background: none;
+    border: none;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* Tema escuro removido - mantendo apenas tema claro */
+
+/* ===== RESPONSIVIDADE DOS BOTÕES RÁPIDOS - OTIMIZADO PARA CLIQUES ===== */
+
+/* Mobile Portrait (320px - 480px) */
+@media (max-width: 480px) {
+  .quickActionButton {
+    /* Ajustes específicos para mobile - valores mais conservadores */
+    font-size: clamp(0.5rem, 3.2vw, 0.62rem);
+    min-height: clamp(18px, 14%, 30px);
+    max-height: 30%;
+    /* Otimizações para toque */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+}
+
+/* Mobile Landscape & Tablet Portrait (481px - 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  .quickActionButton {
+    /* Valores mais generosos para tablets */
+    font-size: clamp(0.55rem, 2.5vw, 0.65rem);
+    min-height: clamp(20px, 13%, 28px);
+    max-height: 28%;
+  }
+}
+
+/* Tablet Landscape & Desktop (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .quickActionButton {
+    /* Ajuste para tablets landscape */
+    font-size: clamp(0.58rem, 2.2vw, 0.68rem);
+    min-height: clamp(22px, 12%, 30px);
+    max-height: 26%;
+  }
+}
+
+/* Large Desktop (1025px - 1399px) */
+@media (min-width: 1025px) and (max-width: 1399px) {
+  .quickActionButton {
+    /* Desktop padrão - mais espaço disponível */
+    font-size: clamp(0.6rem, 1.8vw, 0.7rem);
+    min-height: clamp(22px, 11%, 28px);
+    max-height: 24%;
+  }
+}
+
+/* Extra Large Desktop (1400px+) - Já definido acima */
+
+/* Hover effects otimizados para diferentes tamanhos de tela */
+@media (hover: hover) and (pointer: fine) {
+  .quickActionButton:hover:not(:disabled) {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  }
+}
+
+/* Para dispositivos apenas de toque (sem hover) */
+@media (hover: none) and (pointer: coarse) {
+  .quickActionButton:active:not(:disabled) {
+    transform: scale(0.98);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* ===== CONTROLE ESPECÍFICO PARA ZOOMS ALTOS ===== */
+/* Quando o zoom está alto, reduzir ainda mais os tamanhos para garantir visibilidade */
+@media (min-resolution: 144dpi),
+(min-resolution: 1.5dppx) {
+  .quickActionButton {
+    /* Em zooms altos, usar valores mais conservadores */
+    font-size: clamp(0.45rem, 2.2vw, 0.6rem);
+    min-height: clamp(16px, 10%, 26px);
+    max-height: 22%;
+    padding: clamp(0.15rem, 2%, 0.4rem) clamp(0.25rem, 3.5%, 0.6rem);
+  }
+}
+
+/* Para zooms muito altos (200%+) */
+@media (min-resolution: 192dpi),
+(min-resolution: 2dppx) {
+  .quickActionButton {
+    /* Em zooms muito altos, priorizar a visibilidade */
+    font-size: clamp(0.4rem, 2vw, 0.55rem);
+    min-height: clamp(14px, 9%, 22px);
+    max-height: 20%;
+    padding: clamp(0.1rem, 1.8%, 0.35rem) clamp(0.2rem, 3%, 0.5rem);
+    /* Forçar quebra de linha se necessário */
+    white-space: normal;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+}
+
+/* Fallback para garantir que o botão nunca seja maior que o container */
+.quickActionButton {
+  /* Forçar tamanho máximo baseado no container pai */
+  max-height: min(35%, 40px);
+  max-width: calc(100% - 2px);
+}
+
+.lightBLITZ .quickActionButton.quickQueue {
+  background: linear-gradient(135deg, #ea580c, #c2410c) !important;
+  color: white !important;
+  font-weight: 800 !important;
+}
+
+.lightBLITZ .quickActionButton.quickCancel {
+  background: linear-gradient(135deg, #dc2626, #991b1b) !important;
+  color: white !important;
+  font-weight: 800 !important;
+}
+
+/* ✅ MOBILE: Cores mais contrastantes para BALANÇA */
+.lightBALANCA .quickActionButton.quickParticipate {
+  background: linear-gradient(135deg, #16a34a, #15803d) !important;
+  color: white !important;
+  font-weight: 800 !important;
+}
+
+.lightBALANCA .quickActionButton.quickQueue {
+  background: linear-gradient(135deg, #ca8a04, #a16207) !important;
+  color: white !important;
+  font-weight: 800 !important;
+}
+
+.lightBALANCA .quickActionButton.quickCancel {
+  background: linear-gradient(135deg, #dc2626, #991b1b) !important;
+  color: white !important;
+  font-weight: 800 !important;
+}
+
+/* ✅ MOBILE: Melhor contraste para texto das estatísticas */
+.operationStats {
+  background: rgba(255, 255, 255, 0.9) !important;
+  padding: 0.2rem 0.3rem !important;
+  border-radius: 4px !important;
+  margin: 0.1rem 0 !important;
+}
+
+.participantCount {
+  color: #1f2937 !important;
+  font-weight: 800 !important;
+}
+
+.queueCount {
+  color: #92400e !important;
+  font-weight: 700 !important;
+}
+
+/* ✅ MOBILE: Nome da operação mais visível */
+.operationName {
+  background: rgba(255, 255, 255, 0.95) !important;
+  padding: 0.1rem 0.3rem !important;
+  border-radius: 3px !important;
+  color: #1f2937 !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+/* ✅ MOBILE: Horário da operação mais visível */
+.operationTime {
+  background: rgba(59, 130, 246, 0.9) !important;
+  color: white !important;
+  font-weight: 700 !important;
+  padding: 0.1rem 0.25rem !important;
+  border-radius: 3px !important;
+  margin-left: 0.2rem !important;
+}
+
+/* ✅ MOBILE: Efeito hover mais suave */
+.dayCell:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* ✅ MOBILE: Botão hover mais responsivo */
+.quickActionButton:hover:not(:disabled) {
+  transform: translateY(-1px) scale(1.02) !important;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* ✅ MOBILE: Melhor feedback visual para toque */
+.quickActionButton:active {
+  transform: translateY(0) scale(0.98) !important;
+  transition: all 0.1s ease !important;
+}
+
+/* ✅ MOBILE: Área de toque maior */
+.dayCell {
+  cursor: pointer !important;
+  -webkit-tap-highlight-color: rgba(59, 130, 246, 0.1) !important;
+  touch-action: manipulation !important;
+}
+
+/* ✅ MOBILE: Remover outline em foco para melhor UX mobile */
+.dayCell:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 2px var(--primary) !important;
+}
+
+.quickActionButton:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5) !important;
+}
+
+/* ✅ MOBILE LANDSCAPE: Ajustes específicos para landscape */
+@media (max-width: 768px) and (orientation: landscape) {
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(60px, 1fr)) !important;
+  }
+
+  .dayCell {
+    min-height: 65px !important;
+  }
+
+  .quickActionButton {
+    min-height: 24px !important;
+    font-size: 0.6rem !important;
+    padding: 0.3rem 0.2rem !important;
+  }
+}
+
+/* ====
+= RESPONSIVIDADE ULTRA OTIMIZADA PARA BOTÕES ===== */
+
+/* Mobile Portrait - 320px a 480px */
+@media (max-width: 480px) {
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(95px, 1fr)) !important;
+    gap: 3px !important;
+  }
+
+  .dayCell {
+    min-height: 100px !important;
+    padding: 0.4rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    border-radius: 8px !important;
+  }
+
+  .dayNumber {
+    font-size: 0.9rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 0.2rem !important;
+    flex-shrink: 0 !important;
+  }
+
+  .operacaoInfo {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    min-height: 0 !important;
+  }
+
+  .singleOperationInfo {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+  }
+
+  .operationTitle {
+    margin-bottom: 0.3rem !important;
+    flex-shrink: 0 !important;
+  }
+
+  .operationName {
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+  }
+
+  .operationStats {
+    font-size: 0.6rem !important;
+    margin: 0.2rem 0 !important;
+    text-align: center !important;
+    flex-shrink: 0 !important;
+  }
+
+  .quickActionButton {
+    min-height: 32px !important;
+    font-size: 0.7rem !important;
+    font-weight: 800 !important;
+    padding: 0.5rem 0.3rem !important;
+    margin-top: auto !important;
+    flex-shrink: 0 !important;
+    line-height: 1.1 !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+}
+
+/* Mobile Landscape - 481px a 768px */
+@media (min-width: 481px) and (max-width: 768px) {
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(85px, 1fr)) !important;
+  }
+
+  .dayCell {
+    min-height: 90px !important;
+    padding: 0.35rem !important;
+  }
+
+  .quickActionButton {
+    min-height: 22px !important;
+    font-size: 0.65rem !important;
+  }
+}
+
+/* Tablet Portrait - 769px a 1024px */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(75px, 1fr)) !important;
+  }
+
+  .dayCell {
+    min-height: 80px !important;
+  }
+
+  .quickActionButton {
+    min-height: 20px !important;
+    font-size: 0.7rem !important;
+  }
+}
+
+/* Desktop - 1025px+ */
+@media (min-width: 1025px) {
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(70px, 1fr));
+  }
+
+  .dayCell {
+    min-height: 75px;
+  }
+
+  .quickActionButton {
+    min-height: 18px;
+    font-size: 0.75rem;
+  }
+}
+
+/* Otimizações para telas muito pequenas - 320px e menos - BOTÕES GRANDES */
+@media (max-width: 320px) {
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(140px, 1fr)) !important;
+    gap: 3px !important;
+  }
+
+  .dayCell {
+    min-height: 145px !important;
+    padding: 0.6rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+  }
+
+  .dayNumber {
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 0.4rem !important;
+  }
+
+  .operationName {
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 0.3rem !important;
+  }
+
+  .operationStats {
+    font-size: 0.7rem !important;
+    margin: 0.3rem 0 !important;
+  }
+
+  .quickActionButton {
+    min-height: 36px !important;
+    font-size: 0.75rem !important;
+    font-weight: 800 !important;
+    padding: 0.6rem 0.4rem !important;
+    line-height: 1.1 !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    margin-top: auto !important;
+  }
+}
+
+/* ===== LAYOUT FLEXÍVEL PARA GARANTIR BOTÕES SEMPRE VISÍVEIS ===== */
+
+.dayCell {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+}
+
+.dayNumber {
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.operacaoInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.singleOperationInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 0;
+}
+
+.operationTitle {
+  flex-shrink: 0;
+}
+
+.operationStats {
+  flex-shrink: 0;
+  margin: 0.1rem 0;
+}
+
+.quickActionButton {
+  flex-shrink: 0;
+  margin-top: auto;
+}
+
+/* Garantir que múltiplas operações também tenham layout otimizado */
+.operacaoItem {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.2rem;
+  padding: 0.2rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e5e7eb;
+}
+
+.operacaoHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.1rem;
+}
+
+.operacaoName {
+  font-size: 0.65rem;
+  font-weight: 600;
+  flex: 1;
+}
+
+.operacaoStats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.6rem;
+}
+
+/* Cores específicas para modalidades */
+.blitz {
+  border-left: 3px solid #dc2626;
+}
+
+.balanca {
+  border-left: 3px solid #16a34a;
+}
+
+/* Estados dos botões com cores mais contrastantes */
+.quickParticipate {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: white;
+}
+
+.quickQueue {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+}
+
+.quickCancel {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: white;
+}
+
+.quickUnavailable {
+  background: #f3f4f6;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+/* Hover effects otimizados */
+@media (hover: hover) and (pointer: fine) {
+  .quickActionButton:hover:not(:disabled) {
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+  }
+}
+
+/* Touch feedback para dispositivos móveis */
+@media (hover: none) and (pointer: coarse) {
+  .quickActionButton:active:not(:disabled) {
+    transform: scale(0.98);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* ===== BREAKPOINTS ESPECÍFICOS PARA RESOLUÇÕES PROBLEMÁTICAS ===== */
+/* Resolução 425px - Muito comum em smartphones */
+@media (min-width: 421px) and (max-width: 425px) {
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(110px, 1fr)) !important;
+    gap: 3px !important;
+  }
+
+  .dayCell {
+    min-height: 115px !important;
+    padding: 0.5rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+  }
+
+  .dayNumber {
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 0.3rem !important;
+  }
+
+  .operationName {
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 0.2rem !important;
+  }
+
+  .operationStats {
+    font-size: 0.65rem !important;
+    margin: 0.2rem 0 !important;
+  }
+
+  .quickActionButton {
+    min-height: 30px !important;
+    font-size: 0.7rem !important;
+    font-weight: 800 !important;
+    padding: 0.5rem 0.3rem !important;
+    line-height: 1.1 !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    margin-top: auto !important;
+  }
+}
+
+/* Resolução 375px - iPhone SE, iPhone 6/7/8 */
+@media (min-width: 375px) and (max-width: 420px) {
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(105px, 1fr)) !important;
+    gap: 3px !important;
+  }
+
+  .dayCell {
+    min-height: 110px !important;
+    padding: 0.45rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+  }
+
+  .dayNumber {
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 0.3rem !important;
+  }
+
+  .operationName {
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 0.2rem !important;
+  }
+
+  .operationStats {
+    font-size: 0.6rem !important;
+    margin: 0.2rem 0 !important;
+  }
+
+  .quickActionButton {
+    min-height: 28px !important;
+    font-size: 0.65rem !important;
+    font-weight: 800 !important;
+    padding: 0.45rem 0.25rem !important;
+    line-height: 1.1 !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    margin-top: auto !important;
+  }
+}
+
+/* Resolução 360px - Muito comum em Android */
+@media (min-width: 360px) and (max-width: 374px) {
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(100px, 1fr)) !important;
+    gap: 2px !important;
+  }
+
+  .dayCell {
+    min-height: 105px !important;
+    padding: 0.4rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+  }
+
+  .dayNumber {
+    font-size: 0.9rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 0.25rem !important;
+  }
+
+  .operationName {
+    font-size: 0.65rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 0.15rem !important;
+  }
+
+  .operationStats {
+    font-size: 0.55rem !important;
+    margin: 0.15rem 0 !important;
+  }
+
+  .quickActionButton {
+    min-height: 26px !important;
+    font-size: 0.6rem !important;
+    font-weight: 800 !important;
+    padding: 0.4rem 0.2rem !important;
+    line-height: 1.1 !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    margin-top: auto !important;
+  }
+}
+
+/* Resolução 320x568 - iPhone 5/SE */
+@media (min-width: 320px) and (max-width: 359px) and (min-height: 500px) {
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(95px, 1fr)) !important;
+    gap: 2px !important;
+  }
+
+  .dayCell {
+    min-height: 100px !important;
+    padding: 0.35rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+  }
+
+  .dayNumber {
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 0.2rem !important;
+  }
+
+  .operationName {
+    font-size: 0.6rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 0.1rem !important;
+  }
+
+  .operationStats {
+    font-size: 0.5rem !important;
+    margin: 0.1rem 0 !important;
+  }
+
+  .quickActionButton {
+    min-height: 24px !important;
+    font-size: 0.55rem !important;
+    font-weight: 800 !important;
+    padding: 0.35rem 0.15rem !important;
+    line-height: 1.1 !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    margin-top: auto !important;
+  }
+}
+
+/* ===== OTIMIZAÇÕES GERAIS PARA BOTÕES EM MOBILE ===== */
+
+/* Garantir que o texto dos botões nunca seja truncado */
+@media (max-width: 480px) {
+  .quickActionButton {
+    /* Forçar texto completo */
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+
+    /* Ajustar automaticamente o tamanho da fonte se necessário */
+    font-size: clamp(0.5rem, 4vw, 0.75rem) !important;
+
+    /* Padding responsivo baseado na largura da tela */
+    padding: clamp(0.3rem, 3vw, 0.6rem) clamp(0.2rem, 2vw, 0.4rem) !important;
+
+    /* Altura mínima baseada na resolução */
+    min-height: clamp(24px, 6vh, 36px) !important;
+
+    /* Garantir que sempre caiba no container */
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Ajustar o layout das células para acomodar botões maiores */
+  .dayCell {
+    /* Altura mínima baseada na resolução da tela */
+    min-height: clamp(90px, 20vh, 150px) !important;
+
+    /* Padding proporcional */
+    padding: clamp(0.3rem, 2vw, 0.6rem) !important;
+
+    /* Layout flexível otimizado */
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    align-items: stretch !important;
+  }
+
+  /* Otimizar o espaçamento dos elementos internos */
+  .operationTitle {
+    flex-shrink: 0 !important;
+    margin-bottom: clamp(0.1rem, 1vw, 0.3rem) !important;
+  }
+
+  .operationStats {
+    flex-shrink: 0 !important;
+    margin: clamp(0.1rem, 1vw, 0.2rem) 0 !important;
+  }
+
+  /* Garantir que o botão sempre fique no final */
+  .quickActionButton {
+    margin-top: auto !important;
+    flex-shrink: 0 !important;
+  }
+}
+
+/* =
+==== RESPONSIVIDADE BASEADA NO CONTAINER PAI (dayCell) ===== */
+
+/* Definir o dayCell como container de referência */
+.dayCell {
+  container-type: inline-size;
+  container-name: day-cell;
+}
+
+/* Botões responsivos baseados no tamanho do container pai */
+@container day-cell (min-width: 80px) {
+  .quickActionButton {
+    font-size: 0.6rem !important;
+    min-height: 20px !important;
+    padding: 0.25rem 0.15rem !important;
+  }
+}
+
+@container day-cell (min-width: 100px) {
+  .quickActionButton {
+    font-size: 0.65rem !important;
+    min-height: 24px !important;
+    padding: 0.3rem 0.2rem !important;
+  }
+}
+
+@container day-cell (min-width: 120px) {
+  .quickActionButton {
+    font-size: 0.7rem !important;
+    min-height: 28px !important;
+    padding: 0.35rem 0.25rem !important;
+  }
+}
+
+@container day-cell (min-width: 140px) {
+  .quickActionButton {
+    font-size: 0.75rem !important;
+    min-height: 32px !important;
+    padding: 0.4rem 0.3rem !important;
+  }
+}
+
+@container day-cell (min-width: 160px) {
+  .quickActionButton {
+    font-size: 0.8rem !important;
+    min-height: 36px !important;
+    padding: 0.45rem 0.35rem !important;
+  }
+}
+
+/* ===== FALLBACK PARA NAVEGADORES SEM SUPORTE A CONTAINER QUERIES ===== */
+
+/* Usar calc() baseado em variáveis CSS customizadas */
+.dayCell {
+  --cell-width: 100%;
+  --cell-height: 100%;
+}
+
+/* Botões com tamanho baseado em porcentagem do container pai */
+.quickActionButton {
+  /* Altura baseada na altura da célula */
+  height: calc(var(--cell-height) * 0.25) !important;
+  min-height: calc(var(--cell-height) * 0.2) !important;
+  max-height: calc(var(--cell-height) * 0.3) !important;
+
+  /* Font size baseado na largura da célula */
+  font-size: calc(var(--cell-width) * 0.08) !important;
+
+  /* Padding proporcional */
+  padding: calc(var(--cell-height) * 0.06) calc(var(--cell-width) * 0.04) !important;
+
+  /* Garantir limites mínimos e máximos */
+  font-size: clamp(0.5rem, calc(var(--cell-width) * 0.08), 0.8rem) !important;
+  min-height: clamp(18px, calc(var(--cell-height) * 0.2), 40px) !important;
+
+  /* Texto sempre visível */
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+/* ===== SOLUÇÃO JAVASCRIPT-FREE USANDO ASPECT-RATIO ===== */
+
+/* Células com aspect-ratio definido para cálculos precisos */
+.dayCell {
+  aspect-ratio: 1.1;
+  /* Ligeiramente retangular */
+  position: relative;
+}
+
+/* Botões com tamanho baseado no aspect-ratio */
+.quickActionButton {
+  /* Usar unidades em (1em = font-size do elemento pai) */
+  font-size: min(2.5vw, 0.75rem) !important;
+  height: min(6vw, 2.5em) !important;
+  min-height: min(4vw, 1.8em) !important;
+  padding: min(1.5vw, 0.4em) min(1vw, 0.3em) !important;
+
+  /* Garantir que nunca seja maior que o container */
+  max-height: 30% !important;
+  max-width: 95% !important;
+
+  /* Layout otimizado */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  /* Texto otimizado */
+  line-height: 1 !important;
+  letter-spacing: 0.02em !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+
+  /* Nunca truncar o texto */
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+
+  /* Posicionamento */
+  margin-top: auto !important;
+  flex-shrink: 0 !important;
+}
+
+/* ===== OTIMIZAÇÕES ESPECÍFICAS POR RESOLUÇÃO DE TELA ===== */
+
+/* Telas muito pequenas - forçar botões maiores */
+@media (max-width: 320px) {
+  .quickActionButton {
+    font-size: min(3vw, 0.65rem) !important;
+    height: min(8vw, 2.8em) !important;
+    min-height: min(6vw, 2.2em) !important;
+    padding: min(2vw, 0.5em) min(1.5vw, 0.4em) !important;
+  }
+}
+
+/* Telas pequenas - ajuste moderado */
+@media (min-width: 321px) and (max-width: 480px) {
+  .quickActionButton {
+    font-size: min(2.8vw, 0.7rem) !important;
+    height: min(7vw, 2.6em) !important;
+    min-height: min(5vw, 2em) !important;
+    padding: min(1.8vw, 0.45em) min(1.2vw, 0.35em) !important;
+  }
+}
+
+/* Telas médias - ajuste equilibrado */
+@media (min-width: 481px) and (max-width: 768px) {
+  .quickActionButton {
+    font-size: min(2.5vw, 0.75rem) !important;
+    height: min(6vw, 2.4em) !important;
+    min-height: min(4.5vw, 1.8em) !important;
+    padding: min(1.5vw, 0.4em) min(1vw, 0.3em) !important;
+  }
+}
+
+/* Telas grandes - ajuste refinado */
+@media (min-width: 769px) {
+  .quickActionButton {
+    font-size: min(2vw, 0.8rem) !important;
+    height: min(5vw, 2.2em) !important;
+    min-height: min(4vw, 1.6em) !important;
+    padding: min(1.2vw, 0.35em) min(0.8vw, 0.25em) !important;
+  }
+}
+
+/* ===== GARANTIA DE VISIBILIDADE TOTAL DO TEXTO ===== */
+
+.quickActionButton {
+  /* Forçar que o texto nunca seja cortado */
+  min-width: max-content !important;
+  width: auto !important;
+  max-width: 100% !important;
+
+  /* Se o texto for muito grande, reduzir a fonte automaticamente */
+  font-size: clamp(0.45rem, min(2.5vw, 12cqw), 0.8rem) !important;
+
+  /* Ajustar altura baseada no conteúdo */
+  height: auto !important;
+  min-height: clamp(18px, min(6vw, 20cqh), 40px) !important;
+
+  /* Padding que se adapta ao conteúdo */
+  padding: clamp(0.2rem, min(1.5vw, 8cqh), 0.5rem) clamp(0.15rem, min(1vw, 6cqw), 0.4rem) !important;
+
+  /* Layout flexível para centralizar o texto */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+
+  /* Garantir que o texto seja sempre legível */
+  line-height: 1.1 !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.01em !important;
+
+  /* Nunca ocultar o texto */
+  overflow: visible !important;
+  white-space: nowrap !important;
+  text-overflow: clip !important;
+
+  /* Posicionamento otimizado */
+  margin-top: auto !important;
+  margin-bottom: 0.1rem !important;
+  flex-shrink: 0 !important;
+
+  /* Garantir que sempre caiba no container */
+  box-sizing: border-box !important;
+  max-width: calc(100% - 4px) !important;
+}
+
+/* ===== AJUSTES FINAIS PARA DIFERENTES TIPOS DE OPERAÇÃO ===== */
+
+/* Textos mais longos como "CANCELAR" */
+.quickCancel {
+  font-size: clamp(0.4rem, min(2.2vw, 10cqw), 0.7rem) !important;
+  padding: clamp(0.15rem, min(1.2vw, 6cqh), 0.4rem) clamp(0.1rem, min(0.8vw, 4cqw), 0.3rem) !important;
+}
+
+/* Textos médios como "EU VOU" */
+.quickParticipate {
+  font-size: clamp(0.45rem, min(2.4vw, 11cqw), 0.75rem) !important;
+  padding: clamp(0.18rem, min(1.4vw, 7cqh), 0.45rem) clamp(0.12rem, min(0.9vw, 5cqw), 0.35rem) !important;
+}
+
+/* Textos mais curtos como "FILA" */
+.quickQueue {
+  font-size: clamp(0.5rem, min(2.6vw, 12cqw), 0.8rem) !important;
+  padding: clamp(0.2rem, min(1.6vw, 8cqh), 0.5rem) clamp(0.15rem, min(1vw, 6cqw), 0.4rem) !important;
+}
+
+/* ====
+= LAYOUT OTIMIZADO - TÍTULO E STATS LADO A LADO ===== */
+
+/* Garantir que operationTitle e operationStats se comportem como dayNumber */
+.operationTitle,
+.operationStats {
+  /* Comportamento inline - apenas o espaço necessário */
+  display: inline-flex !important;
+  width: auto !important;
+  flex-shrink: 0 !important;
+
+  /* Remover margens que ocupam espaço desnecessário */
+  margin: 0 !important;
+
+  /* Padding mínimo */
+  padding: 0.1rem 0.2rem !important;
+
+  /* Background sutil para melhor visibilidade */
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-radius: 3px !important;
+
+  /* Texto compacto */
+  font-size: clamp(0.5rem, 2vw, 0.65rem) !important;
+  line-height: 1.1 !important;
+
+  /* Garantir que não quebrem linha */
+  white-space: nowrap !important;
+  overflow: visible !important;
+}
+
+/* Container header para manter título e stats lado a lado */
+.operationHeader {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.2rem !important;
+  flex-wrap: nowrap !important;
+  margin-bottom: 0.2rem !important;
+  width: 100% !important;
+  justify-content: flex-start !important;
+
+  /* Garantir que não ocupe mais espaço que necessário */
+  flex-shrink: 0 !important;
+  min-height: auto !important;
+}
+
+/* Ajustar singleOperationInfo para dar prioridade ao botão */
+.singleOperationInfo {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.1rem !important;
+  margin-top: 0.2rem !important;
+  flex: 1 !important;
+  overflow: visible !important;
+  min-height: 0 !important;
+  max-width: 100% !important;
+
+  /* Garantir que o botão tenha prioridade */
+  justify-content: space-between !important;
+}
+
+/* Garantir que o botão sempre fique no final e tenha espaço suficiente */
+.quickActionButton {
+  /* Prioridade total - sempre no final */
+  margin-top: auto !important;
+  flex-shrink: 0 !important;
+
+  /* Garantir espaço mínimo baseado no container */
+  min-height: min(25%, 32px) !important;
+  max-height: min(35%, 45px) !important;
+
+  /* Font size baseado no espaço disponível */
+  font-size: clamp(0.45rem, min(2.5vw, 10cqw), 0.75rem) !important;
+
+  /* Padding proporcional */
+  padding: clamp(0.2rem, min(1.5vw, 6cqh), 0.4rem) clamp(0.15rem, min(1vw, 4cqw), 0.3rem) !important;
+
+  /* Layout otimizado */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+
+  /* Texto sempre visível */
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+
+  /* Garantir que sempre caiba */
+  max-width: calc(100% - 4px) !important;
+  box-sizing: border-box !important;
+}
+
+/* ===== OTIMIZAÇÕES ESPECÍFICAS POR RESOLUÇÃO ===== */
+
+/* Mobile - Priorizar botão ainda mais */
+@media (max-width: 480px) {
+  .operationHeader {
+    gap: 0.15rem !important;
+    margin-bottom: 0.15rem !important;
+  }
+
+  .operationTitle,
+  .operationStats {
+    font-size: clamp(0.45rem, 1.8vw, 0.6rem) !important;
+    padding: 0.05rem 0.15rem !important;
+  }
+
+  .quickActionButton {
+    /* Garantir que o botão seja bem visível em mobile */
+    min-height: min(30%, 28px) !important;
+    font-size: clamp(0.5rem, 2.2vw, 0.7rem) !important;
+    padding: clamp(0.25rem, 2vw, 0.45rem) clamp(0.2rem, 1.5vw, 0.35rem) !important;
+  }
+}
+
+/* Telas muito pequenas - Máxima prioridade ao botão */
+@media (max-width: 320px) {
+  .operationHeader {
+    gap: 0.1rem !important;
+    margin-bottom: 0.1rem !important;
+  }
+
+  .operationTitle,
+  .operationStats {
+    font-size: clamp(0.4rem, 1.5vw, 0.55rem) !important;
+    padding: 0.03rem 0.1rem !important;
+  }
+
+  .quickActionButton {
+    /* Botão ainda maior em telas muito pequenas */
+    min-height: min(35%, 32px) !important;
+    font-size: clamp(0.55rem, 2.5vw, 0.75rem) !important;
+    padding: clamp(0.3rem, 2.5vw, 0.5rem) clamp(0.25rem, 2vw, 0.4rem) !important;
+  }
+}
+
+/* ===== GARANTIAS FINAIS ===== */
+
+/* Garantir que dayNumber continue com comportamento correto */
+.dayNumber {
+  display: inline-block !important;
+  width: auto !important;
+  flex-shrink: 0 !important;
+  margin-bottom: 0.2rem !important;
+  font-size: clamp(0.8rem, 3vw, 1.1rem) !important;
+  font-weight: 700 !important;
+}
+
+/* Garantir que operacaoInfo não interfira no layout */
+.operacaoInfo {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+}
+
+/* Garantir que dayCell tenha layout flexível correto */
+.dayCell {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  align-items: stretch !important;
+  padding: clamp(0.2rem, 1.5vw, 0.5rem) !important;
+  gap: 0.1rem !important;
+}
+
+/* ===== AJUSTES PARA DIFERENTES TIPOS DE BOTÃO ===== */
+
+/* Botão "CANCELAR" - texto mais longo */
+.quickCancel {
+  font-size: clamp(0.4rem, min(2vw, 8cqw), 0.65rem) !important;
+  letter-spacing: 0.01em !important;
+}
+
+/* Botão "EU VOU" - texto médio */
+.quickParticipate {
+  font-size: clamp(0.45rem, min(2.2vw, 9cqw), 0.7rem) !important;
+  letter-spacing: 0.02em !important;
+}
+
+/* Botão "ENTRAR NA FILA" - texto longo */
+.quickQueue {
+  font-size: clamp(0.35rem, min(1.8vw, 7cqw), 0.6rem) !important;
+  letter-spacing: 0.005em !important;
+}
+
+/* Botão "LOTADO" - texto médio */
+.quickLotado {
+  font-size: clamp(0.4rem, min(2vw, 8cqw), 0.65rem) !important;
+  letter-spacing: 0.01em !important;
+  opacity: 0.8 !important;
+}
+
+/* =====
+ LAYOUT COMPACTO - NÚMERO E INFO NO TOPO, BOTÃO EMBAIXO ===== */
+
+/* Layout principal da célula - número no canto esquerdo, info no direito */
+.dayCell {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  align-items: stretch !important;
+  padding: clamp(0.2rem, 1.5vw, 0.4rem) !important;
+  gap: 0 !important;
+  position: relative !important;
+  overflow: visible !important;
+  z-index: 1 !important;
+}
+
+/* Header da célula - número à esquerda, info da operação à direita */
+.dayHeader {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  width: 100% !important;
+  margin-bottom: 0.2rem !important;
+  flex-shrink: 0 !important;
+}
+
+/* Número do dia - canto superior esquerdo */
+.dayNumber {
+  display: inline-block !important;
+  width: auto !important;
+  flex-shrink: 0 !important;
+  font-size: clamp(0.8rem, 3vw, 1.1rem) !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  position: absolute !important;
+  top: clamp(0.2rem, 1.5vw, 0.4rem) !important;
+  left: clamp(0.2rem, 1.5vw, 0.4rem) !important;
+  z-index: 2 !important;
+}
+
+/* Info compacta da operação - canto superior direito */
+.operationCompact {
+  display: inline-flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  gap: 0.1rem !important;
+  width: auto !important;
+  flex-shrink: 0 !important;
+  position: absolute !important;
+  top: clamp(0.2rem, 1.5vw, 0.4rem) !important;
+  right: clamp(0.2rem, 1.5vw, 0.4rem) !important;
+  z-index: 2 !important;
+
+  /* Background sutil para melhor legibilidade */
+  background: rgba(255, 255, 255, 0.9) !important;
+  padding: 0.1rem 0.2rem !important;
+  border-radius: 3px !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Nome da operação - BLITZ */
+.operationCompact .operationName {
+  font-size: clamp(0.5rem, 2vw, 0.65rem) !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.02em !important;
+  color: var(--text-primary) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  white-space: nowrap !important;
+}
+
+/* Contador de participantes - 6/30 */
+.operationCompact .participantCount {
+  font-size: clamp(0.45rem, 1.8vw, 0.6rem) !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  color: var(--text-secondary) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  white-space: nowrap !important;
+}
+
+/* Contador da fila - +2 */
+.operationCompact .queueCount {
+  color: #f59e0b !important;
+  font-weight: 700 !important;
+}
+
+/* Container da operação única - espaço para o botão */
+.singleOperationInfo {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  align-items: stretch !important;
+  flex: 1 !important;
+  min-height: 0 !important;
+  padding-top: clamp(1.5rem, 8vw, 2rem) !important;
+  /* Espaço para o header */
+  gap: 0 !important;
+  overflow: visible !important;
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+/* Botão rápido - ocupa todo o espaço restante embaixo */
+.quickActionButton {
+  /* Posicionamento - sempre no final */
+  margin-top: auto !important;
+  margin-bottom: 0 !important;
+  flex-shrink: 0 !important;
+
+  /* Tamanho baseado no espaço disponível */
+  min-height: clamp(20px, 8vw, 40px) !important;
+  max-height: clamp(30px, 12vw, 50px) !important;
+  width: 100% !important;
+
+  /* Font size responsivo */
+  font-size: clamp(0.45rem, 2.5vw, 0.75rem) !important;
+  font-weight: 800 !important;
+  line-height: 1.1 !important;
+
+  /* Padding proporcional */
+  padding: clamp(0.2rem, 2vw, 0.4rem) clamp(0.15rem, 1.5vw, 0.3rem) !important;
+
+  /* Visual */
+  border: none !important;
+  border-radius: clamp(3px, 1vw, 6px) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.02em !important;
+
+  /* Layout */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+
+  /* Texto sempre visível */
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+
+  /* Interação */
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+
+  /* Container */
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* ===== OTIMIZAÇÕES POR RESOLUÇÃO ===== */
+
+/* Mobile muito pequeno - 320px */
+@media (max-width: 320px) {
+  .dayNumber {
+    font-size: clamp(0.7rem, 2.5vw, 0.9rem) !important;
+    top: 0.15rem !important;
+    left: 0.15rem !important;
+  }
+
+  .operationCompact {
+    top: 0.15rem !important;
+    right: 0.15rem !important;
+    padding: 0.05rem 0.15rem !important;
+  }
+
+  .operationCompact .operationName {
+    font-size: clamp(0.45rem, 1.8vw, 0.6rem) !important;
+  }
+
+  .operationCompact .participantCount {
+    font-size: clamp(0.4rem, 1.5vw, 0.55rem) !important;
+  }
+
+  .singleOperationInfo {
+    padding-top: clamp(1.2rem, 6vw, 1.8rem) !important;
+  }
+
+  .quickActionButton {
+    min-height: clamp(18px, 6vw, 32px) !important;
+    font-size: clamp(0.4rem, 2.2vw, 0.65rem) !important;
+  }
+}
+
+/* Mobile pequeno - 321px a 480px */
+@media (min-width: 321px) and (max-width: 480px) {
+  .dayNumber {
+    font-size: clamp(0.75rem, 2.8vw, 1rem) !important;
+    top: 0.2rem !important;
+    left: 0.2rem !important;
+  }
+
+  .operationCompact {
+    top: 0.2rem !important;
+    right: 0.2rem !important;
+    padding: 0.08rem 0.18rem !important;
+  }
+
+  .operationCompact .operationName {
+    font-size: clamp(0.48rem, 1.9vw, 0.63rem) !important;
+  }
+
+  .operationCompact .participantCount {
+    font-size: clamp(0.43rem, 1.6vw, 0.58rem) !important;
+  }
+
+  .singleOperationInfo {
+    padding-top: clamp(1.4rem, 7vw, 1.9rem) !important;
+  }
+
+  .quickActionButton {
+    min-height: clamp(22px, 7vw, 36px) !important;
+    font-size: clamp(0.45rem, 2.3vw, 0.7rem) !important;
+  }
+}
+
+/* Mobile médio - 481px a 768px */
+@media (min-width: 481px) and (max-width: 768px) {
+  .dayNumber {
+    font-size: clamp(0.8rem, 3vw, 1.05rem) !important;
+    top: 0.25rem !important;
+    left: 0.25rem !important;
+  }
+
+  .operationCompact {
+    top: 0.25rem !important;
+    right: 0.25rem !important;
+    padding: 0.1rem 0.2rem !important;
+  }
+
+  .operationCompact .operationName {
+    font-size: clamp(0.5rem, 2vw, 0.65rem) !important;
+  }
+
+  .operationCompact .participantCount {
+    font-size: clamp(0.45rem, 1.7vw, 0.6rem) !important;
+  }
+
+  .singleOperationInfo {
+    padding-top: clamp(1.5rem, 7.5vw, 2rem) !important;
+  }
+
+  .quickActionButton {
+    min-height: clamp(24px, 7.5vw, 38px) !important;
+    font-size: clamp(0.5rem, 2.4vw, 0.72rem) !important;
+  }
+}
+
+/* Desktop - 769px+ */
+@media (min-width: 769px) {
+  .dayNumber {
+    font-size: clamp(0.85rem, 2.5vw, 1.1rem) !important;
+    top: 0.3rem !important;
+    left: 0.3rem !important;
+  }
+
+  .operationCompact {
+    top: 0.3rem !important;
+    right: 0.3rem !important;
+    padding: 0.12rem 0.22rem !important;
+  }
+
+  .operationCompact .operationName {
+    font-size: clamp(0.52rem, 1.8vw, 0.67rem) !important;
+  }
+
+  .operationCompact .participantCount {
+    font-size: clamp(0.47rem, 1.5vw, 0.62rem) !important;
+  }
+
+  .singleOperationInfo {
+    padding-top: clamp(1.6rem, 6vw, 2.1rem) !important;
+  }
+
+  .quickActionButton {
+    min-height: clamp(26px, 6vw, 40px) !important;
+    font-size: clamp(0.52rem, 2vw, 0.75rem) !important;
+  }
+}
+
+/* ===== CORES ESPECÍFICAS PARA MODALIDADES ===== */
+
+/* BLITZ - tons de vermelho */
+.lightBLITZ .operationCompact {
+  background: rgba(254, 242, 242, 0.95) !important;
+  border: 1px solid rgba(248, 113, 113, 0.3) !important;
+}
+
+.lightBLITZ .operationCompact .operationName {
+  color: #dc2626 !important;
+}
+
+.lightBLITZ .operationCompact .participantCount {
+  color: #991b1b !important;
+}
+
+/* BALANÇA - tons de verde */
+.lightBALANCA .operationCompact {
+  background: rgba(240, 253, 244, 0.95) !important;
+  border: 1px solid rgba(74, 222, 128, 0.3) !important;
+}
+
+.lightBALANCA .operationCompact .operationName {
+  color: #16a34a !important;
+}
+
+.lightBALANCA .operationCompact .participantCount {
+  color: #15803d !important;
+}
+
+/* ===== GARANTIAS FINAIS ===== */
+
+/* Remover conflitos com estilos antigos */
+.operationHeader,
+.operationTitle,
+.operationStats {
+  display: none !important;
+}
+
+/* Garantir que operacaoInfo não interfira */
+.operacaoInfo {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  position: relative !important;
+}
+
+/* Hover effects otimizados */
+@media (hover: hover) and (pointer: fine) {
+  .quickActionButton:hover:not(:disabled) {
+    transform: translateY(-1px) scale(1.02) !important;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25) !important;
+  }
+}
+
+/* Touch feedback para mobile */
+@media (hover: none) and (pointer: coarse) {
+  .quickActionButton:active:not(:disabled) {
+    transform: scale(0.98) !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) !important;
+  }
+}
+
+/*
+ ===== CORREÇÃO DOS PROBLEMAS IDENTIFICADOS ===== */
+
+/* 1. CORRIGIR BOTÕES QUE SÓ APARECEM NO HOVER */
+.dayCell {
+  overflow: visible !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.singleOperationInfo {
+  overflow: visible !important;
+  position: relative !important;
+  z-index: 2 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+.quickActionButton {
+  overflow: visible !important;
+  position: relative !important;
+  z-index: 3 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: flex !important;
+}
+
+/* 2. LAYOUT COMPACTO - BLITZ E 13/30 LADO A LADO NO TOPO */
+.compactHeader {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+  margin-bottom: 0.3rem !important;
+  flex-shrink: 0 !important;
+  position: absolute !important;
+  top: clamp(1.2rem, 6vw, 1.8rem) !important;
+  left: clamp(0.2rem, 1.5vw, 0.4rem) !important;
+  right: clamp(0.2rem, 1.5vw, 0.4rem) !important;
+  z-index: 2 !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  padding: 0.1rem 0.3rem !important;
+  border-radius: 4px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Nome da modalidade - BLITZ (lado esquerdo) */
+.modalidadeName {
+  font-size: clamp(0.5rem, 2.2vw, 0.7rem) !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.02em !important;
+  color: var(--text-primary) !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  white-space: nowrap !important;
+}
+
+/* Stats dos participantes - 13/30 (lado direito) */
+.participantStats {
+  font-size: clamp(0.45rem, 2vw, 0.65rem) !important;
+  font-weight: 700 !important;
+  color: var(--text-secondary) !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  white-space: nowrap !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.1rem !important;
+}
+
+/* Indicador da fila - +2 */
+.queueIndicator {
+  color: #f59e0b !important;
+  font-weight: 800 !important;
+  font-size: 0.9em !important;
+}
+
+/* 3. BOTÃO OCUPANDO TODO O ESPAÇO RESTANTE */
+.quickActionButton {
+  /* Posicionamento - sempre no final da célula */
+  position: absolute !important;
+  bottom: clamp(0.2rem, 1.5vw, 0.4rem) !important;
+  left: clamp(0.2rem, 1.5vw, 0.4rem) !important;
+  right: clamp(0.2rem, 1.5vw, 0.4rem) !important;
+
+  /* Tamanho baseado no espaço disponível */
+  height: clamp(20px, 8vw, 40px) !important;
+  min-height: clamp(18px, 6vw, 32px) !important;
+  max-height: clamp(25px, 10vw, 45px) !important;
+  width: auto !important;
+
+  /* Font size responsivo */
+  font-size: clamp(0.4rem, 2.2vw, 0.7rem) !important;
+  font-weight: 800 !important;
+  line-height: 1.1 !important;
+
+  /* Padding mínimo */
+  padding: clamp(0.15rem, 1.5vw, 0.3rem) clamp(0.1rem, 1vw, 0.2rem) !important;
+
+  /* Visual */
+  border: none !important;
+  border-radius: clamp(3px, 1vw, 6px) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.01em !important;
+
+  /* Layout */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+
+  /* Texto sempre visível */
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+
+  /* Interação */
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+
+  /* Z-index alto para ficar sempre visível */
+  z-index: 10 !important;
+
+  /* Garantir visibilidade */
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* 4. CORES ESPECÍFICAS PARA MODALIDADES NO HEADER COMPACTO */
+
+/* BLITZ - tons de vermelho */
+.lightBLITZ .compactHeader {
+  background: rgba(254, 242, 242, 0.98) !important;
+  border: 1px solid rgba(248, 113, 113, 0.4) !important;
+}
+
+.lightBLITZ .modalidadeName {
+  color: #dc2626 !important;
+}
+
+.lightBLITZ .participantStats {
+  color: #991b1b !important;
+}
+
+/* BALANÇA - tons de verde */
+.lightBALANCA .compactHeader {
+  background: rgba(240, 253, 244, 0.98) !important;
+  border: 1px solid rgba(74, 222, 128, 0.4) !important;
+}
+
+.lightBALANCA .modalidadeName {
+  color: #16a34a !important;
+}
+
+.lightBALANCA .participantStats {
+  color: #15803d !important;
+}
+
+/* 5. OTIMIZAÇÕES POR RESOLUÇÃO PARA CORRIGIR PROBLEMAS */
+
+/* Mobile muito pequeno - 320px */
+@media (max-width: 320px) {
+  .compactHeader {
+    top: clamp(1rem, 5vw, 1.5rem) !important;
+    padding: 0.05rem 0.2rem !important;
+    font-size: 0.9em !important;
+  }
+
+  .modalidadeName {
+    font-size: clamp(0.45rem, 2vw, 0.6rem) !important;
+  }
+
+  .participantStats {
+    font-size: clamp(0.4rem, 1.8vw, 0.55rem) !important;
+  }
+
+  .quickActionButton {
+    bottom: clamp(0.15rem, 1vw, 0.3rem) !important;
+    left: clamp(0.15rem, 1vw, 0.3rem) !important;
+    right: clamp(0.15rem, 1vw, 0.3rem) !important;
+    height: clamp(18px, 6vw, 28px) !important;
+    font-size: clamp(0.35rem, 2vw, 0.6rem) !important;
+  }
+}
+
+/* Mobile pequeno - 321px a 480px */
+@media (min-width: 321px) and (max-width: 480px) {
+  .compactHeader {
+    top: clamp(1.1rem, 5.5vw, 1.6rem) !important;
+    padding: 0.08rem 0.25rem !important;
+  }
+
+  .modalidadeName {
+    font-size: clamp(0.48rem, 2.1vw, 0.65rem) !important;
+  }
+
+  .participantStats {
+    font-size: clamp(0.43rem, 1.9vw, 0.6rem) !important;
+  }
+
+  .quickActionButton {
+    bottom: clamp(0.18rem, 1.2vw, 0.35rem) !important;
+    left: clamp(0.18rem, 1.2vw, 0.35rem) !important;
+    right: clamp(0.18rem, 1.2vw, 0.35rem) !important;
+    height: clamp(20px, 7vw, 32px) !important;
+    font-size: clamp(0.4rem, 2.1vw, 0.65rem) !important;
+  }
+}
+
+/* Mobile médio - 481px a 768px */
+@media (min-width: 481px) and (max-width: 768px) {
+  .compactHeader {
+    top: clamp(1.2rem, 6vw, 1.7rem) !important;
+    padding: 0.1rem 0.3rem !important;
+  }
+
+  .modalidadeName {
+    font-size: clamp(0.5rem, 2.2vw, 0.7rem) !important;
+  }
+
+  .participantStats {
+    font-size: clamp(0.45rem, 2vw, 0.65rem) !important;
+  }
+
+  .quickActionButton {
+    bottom: clamp(0.2rem, 1.4vw, 0.4rem) !important;
+    left: clamp(0.2rem, 1.4vw, 0.4rem) !important;
+    right: clamp(0.2rem, 1.4vw, 0.4rem) !important;
+    height: clamp(22px, 7.5vw, 36px) !important;
+    font-size: clamp(0.45rem, 2.2vw, 0.7rem) !important;
+  }
+}
+
+/* Desktop - 769px+ */
+@media (min-width: 769px) {
+  .compactHeader {
+    top: clamp(1.3rem, 5vw, 1.8rem) !important;
+    padding: 0.12rem 0.35rem !important;
+  }
+
+  .modalidadeName {
+    font-size: clamp(0.52rem, 2vw, 0.72rem) !important;
+  }
+
+  .participantStats {
+    font-size: clamp(0.47rem, 1.8vw, 0.67rem) !important;
+  }
+
+  .quickActionButton {
+    bottom: clamp(0.25rem, 1.5vw, 0.45rem) !important;
+    left: clamp(0.25rem, 1.5vw, 0.45rem) !important;
+    right: clamp(0.25rem, 1.5vw, 0.45rem) !important;
+    height: clamp(24px, 6vw, 38px) !important;
+    font-size: clamp(0.5rem, 2vw, 0.72rem) !important;
+  }
+}
+
+/* 6. GARANTIR QUE ELEMENTOS ANTIGOS NÃO INTERFIRAM */
+.operationCompact,
+.operationHeader,
+.operationTitle,
+.operationStats {
+  display: none !important;
+}
+
+/* 7. CORRIGIR BOTÕES VERDES QUE APARECEM FORA DAS CÉLULAS */
+.calendarGrid {
+  overflow: visible !important;
+  position: relative !important;
+}
+
+.calendarGridWrapper {
+  overflow: visible !important;
+  position: relative !important;
+}
+
+.calendarContent {
+  overflow: visible !important;
+  position: relative !important;
+}
+
+.calendarContainer {
+  overflow: visible !important;
+  position: relative !important;
+}
+
+/* 8. HOVER EFFECTS OTIMIZADOS */
+@media (hover: hover) and (pointer: fine) {
+  .quickActionButton:hover:not(:disabled) {
+    transform: translateY(-1px) scale(1.02) !important;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25) !important;
+    z-index: 15 !important;
+  }
+}
+
+/* 9. TOUCH FEEDBACK PARA MOBILE */
+@media (hover: none) and (pointer: coarse) {
+  .quickActionButton:active:not(:disabled) {
+    transform: scale(0.98) !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) !important;
+  }
+}
+
+/* 10. AJUSTES ESPECÍFICOS PARA DIFERENTES TIPOS DE BOTÃO */
+
+/* Botão "CANCELAR" - texto mais longo */
+.quickCancel {
+  font-size: clamp(0.35rem, 1.8vw, 0.6rem) !important;
+  letter-spacing: 0.005em !important;
+}
+
+/* Botão "EU VOU" - texto médio */
+.quickParticipate {
+  font-size: clamp(0.4rem, 2vw, 0.65rem) !important;
+  letter-spacing: 0.01em !important;
+}
+
+/* Botão "ENTRAR NA FILA" - texto longo */
+.quickQueue {
+  font-size: clamp(0.3rem, 1.6vw, 0.55rem) !important;
+  letter-spacing: 0em !important;
+}
+
+/* Botão "LOTADO" - texto médio */
+.quickLotado {
+  font-size: clamp(0.35rem, 1.8vw, 0.6rem) !important;
+  letter-spacing: 0.005em !important;
+  opacity: 0.8 !important;
+  cursor: default !important;
+}
+
+/* 11. GARANTIR QUE O NÚMERO DO DIA NÃO INTERFIRA */
+.dayNumber {
+  position: absolute !important;
+  top: clamp(0.2rem, 1.5vw, 0.4rem) !important;
+  left: clamp(0.2rem, 1.5vw, 0.4rem) !important;
+  z-index: 1 !important;
+  font-size: clamp(0.8rem, 3vw, 1.1rem) !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: auto !important;
+  display: inline-block !important;
+}
+
+/* =====
+ CORREÇÃO COMPLETA DOS PROBLEMAS IDENTIFICADOS ===== */
+
+/* 1. ALTURA FIXA DAS CÉLULAS PARA EVITAR SOBREPOSIÇÃO */
+.calendarGrid {
+  grid-template-rows: auto repeat(6, 80px) !important;
+  /* ALTURA FIXA para evitar sobreposição */
+  gap: 2px !important;
+  max-width: 100% !important;
+  border: none !important;
+}
+
+/* 2. LAYOUT CORRETO DA CÉLULA - SEM SOBREPOSIÇÃO */
+.dayCell {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  align-items: stretch !important;
+  padding: 0.3rem !important;
+  gap: 0.2rem !important;
+  position: relative !important;
+  overflow: visible !important;
+  z-index: 1 !important;
+  height: 80px !important;
+  /* ALTURA FIXA */
+  min-height: 80px !important;
+  max-height: 80px !important;
+  box-sizing: border-box !important;
+}
+
+/* 3. NÚMERO DO DIA - CANTO SUPERIOR ESQUERDO */
+.dayNumber {
+  position: absolute !important;
+  top: 0.2rem !important;
+  left: 0.2rem !important;
+  z-index: 2 !important;
+  font-size: 0.9rem !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: auto !important;
+  display: inline-block !important;
+}
+
+/* 4. HEADER COMPACTO - CANTO SUPERIOR DIREITO (AO LADO DO NÚMERO) */
+.compactHeader {
+  position: absolute !important;
+  top: 0.2rem !important;
+  right: 0.2rem !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.3rem !important;
+  z-index: 2 !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  padding: 0.1rem 0.3rem !important;
+  border-radius: 3px !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+  width: auto !important;
+  flex-shrink: 0 !important;
+}
+
+/* 5. NOME DA MODALIDADE - BLITZ */
+.modalidadeName {
+  font-size: 0.6rem !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.02em !important;
+  color: var(--text-primary) !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  white-space: nowrap !important;
+}
+
+/* 6. STATS DOS PARTICIPANTES - 12/30 */
+.participantStats {
+  font-size: 0.55rem !important;
+  font-weight: 700 !important;
+  color: var(--text-secondary) !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  white-space: nowrap !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.1rem !important;
+}
+
+/* 7. INDICADOR DA FILA - +2 */
+.queueIndicator {
+  color: #f59e0b !important;
+  font-weight: 800 !important;
+  font-size: 0.9em !important;
+}
+
+/* 8. CONTAINER DA OPERAÇÃO - ESPAÇO PARA O BOTÃO */
+.singleOperationInfo {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  align-items: stretch !important;
+  flex: 1 !important;
+  min-height: 0 !important;
+  padding-top: 1.5rem !important;
+  /* Espaço para o header */
+  gap: 0 !important;
+  overflow: visible !important;
+  position: relative !important;
+  z-index: 1 !important;
+  height: 100% !important;
+}
+
+/* 9. BOTÃO - SEMPRE NO FINAL, NUNCA SOBREPONDO */
+.quickActionButton {
+  /* Posicionamento - sempre no final da célula */
+  position: absolute !important;
+  bottom: 0.2rem !important;
+  left: 0.2rem !important;
+  right: 0.2rem !important;
+
+  /* Tamanho fixo para todas as resoluções */
+  height: 24px !important;
+  min-height: 24px !important;
+  max-height: 24px !important;
+  width: auto !important;
+
+  /* Font size fixo para consistência */
+  font-size: 0.6rem !important;
+  font-weight: 800 !important;
+  line-height: 1.1 !important;
+
+  /* Padding mínimo */
+  padding: 0.2rem 0.3rem !important;
+
+  /* Visual */
+  border: none !important;
+  border-radius: 4px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.01em !important;
+
+  /* Layout */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+
+  /* Texto sempre visível */
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+
+  /* Interação */
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+
+  /* Z-index alto para ficar sempre visível */
+  z-index: 10 !important;
+
+  /* Garantir visibilidade */
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* 10. CORES ESPECÍFICAS PARA MODALIDADES NO HEADER COMPACTO */
+
+/* BLITZ - tons de vermelho */
+.lightBLITZ .compactHeader {
+  background: rgba(254, 242, 242, 0.98) !important;
+  border: 1px solid rgba(248, 113, 113, 0.4) !important;
+}
+
+.lightBLITZ .modalidadeName {
+  color: #dc2626 !important;
+}
+
+.lightBLITZ .participantStats {
+  color: #991b1b !important;
+}
+
+/* BALANÇA - tons de verde */
+.lightBALANCA .compactHeader {
+  background: rgba(240, 253, 244, 0.98) !important;
+  border: 1px solid rgba(74, 222, 128, 0.4) !important;
+}
+
+.lightBALANCA .modalidadeName {
+  color: #16a34a !important;
+}
+
+.lightBALANCA .participantStats {
+  color: #15803d !important;
+}
+
+/* 11. AJUSTES ESPECÍFICOS POR RESOLUÇÃO - ALTURA FIXA */
+
+/* Resoluções pequenas - 320px a 768px */
+@media (max-width: 768px) {
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, 90px) !important;
+    /* Altura maior para mobile */
+  }
+
+  .dayCell {
+    height: 90px !important;
+    min-height: 90px !important;
+    max-height: 90px !important;
+  }
+
+  .quickActionButton {
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+    font-size: 0.65rem !important;
+  }
+}
+
+/* Resoluções médias - 769px a 1024px */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, 85px) !important;
+  }
+
+  .dayCell {
+    height: 85px !important;
+    min-height: 85px !important;
+    max-height: 85px !important;
+  }
+
+  .quickActionButton {
+    height: 26px !important;
+    min-height: 26px !important;
+    max-height: 26px !important;
+    font-size: 0.62rem !important;
+  }
+}
+
+/* Resoluções grandes - 1025px+ */
+@media (min-width: 1025px) {
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, 80px) !important;
+    /* Altura padrão para desktop */
+  }
+
+  .dayCell {
+    height: 80px !important;
+    min-height: 80px !important;
+    max-height: 80px !important;
+  }
+
+  .quickActionButton {
+    height: 24px !important;
+    min-height: 24px !important;
+    max-height: 24px !important;
+    font-size: 0.6rem !important;
+  }
+}
+
+/* 12. GARANTIR QUE ELEMENTOS ANTIGOS NÃO INTERFIRAM */
+.operationCompact,
+.operationHeader,
+.operationTitle,
+.operationStats {
+  display: none !important;
+}
+
+/* 13. HOVER EFFECTS OTIMIZADOS */
+@media (hover: hover) and (pointer: fine) {
+  .quickActionButton:hover:not(:disabled) {
+    transform: translateY(-1px) scale(1.02) !important;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25) !important;
+    z-index: 15 !important;
+  }
+}
+
+/* 14. TOUCH FEEDBACK PARA MOBILE */
+@media (hover: none) and (pointer: coarse) {
+  .quickActionButton:active:not(:disabled) {
+    transform: scale(0.98) !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) !important;
+  }
+}
+
+/* 15. AJUSTES ESPECÍFICOS PARA DIFERENTES TIPOS DE BOTÃO */
+
+/* Botão "CANCELAR" - texto mais longo */
+.quickCancel {
+  font-size: 0.55rem !important;
+  letter-spacing: 0.005em !important;
+}
+
+/* Botão "EU VOU" - texto médio */
+.quickParticipate {
+  font-size: 0.6rem !important;
+  letter-spacing: 0.01em !important;
+}
+
+/* Botão "ENTRAR NA FILA" - texto longo */
+.quickQueue {
+  font-size: 0.5rem !important;
+  letter-spacing: 0em !important;
+}
+
+/* Botão "LOTADO" - texto médio */
+.quickLotado {
+  font-size: 0.55rem !important;
+  letter-spacing: 0.005em !important;
+  opacity: 0.8 !important;
+  cursor: default !important;
+}
+
+/* 16. GARANTIR VISIBILIDADE EM TODAS AS RESOLUÇÕES */
+.dayCell,
+.singleOperationInfo,
+.quickActionButton,
+.compactHeader {
+  overflow: visible !important;
+  position: relative !important;
+}
+
+.calendarGrid,
+.calendarGridWrapper,
+.calendarContent,
+.calendarContainer {
+  overflow: visible !important;
+}
+
+/* 17. LAYOUT FINAL - GARANTIR QUE TUDO FUNCIONE */
+.dayCell {
+  /* Layout flexível mas com altura fixa */
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  align-items: stretch !important;
+
+  /* Espaçamento interno */
+  padding: 0.3rem !important;
+  gap: 0 !important;
+
+  /* Posicionamento */
+  position: relative !important;
+  overflow: visible !important;
+  z-index: 1 !important;
+
+  /* Tamanho fixo para evitar sobreposição */
+  height: 80px !important;
+  min-height: 80px !important;
+  max-height: 80px !important;
+  box-sizing: border-box !important;
+
+  /* Visual */
+  border: 1px solid var(--border-light) !important;
+  background: var(--bg-card) !important;
+}
+
+/*
+ ===== RESPONSIVIDADE COMPLETA PARA RESOLUÇÕES BAIXAS ===== */
+
+/* Container principal - sempre caber na tela */
+.calendarContainer {
+  max-width: 100vw !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+}
+
+.calendarArea {
+  max-width: 100vw !important;
+  width: 100% !important;
+  padding: 0.2rem !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+}
+
+.calendarContent {
+  max-width: 100vw !important;
+  width: 100% !important;
+  padding: 0.1rem !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+}
+
+.calendarGridWrapper {
+  max-width: 100vw !important;
+  width: 100% !important;
+  padding: 0.1rem !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+}
+
+/* Grid responsivo - sempre caber na tela */
+.calendarGrid {
+  max-width: 100vw !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+}
+
+/* ===== RESOLUÇÕES ESPECÍFICAS ===== */
+
+/* 320x520 - iPhone 5/SE Portrait */
+@media (max-width: 320px) and (min-height: 500px) {
+  .calendarContainer {
+    max-width: 320px !important;
+    margin: 0 auto !important;
+    padding: 0.1rem !important;
+  }
+
+  .calendarArea {
+    padding: 0.1rem !important;
+  }
+
+  .calendarContent {
+    padding: 0.05rem !important;
+  }
+
+  .calendarGridWrapper {
+    padding: 0.05rem !important;
+  }
+
+  .calendarGrid {
+    gap: 1px !important;
+    grid-template-rows: auto repeat(6, 85px) !important;
+    max-width: 318px !important;
+    /* 320px - 2px de margem */
+  }
+
+  .dayCell {
+    height: 85px !important;
+    min-height: 85px !important;
+    max-height: 85px !important;
+    padding: 0.2rem !important;
+  }
+
+  .dayNumber {
+    font-size: 0.8rem !important;
+  }
+
+  .modalidadeName {
+    font-size: 0.5rem !important;
+  }
+
+  .participantStats {
+    font-size: 0.45rem !important;
+  }
+
+  .quickActionButton {
+    height: 22px !important;
+    font-size: 0.5rem !important;
+    padding: 0.15rem 0.2rem !important;
+  }
+}
+
+/* 375x520 - iPhone 6/7/8 Portrait */
+@media (min-width: 321px) and (max-width: 375px) and (min-height: 500px) {
+  .calendarContainer {
+    max-width: 375px !important;
+    margin: 0 auto !important;
+    padding: 0.15rem !important;
+  }
+
+  .calendarArea {
+    padding: 0.15rem !important;
+  }
+
+  .calendarContent {
+    padding: 0.1rem !important;
+  }
+
+  .calendarGridWrapper {
+    padding: 0.1rem !important;
+  }
+
+  .calendarGrid {
+    gap: 1px !important;
+    grid-template-rows: auto repeat(6, 88px) !important;
+    max-width: 373px !important;
+    /* 375px - 2px de margem */
+  }
+
+  .dayCell {
+    height: 88px !important;
+    min-height: 88px !important;
+    max-height: 88px !important;
+    padding: 0.25rem !important;
+  }
+
+  .dayNumber {
+    font-size: 0.85rem !important;
+  }
+
+  .modalidadeName {
+    font-size: 0.55rem !important;
+  }
+
+  .participantStats {
+    font-size: 0.5rem !important;
+  }
+
+  .quickActionButton {
+    height: 24px !important;
+    font-size: 0.55rem !important;
+    padding: 0.18rem 0.25rem !important;
+  }
+}
+
+/* 425x520 - iPhone 6/7/8 Plus Portrait */
+@media (min-width: 376px) and (max-width: 425px) and (min-height: 500px) {
+  .calendarContainer {
+    max-width: 425px !important;
+    margin: 0 auto !important;
+    padding: 0.2rem !important;
+  }
+
+  .calendarArea {
+    padding: 0.2rem !important;
+  }
+
+  .calendarContent {
+    padding: 0.15rem !important;
+  }
+
+  .calendarGridWrapper {
+    padding: 0.15rem !important;
+  }
+
+  .calendarGrid {
+    gap: 2px !important;
+    grid-template-rows: auto repeat(6, 90px) !important;
+    max-width: 423px !important;
+    /* 425px - 2px de margem */
+  }
+
+  .dayCell {
+    height: 90px !important;
+    min-height: 90px !important;
+    max-height: 90px !important;
+    padding: 0.3rem !important;
+  }
+
+  .dayNumber {
+    font-size: 0.9rem !important;
+  }
+
+  .modalidadeName {
+    font-size: 0.6rem !important;
+  }
+
+  .participantStats {
+    font-size: 0.55rem !important;
+  }
+
+  .quickActionButton {
+    height: 26px !important;
+    font-size: 0.6rem !important;
+    padding: 0.2rem 0.3rem !important;
+  }
+}
+
+/* 588x485 - Landscape pequeno */
+@media (min-width: 480px) and (max-width: 588px) and (max-height: 500px) {
+  .calendarContainer {
+    max-width: 588px !important;
+    margin: 0 auto !important;
+    padding: 0.2rem !important;
+  }
+
+  .calendarArea {
+    padding: 0.2rem !important;
+  }
+
+  .calendarContent {
+    padding: 0.15rem !important;
+  }
+
+  .calendarGridWrapper {
+    padding: 0.15rem !important;
+  }
+
+  .calendarGrid {
+    gap: 2px !important;
+    grid-template-rows: auto repeat(6, 65px) !important;
+    /* Altura menor para landscape */
+    max-width: 586px !important;
+    /* 588px - 2px de margem */
+  }
+
+  .dayCell {
+    height: 65px !important;
+    min-height: 65px !important;
+    max-height: 65px !important;
+    padding: 0.2rem !important;
+  }
+
+  .dayNumber {
+    font-size: 0.8rem !important;
+  }
+
+  .modalidadeName {
+    font-size: 0.5rem !important;
+  }
+
+  .participantStats {
+    font-size: 0.45rem !important;
+  }
+
+  .quickActionButton {
+    height: 20px !important;
+    font-size: 0.5rem !important;
+    padding: 0.15rem 0.2rem !important;
+  }
+}
+
+/* ===== AJUSTES GERAIS PARA TODAS AS RESOLUÇÕES BAIXAS ===== */
+
+/* Resoluções muito pequenas - ajustes gerais */
+@media (max-width: 600px) {
+
+  /* Header do calendário mais compacto */
+  .calendarHeader {
+    padding: 0.3rem !important;
+    min-height: 40px !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .monthYear {
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+  }
+
+  .navButton,
+  .todayButton {
+    padding: 0.3rem 0.5rem !important;
+    font-size: 0.7rem !important;
+    min-height: 32px !important;
+  }
+
+  /* Dias da semana mais compactos */
+  .dayName {
+    font-size: 0.5rem !important;
+    height: 14px !important;
+    padding: 0.1rem !important;
+  }
+
+  /* Garantir que o header compacto não saia da célula */
+  .compactHeader {
+    max-width: calc(100% - 1.5rem) !important;
+    /* Espaço para o número do dia */
+    padding: 0.05rem 0.2rem !important;
+    font-size: 0.9em !important;
+  }
+
+  /* Info da data atual mais compacta */
+  .currentDateInfo {
+    font-size: 0.7rem !important;
+    padding: 0.3rem !important;
+    margin-top: 0.3rem !important;
+  }
+}
+
+/* ===== AJUSTES ESPECÍFICOS PARA ORIENTAÇÃO ===== */
+
+/* Portrait - altura maior que largura */
+@media (max-width: 600px) and (orientation: portrait) {
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, clamp(80px, 15vh, 100px)) !important;
+  }
+
+  .dayCell {
+    height: clamp(80px, 15vh, 100px) !important;
+    min-height: clamp(80px, 15vh, 100px) !important;
+    max-height: clamp(80px, 15vh, 100px) !important;
+  }
+}
+
+/* Landscape - largura maior que altura */
+@media (max-width: 600px) and (orientation: landscape) {
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, clamp(60px, 12vh, 80px)) !important;
+  }
+
+  .dayCell {
+    height: clamp(60px, 12vh, 80px) !important;
+    min-height: clamp(60px, 12vh, 80px) !important;
+    max-height: clamp(60px, 12vh, 80px) !important;
+  }
+
+  .quickActionButton {
+    height: clamp(18px, 4vh, 24px) !important;
+    font-size: clamp(0.45rem, 1.5vw, 0.6rem) !important;
+  }
+}
+
+/* ===== GARANTIR QUE NUNCA CORTE NAS LATERAIS ===== */
+
+/* Viewport muito pequeno - forçar ajuste */
+@media (max-width: 320px) {
+
+  .calendarContainer,
+  .calendarArea,
+  .calendarContent,
+  .calendarGridWrapper,
+  .calendarGrid,
+  .dayCell,
+  .quickActionButton,
+  .compactHeader {
+    box-sizing: border-box !important;
+  }
+
+  .calendarContainer,
+  .calendarArea,
+  .calendarContent,
+  .calendarGridWrapper,
+  .calendarGrid {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Forçar que o grid caiba na tela */
+  .calendarGrid {
+    width: calc(100vw - 4px) !important;
+    max-width: calc(100vw - 4px) !important;
+  }
+
+  /* Células proporcionais ao espaço disponível */
+  .dayCell {
+    min-width: 0 !important;
+    width: auto !important;
+    flex: 1 !important;
+  }
+}
+
+/* ===== AJUSTES FINAIS PARA GARANTIR RESPONSIVIDADE ===== */
+
+/* Garantir que o calendário sempre caiba na tela */
+@media (max-width: 600px) {
+  .calendarContainer {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    margin: 0 !important;
+    padding: clamp(0.1rem, 1vw, 0.3rem) !important;
+    box-sizing: border-box !important;
+  }
+
+  .calendarGrid {
+    width: 100% !important;
+    max-width: 100% !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+  }
+
+  .dayCell {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Botões sempre proporcionais */
+  .quickActionButton {
+    width: calc(100% - 0.4rem) !important;
+    max-width: calc(100% - 0.4rem) !important;
+    left: 0.2rem !important;
+    right: 0.2rem !important;
+  }
+}
+
+/* =
+==== TEXTOS RESPONSIVOS PARA BOTÕES E ELEMENTOS ===== */
+
+/* 1. TEXTOS DOS BOTÕES RESPONSIVOS POR RESOLUÇÃO */
+
+/* Resoluções muito pequenas - textos ultra compactos */
+@media (max-width: 320px) {
+
+  /* Botão CANCELAR → CANCEL */
+  .quickCancel::after {
+    content: "CANCEL" !important;
+  }
+
+  .quickCancel {
+    font-size: 0 !important;
+    /* Esconder texto original */
+  }
+
+  /* Botão EU VOU → VOU */
+  .quickParticipate::after {
+    content: "VOU" !important;
+  }
+
+  .quickParticipate {
+    font-size: 0 !important;
+    /* Esconder texto original */
+  }
+
+  /* Botão ENTRAR NA FILA → FILA */
+  .quickQueue::after {
+    content: "FILA" !important;
+  }
+
+  .quickQueue {
+    font-size: 0 !important;
+    /* Esconder texto original */
+  }
+
+  /* Estilo para os textos alternativos */
+  .quickCancel::after,
+  .quickParticipate::after,
+  .quickQueue::after {
+    font-size: 0.5rem !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.02em !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+}
+
+/* Resoluções pequenas 321px-375px - textos compactos */
+@media (min-width: 321px) and (max-width: 375px) {
+
+  /* Botão CANCELAR → CANCEL */
+  .quickCancel::after {
+    content: "CANCEL" !important;
+  }
+
+  .quickCancel {
+    font-size: 0 !important;
+  }
+
+  /* Botão EU VOU → VOU */
+  .quickParticipate::after {
+    content: "EU VOU" !important;
+  }
+
+  .quickParticipate {
+    font-size: 0 !important;
+  }
+
+  /* Botão ENTRAR NA FILA → FILA */
+  .quickQueue::after {
+    content: "FILA" !important;
+  }
+
+  .quickQueue {
+    font-size: 0 !important;
+  }
+
+  .quickCancel::after,
+  .quickParticipate::after,
+  .quickQueue::after {
+    font-size: 0.55rem !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.02em !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+}
+
+/* Resoluções médias 376px-425px - textos médios */
+@media (min-width: 376px) and (max-width: 425px) {
+
+  /* Botão ENTRAR NA FILA → FILA */
+  .quickQueue::after {
+    content: "FILA" !important;
+  }
+
+  .quickQueue {
+    font-size: 0 !important;
+  }
+
+  .quickQueue::after {
+    font-size: 0.6rem !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.02em !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* CANCELAR e EU VOU podem manter texto original */
+  .quickCancel,
+  .quickParticipate {
+    font-size: 0.6rem !important;
+  }
+}
+
+/* 2. TEXTOS "BLITZ" E "BALANÇA" MAIS CHARMOSOS E RESPONSIVOS */
+
+/* Estilo charmoso para modalidades */
+.modalidadeName {
+  font-family: 'Arial Black', Arial, sans-serif !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3) !important;
+  border-radius: 3px !important;
+  padding: 0.1rem 0.3rem !important;
+  display: inline-block !important;
+}
+
+/* BLITZ - estilo charmoso vermelho */
+.lightBLITZ .modalidadeName {
+  background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+  color: white !important;
+  border: 1px solid #991b1b !important;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.3) !important;
+}
+
+/* BALANÇA - estilo charmoso verde */
+.lightBALANCA .modalidadeName {
+  background: linear-gradient(135deg, #16a34a, #15803d) !important;
+  color: white !important;
+  border: 1px solid #166534 !important;
+  box-shadow: 0 2px 4px rgba(22, 163, 74, 0.3) !important;
+}
+
+/* Responsividade para modalidades */
+@media (max-width: 320px) {
+  .modalidadeName {
+    font-size: 0.45rem !important;
+    padding: 0.05rem 0.2rem !important;
+  }
+}
+
+@media (min-width: 321px) and (max-width: 375px) {
+  .modalidadeName {
+    font-size: 0.5rem !important;
+    padding: 0.08rem 0.25rem !important;
+  }
+}
+
+@media (min-width: 376px) and (max-width: 425px) {
+  .modalidadeName {
+    font-size: 0.55rem !important;
+    padding: 0.1rem 0.3rem !important;
+  }
+}
+
+/* 3. STATS DOS PARTICIPANTES RESPONSIVOS */
+.participantStats {
+  font-weight: 700 !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 2px !important;
+  padding: 0.05rem 0.2rem !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+@media (max-width: 320px) {
+  .participantStats {
+    font-size: 0.4rem !important;
+    padding: 0.03rem 0.15rem !important;
+  }
+}
+
+@media (min-width: 321px) and (max-width: 375px) {
+  .participantStats {
+    font-size: 0.45rem !important;
+    padding: 0.05rem 0.18rem !important;
+  }
+}
+
+@media (min-width: 376px) and (max-width: 425px) {
+  .participantStats {
+    font-size: 0.5rem !important;
+    padding: 0.08rem 0.2rem !important;
+  }
+}
+
+/* 4. NAVEGAÇÃO DOS MESES RESPONSIVA */
+
+/* Header do calendário responsivo */
+.calendarHeader {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 0.3rem !important;
+  gap: 0.2rem !important;
+  flex-wrap: nowrap !important;
+}
+
+.leftButtons {
+  display: flex !important;
+  gap: 0.2rem !important;
+  flex-shrink: 0 !important;
+}
+
+.monthYear {
+  flex: 1 !important;
+  text-align: center !important;
+  font-weight: 600 !important;
+  min-width: 0 !important;
+}
+
+.navButton {
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Responsividade da navegação */
+@media (max-width: 320px) {
+  .calendarHeader {
+    padding: 0.2rem !important;
+    gap: 0.1rem !important;
+  }
+
+  .monthYear {
+    font-size: 0.8rem !important;
+  }
+
+  .navButton {
+    padding: 0.25rem 0.4rem !important;
+    font-size: 0.6rem !important;
+    min-height: 28px !important;
+  }
+
+  .todayButton {
+    padding: 0.25rem 0.3rem !important;
+    font-size: 0.6rem !important;
+    min-height: 28px !important;
+  }
+
+  /* Textos compactos para navegação */
+  .navButton span {
+    display: none !important;
+  }
+
+  .navButton::after {
+    content: "◀" !important;
+  }
+
+  .navButton:last-child::after {
+    content: "▶" !important;
+  }
+}
+
+@media (min-width: 321px) and (max-width: 375px) {
+  .calendarHeader {
+    padding: 0.25rem !important;
+    gap: 0.15rem !important;
+  }
+
+  .monthYear {
+    font-size: 0.85rem !important;
+  }
+
+  .navButton {
+    padding: 0.3rem 0.5rem !important;
+    font-size: 0.65rem !important;
+    min-height: 30px !important;
+  }
+
+  .todayButton {
+    padding: 0.3rem 0.4rem !important;
+    font-size: 0.65rem !important;
+    min-height: 30px !important;
+  }
+}
+
+@media (min-width: 376px) and (max-width: 425px) {
+  .calendarHeader {
+    padding: 0.3rem !important;
+    gap: 0.2rem !important;
+  }
+
+  .monthYear {
+    font-size: 0.9rem !important;
+  }
+
+  .navButton {
+    padding: 0.35rem 0.6rem !important;
+    font-size: 0.7rem !important;
+    min-height: 32px !important;
+  }
+
+  .todayButton {
+    padding: 0.35rem 0.5rem !important;
+    font-size: 0.7rem !important;
+    min-height: 32px !important;
+  }
+}
+
+/* 5. REMOVER ELEMENTO DE DATA ATUAL */
+.currentDateInfo {
+  display: none !important;
+}
+
+/* 6. AJUSTES FINAIS PARA GARANTIR VISIBILIDADE */
+
+/* Garantir que o header compacto não seja cortado */
+@media (max-width: 425px) {
+  .compactHeader {
+    max-width: calc(100% - 2rem) !important;
+    right: 0.1rem !important;
+    padding: 0.05rem 0.15rem !important;
+    font-size: 0.85em !important;
+  }
+}
+
+/* Garantir que os botões tenham texto sempre visível */
+@media (max-width: 425px) {
+  .quickActionButton {
+    min-width: 0 !important;
+    width: calc(100% - 0.4rem) !important;
+    padding: 0.15rem 0.1rem !important;
+    text-align: center !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+}
+
+/* 7. OTIMIZAÇÕES PARA LANDSCAPE EM RESOLUÇÕES PEQUENAS */
+@media (max-width: 600px) and (orientation: landscape) {
+  .calendarHeader {
+    padding: 0.2rem !important;
+    min-height: 35px !important;
+  }
+
+  .monthYear {
+    font-size: 0.8rem !important;
+  }
+
+  .navButton,
+  .todayButton {
+    padding: 0.2rem 0.4rem !important;
+    font-size: 0.6rem !important;
+    min-height: 26px !important;
+  }
+
+  .modalidadeName {
+    font-size: 0.45rem !important;
+    padding: 0.05rem 0.2rem !important;
+  }
+
+  .participantStats {
+    font-size: 0.4rem !important;
+    padding: 0.03rem 0.15rem !important;
+  }
+}
+
+/* 
+===== SOLUÇÃO SIMPLES E DIRETA PARA TEXTOS RESPONSIVOS ===== */
+
+/* FOCO TOTAL NA RESPONSIVIDADE - SEM ELEGÂNCIA DESNECESSÁRIA */
+
+/* 1. BOTÕES - TAMANHOS DE FONTE ULTRA RESPONSIVOS */
+@media (max-width: 320px) {
+  .quickActionButton {
+    font-size: 0.35rem !important;
+    padding: 0.1rem !important;
+    line-height: 1 !important;
+    letter-spacing: -0.02em !important;
+    font-weight: 900 !important;
+  }
+}
+
+@media (min-width: 321px) and (max-width: 375px) {
+  .quickActionButton {
+    font-size: 0.4rem !important;
+    padding: 0.12rem !important;
+    line-height: 1 !important;
+    letter-spacing: -0.01em !important;
+    font-weight: 900 !important;
+  }
+}
+
+@media (min-width: 376px) and (max-width: 425px) {
+  .quickActionButton {
+    font-size: 0.45rem !important;
+    padding: 0.15rem !important;
+    line-height: 1 !important;
+    letter-spacing: 0 !important;
+    font-weight: 800 !important;
+  }
+}
+
+/* 2. MODALIDADES - TAMANHOS ULTRA COMPACTOS */
+@media (max-width: 320px) {
+  .modalidadeName {
+    font-size: 0.3rem !important;
+    padding: 0.02rem 0.1rem !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.02em !important;
+  }
+}
+
+@media (min-width: 321px) and (max-width: 375px) {
+  .modalidadeName {
+    font-size: 0.35rem !important;
+    padding: 0.03rem 0.12rem !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.01em !important;
+  }
+}
+
+@media (min-width: 376px) and (max-width: 425px) {
+  .modalidadeName {
+    font-size: 0.4rem !important;
+    padding: 0.05rem 0.15rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0 !important;
+  }
+}
+
+/* 3. STATS DOS PARTICIPANTES - ULTRA COMPACTOS */
+@media (max-width: 320px) {
+  .participantStats {
+    font-size: 0.28rem !important;
+    padding: 0.02rem 0.08rem !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.02em !important;
+  }
+}
+
+@media (min-width: 321px) and (max-width: 375px) {
+  .participantStats {
+    font-size: 0.32rem !important;
+    padding: 0.03rem 0.1rem !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.01em !important;
+  }
+}
+
+@media (min-width: 376px) and (max-width: 425px) {
+  .participantStats {
+    font-size: 0.36rem !important;
+    padding: 0.04rem 0.12rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0 !important;
+  }
+}
+
+/* 4. NAVEGAÇÃO - BOTÕES ULTRA COMPACTOS */
+@media (max-width: 320px) {
+  .navButton {
+    font-size: 0.4rem !important;
+    padding: 0.2rem 0.3rem !important;
+    min-height: 24px !important;
+    letter-spacing: -0.02em !important;
+  }
+
+  .todayButton {
+    font-size: 0.4rem !important;
+    padding: 0.2rem 0.25rem !important;
+    min-height: 24px !important;
+    letter-spacing: -0.02em !important;
+  }
+
+  .monthYear {
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+  }
+}
+
+@media (min-width: 321px) and (max-width: 375px) {
+  .navButton {
+    font-size: 0.45rem !important;
+    padding: 0.25rem 0.35rem !important;
+    min-height: 26px !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  .todayButton {
+    font-size: 0.45rem !important;
+    padding: 0.25rem 0.3rem !important;
+    min-height: 26px !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  .monthYear {
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+  }
+}
+
+@media (min-width: 376px) and (max-width: 425px) {
+  .navButton {
+    font-size: 0.5rem !important;
+    padding: 0.3rem 0.4rem !important;
+    min-height: 28px !important;
+    letter-spacing: 0 !important;
+  }
+
+  .todayButton {
+    font-size: 0.5rem !important;
+    padding: 0.3rem 0.35rem !important;
+    min-height: 28px !important;
+    letter-spacing: 0 !important;
+  }
+
+  .monthYear {
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+  }
+}
+
+/* 5. HEADER COMPACTO - AJUSTES PARA NÃO CORTAR */
+@media (max-width: 320px) {
+  .compactHeader {
+    gap: 0.1rem !important;
+    padding: 0.02rem 0.08rem !important;
+    max-width: calc(100% - 1.2rem) !important;
+    font-size: 0.8em !important;
+  }
+}
+
+@media (min-width: 321px) and (max-width: 375px) {
+  .compactHeader {
+    gap: 0.12rem !important;
+    padding: 0.03rem 0.1rem !important;
+    max-width: calc(100% - 1.3rem) !important;
+    font-size: 0.85em !important;
+  }
+}
+
+@media (min-width: 376px) and (max-width: 425px) {
+  .compactHeader {
+    gap: 0.15rem !important;
+    padding: 0.05rem 0.12rem !important;
+    max-width: calc(100% - 1.4rem) !important;
+    font-size: 0.9em !important;
+  }
+}
+
+/* 6. GARANTIR QUE NADA SEJA CORTADO - OVERFLOW VISÍVEL */
+@media (max-width: 425px) {
+
+  .calendarContainer,
+  .calendarArea,
+  .calendarContent,
+  .calendarGridWrapper,
+  .calendarGrid,
+  .dayCell,
+  .compactHeader,
+  .quickActionButton {
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
+  }
+
+  /* Forçar que textos nunca sejam cortados */
+  .quickActionButton,
+  .modalidadeName,
+  .participantStats,
+  .navButton,
+  .todayButton {
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
+  }
+}
+
+/* 7. AJUSTES ESPECÍFICOS PARA LANDSCAPE EM TELAS PEQUENAS */
+@media (max-width: 425px) and (orientation: landscape) {
+  .quickActionButton {
+    font-size: 0.3rem !important;
+    padding: 0.08rem !important;
+    min-height: 16px !important;
+  }
+
+  .modalidadeName {
+    font-size: 0.25rem !important;
+    padding: 0.01rem 0.06rem !important;
+  }
+
+  .participantStats {
+    font-size: 0.22rem !important;
+    padding: 0.01rem 0.05rem !important;
+  }
+
+  .navButton,
+  .todayButton {
+    font-size: 0.35rem !important;
+    padding: 0.15rem 0.2rem !important;
+    min-height: 20px !important;
+  }
+
+  .monthYear {
+    font-size: 0.6rem !important;
+  }
+}
+
+/* 8. REMOVER TODOS OS ESTILOS CHARMOSOS QUE PODEM CAUSAR PROBLEMAS */
+@media (max-width: 425px) {
+  .modalidadeName {
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    color: inherit !important;
+    font-family: inherit !important;
+  }
+
+  .participantStats {
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .compactHeader {
+    background: rgba(255, 255, 255, 0.8) !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* 9. GARANTIR VISIBILIDADE TOTAL EM TODAS AS RESOLUÇÕES */
+@media (max-width: 425px) {
+
+  /* Forçar que todos os elementos sejam visíveis */
+  .calendarContainer,
+  .calendarArea,
+  .calendarContent,
+  .calendarGridWrapper,
+  .calendarGrid,
+  .dayCell,
+  .compactHeader,
+  .quickActionButton,
+  .modalidadeName,
+  .participantStats,
+  .navButton,
+  .todayButton {
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  /* Remover qualquer transformação que possa esconder elementos */
+  .quickActionButton,
+  .modalidadeName,
+  .participantStats,
+  .navButton,
+  .todayButton {
+    transform: none !important;
+    clip-path: none !important;
+    mask: none !important;
+  }
+}
+
+/* 10. AJUSTE FINAL - CONTAINER SEMPRE CABE NA TELA */
+@media (max-width: 425px) {
+  .calendarContainer {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    margin: 0 !important;
+    padding: 0.1rem !important;
+    box-sizing: border-box !important;
+  }
+
+  .calendarHeader {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0.2rem !important;
+    gap: 0.1rem !important;
+    box-sizing: border-box !important;
+  }
+
+  .calendarGrid {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+}
+
+/* ===== 
+SOLUÇÃO PARA EVITAR COLISÃO DOS SPANS NO HEADER COMPACTO ===== */
+
+/* PROBLEMA: modalidadeName e participantStats se chocam em resoluções menores */
+/* SOLUÇÃO: Layout flexível inteligente que sempre acomoda ambos */
+
+/* 1. HEADER COMPACTO - LAYOUT ANTI-COLISÃO */
+.compactHeader {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 0.2rem !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: calc(100% - 1.5rem) !important;
+  /* Espaço para o número do dia */
+  flex-wrap: nowrap !important;
+  overflow: visible !important;
+  position: absolute !important;
+  top: 0.2rem !important;
+  right: 0.2rem !important;
+  z-index: 2 !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  padding: 0.1rem 0.2rem !important;
+  border-radius: 3px !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 2. MODALIDADE - FLEX SHRINK CONTROLADO */
+.modalidadeName {
+  flex-shrink: 1 !important;
+  /* Pode encolher se necessário */
+  min-width: 0 !important;
+  max-width: 60% !important;
+  /* Máximo 60% do espaço */
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.01em !important;
+}
+
+/* 3. STATS - FLEX SHRINK ZERO (PRIORIDADE) */
+.participantStats {
+  flex-shrink: 0 !important;
+  /* Nunca encolhe - prioridade */
+  min-width: 0 !important;
+  max-width: 40% !important;
+  /* Máximo 40% do espaço */
+  overflow: visible !important;
+  white-space: nowrap !important;
+  font-weight: 700 !important;
+  text-align: right !important;
+}
+
+/* 4. AJUSTES POR RESOLUÇÃO - ANTI-COLISÃO */
+
+/* Resoluções onde há colisão - 736x607 para baixo */
+@media (max-width: 736px) {
+  .compactHeader {
+    gap: 0.15rem !important;
+    padding: 0.08rem 0.15rem !important;
+    max-width: calc(100% - 1.2rem) !important;
+  }
+
+  .modalidadeName {
+    font-size: 0.5rem !important;
+    max-width: 55% !important;
+    letter-spacing: 0 !important;
+  }
+
+  .participantStats {
+    font-size: 0.45rem !important;
+    max-width: 45% !important;
+  }
+}
+
+/* Resoluções médias - ajuste moderado */
+@media (max-width: 600px) {
+  .compactHeader {
+    gap: 0.1rem !important;
+    padding: 0.06rem 0.12rem !important;
+    max-width: calc(100% - 1rem) !important;
+  }
+
+  .modalidadeName {
+    font-size: 0.45rem !important;
+    max-width: 50% !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  .participantStats {
+    font-size: 0.4rem !important;
+    max-width: 50% !important;
+  }
+}
+
+/* Resoluções pequenas - ajuste agressivo */
+@media (max-width: 480px) {
+  .compactHeader {
+    gap: 0.08rem !important;
+    padding: 0.05rem 0.1rem !important;
+    max-width: calc(100% - 0.8rem) !important;
+  }
+
+  .modalidadeName {
+    font-size: 0.4rem !important;
+    max-width: 45% !important;
+    letter-spacing: -0.02em !important;
+  }
+
+  .participantStats {
+    font-size: 0.35rem !important;
+    max-width: 55% !important;
+  }
+}
+
+/* Resoluções muito pequenas - layout vertical se necessário */
+@media (max-width: 375px) {
+  .compactHeader {
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    gap: 0.05rem !important;
+    padding: 0.05rem 0.08rem !important;
+    max-width: calc(100% - 0.6rem) !important;
+    line-height: 1 !important;
+  }
+
+  .modalidadeName {
+    font-size: 0.35rem !important;
+    max-width: 100% !important;
+    text-align: right !important;
+    letter-spacing: -0.02em !important;
+  }
+
+  .participantStats {
+    font-size: 0.32rem !important;
+    max-width: 100% !important;
+    text-align: right !important;
+  }
+}
+
+/* Resoluções ultra pequenas - layout ultra compacto */
+@media (max-width: 320px) {
+  .compactHeader {
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    gap: 0.03rem !important;
+    padding: 0.03rem 0.06rem !important;
+    max-width: calc(100% - 0.5rem) !important;
+    line-height: 0.9 !important;
+  }
+
+  .modalidadeName {
+    font-size: 0.3rem !important;
+    max-width: 100% !important;
+    text-align: right !important;
+    letter-spacing: -0.03em !important;
+  }
+
+  .participantStats {
+    font-size: 0.28rem !important;
+    max-width: 100% !important;
+    text-align: right !important;
+  }
+}
+
+/* 5. TRATAMENTO ESPECIAL PARA NOMES LONGOS */
+
+/* BALANÇA é mais longo que BLITZ - ajuste específico */
+.lightBALANCA .modalidadeName {
+  font-size: 0.9em !important;
+  /* 10% menor que BLITZ */
+  letter-spacing: -0.01em !important;
+  max-width: 50% !important;
+}
+
+.lightBALANCA .compactHeader {
+  gap: 0.1rem !important;
+  /* Gap menor para BALANÇA */
+}
+
+/* Em resoluções pequenas, BALANÇA fica ainda mais compacto */
+@media (max-width: 600px) {
+  .lightBALANCA .modalidadeName {
+    font-size: 0.85em !important;
+    letter-spacing: -0.02em !important;
+    max-width: 45% !important;
+  }
+
+  .lightBALANCA .participantStats {
+    max-width: 55% !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .lightBALANCA .modalidadeName {
+    font-size: 0.8em !important;
+    letter-spacing: -0.03em !important;
+    max-width: 40% !important;
+  }
+
+  .lightBALANCA .participantStats {
+    max-width: 60% !important;
+  }
+}
+
+/* 6. GARANTIR QUE NUNCA HAJA OVERFLOW */
+@media (max-width: 736px) {
+  .compactHeader {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .modalidadeName,
+  .participantStats {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+}
+
+/* ✅ LAYOUT UNIFICADO APLICADO - PADRÃO DA RESOLUÇÃO MAIS BAIXA PARA TODAS AS RESOLUÇÕES */
+
+/* ✅ AJUSTES FINAIS PARA GARANTIR VISIBILIDADE EM TODAS AS RESOLUÇÕES */
+.compactHeader {
+  min-width: 0 !important;
+  width: auto !important;
+  flex: 0 0 auto !important;
+}
+
+/* Garantir que os spans nunca quebrem linha */
+.modalidadeName,
+.participantStats {
+  display: inline-block !important;
+  vertical-align: middle !important;
+  line-height: 1 !important;
+}
+
+/* Garantir espaçamento mínimo entre elementos */
+.compactHeader>*+* {
+  margin-left: 0.05rem !important;
+}
+
+/* ✅ SOLUÇÃO CIRÚRGICA ESPECÍFICA PARA BALANÇA - NÃO AFETAR OUTROS ELEMENTOS */
+
+/* Forçar BALANÇA a usar toda largura disponível */
+.modalidadeName[data-modalidade="BALANCA"] {
+  /* FORÇA LARGURA TOTAL - solução cirúrgica */
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+
+  /* Remove qualquer limitação de espaço */
+  flex: 1 1 100% !important;
+
+  /* Garante que o texto nunca seja cortado */
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+
+  /* Font-size otimizado para BALANÇA */
+  font-size: clamp(0.45rem, 2.2vw, 0.7rem) !important;
+  letter-spacing: clamp(0.005em, 0.2vw, 0.02em) !important;
+
+  /* Layout block para ocupar toda linha */
+  display: block !important;
+
+  /* Remove qualquer padding/margin que possa limitar */
+  margin: 0 !important;
+  padding: 0 !important;
+
+  /* Box model otimizado */
+  box-sizing: border-box !important;
+}
+
+/* Ajustar container da modalidade quando for BALANÇA */
+.modalidadeRow:has(.modalidadeName[data-modalidade="BALANCA"]) {
+  /* Garante que o container também use toda largura */
+  width: 100% !important;
+  display: block !important;
+
+  /* Remove qualquer limitação */
+  min-width: 100% !important;
+  max-width: 100% !important;
+
+  /* Box model otimizado */
+  box-sizing: border-box !important;
+}
+
+/* Fallback para navegadores que não suportam :has() */
+.lightBALANCA .modalidadeRow {
+  width: 100% !important;
+  display: block !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* ✅ CORREÇÃO PARA PARTICIPANTSTATS NÃO FICAR ATRÁS DO BOTÃO */
+
+/* Garantir que as estatísticas fiquem sempre visíveis */
+.statsRow {
+  /* Aumentar z-index para ficar acima do botão */
+  z-index: 5 !important;
+
+  /* Garantir posicionamento correto */
+  position: relative !important;
+
+  /* Margem para separar do botão */
+  margin-bottom: 0.2rem !important;
+}
+
+/* Ajustar o botão para não sobrepor as estatísticas */
+.quickActionButton {
+  /* Reduzir z-index do botão */
+  z-index: 1 !important;
+
+  /* Garantir que não sobreponha */
+  position: relative !important;
+
+  /* Margem superior para dar espaço às estatísticas */
+  margin-top: 0.3rem !important;
+}
+
+/* ✅ RESPONSIVIDADE ESPECÍFICA PARA BALANÇA EM DIFERENTES RESOLUÇÕES */
+
+@media (max-width: 480px) {
+  .modalidadeName[data-modalidade="BALANCA"] {
+    font-size: clamp(0.4rem, 2.8vw, 0.65rem) !important;
+    letter-spacing: 0 !important;
+  }
+}
+
+@media (max-width: 375px) {
+  .modalidadeName[data-modalidade="BALANCA"] {
+    font-size: clamp(0.38rem, 3vw, 0.6rem) !important;
+    letter-spacing: -0.005em !important;
+  }
+}
+
+@media (max-width: 320px) {
+  .modalidadeName[data-modalidade="BALANCA"] {
+    font-size: clamp(0.35rem, 3.2vw, 0.55rem) !important;
+    letter-spacing: -0.01em !important;
+  }
+}
+
+@media (max-width: 280px) {
+  .modalidadeName[data-modalidade="BALANCA"] {
+    font-size: clamp(0.32rem, 3.5vw, 0.5rem) !important;
+    letter-spacing: -0.015em !important;
+  }
+}
+
+/* 
+✅ SOLUÇÃO DEFINITIVA PARA MODALIDADES - BALANÇA E BLITZ */
+
+/* Solução universal para BALANÇA - font-size ultra ajustável */
+.modalidadeName[data-modalidade="BALANCA"] {
+  /* Font-size ULTRA responsivo - vai de 0.25rem até 0.7rem */
+  font-size: clamp(0.25rem, 1.5vw + 0.1rem, 0.7rem) !important;
+  letter-spacing: clamp(-0.02em, 0.05vw, 0.01em) !important;
+
+  /* FORÇA LARGURA TOTAL */
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+
+  /* Layout otimizado */
+  display: block !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Solução universal para BLITZ - font-size ultra ajustável */
+.modalidadeName[data-modalidade="BLITZ"] {
+  /* Font-size ULTRA responsivo - vai de 0.3rem até 0.75rem */
+  font-size: clamp(0.3rem, 1.8vw + 0.1rem, 0.75rem) !important;
+  letter-spacing: clamp(-0.01em, 0.08vw, 0.02em) !important;
+
+  /* FORÇA LARGURA TOTAL */
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+
+  /* Layout otimizado */
+  display: block !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* ✅ CORREÇÃO DO Z-INDEX - HEADER NÃO DEVE SOBREPOR BOTÃO */
+
+/* Reduzir z-index do header compacto */
+.compactHeader {
+  z-index: 1 !important;
+  position: relative !important;
+}
+
+/* Garantir que o botão fique acima quando necessário */
+.quickActionButton {
+  z-index: 2 !important;
+  position: relative !important;
+  margin-top: 0.2rem !important;
+}
+
+/* Estatísticas com z-index intermediário */
+.statsRow {
+  z-index: 1 !important;
+  position: relative !important;
+  margin-bottom: 0.1rem !important;
+}
+
+/* ✅ BREAKPOINTS ESPECÍFICOS PARA RESOLUÇÃO 425x520 */
+
+@media (min-width: 420px) and (max-width: 430px) {
+
+  /* BALANÇA na resolução 425x520 */
+  .modalidadeName[data-modalidade="BALANCA"] {
+    font-size: 0.45rem !important;
+    letter-spacing: -0.005em !important;
+  }
+
+  /* BLITZ na resolução 425x520 */
+  .modalidadeName[data-modalidade="BLITZ"] {
+    font-size: 0.5rem !important;
+    letter-spacing: 0em !important;
+  }
+
+  /* Ajustar header para não sobrepor */
+  .compactHeader {
+    margin-bottom: 0.3rem !important;
+    padding: 0.1rem 0.15rem !important;
+  }
+
+  /* Estatísticas menores */
+  .participantStats {
+    font-size: 0.4rem !important;
+  }
+}
+
+/* ✅ BREAKPOINTS ADICIONAIS PARA TELAS PEQUENAS */
+
+@media (max-width: 419px) {
+  .modalidadeName[data-modalidade="BALANCA"] {
+    font-size: clamp(0.22rem, 1.2vw, 0.4rem) !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  .modalidadeName[data-modalidade="BLITZ"] {
+    font-size: clamp(0.25rem, 1.4vw, 0.45rem) !important;
+    letter-spacing: -0.005em !important;
+  }
+}
+
+@media (max-width: 375px) {
+  .modalidadeName[data-modalidade="BALANCA"] {
+    font-size: clamp(0.2rem, 1vw, 0.35rem) !important;
+    letter-spacing: -0.015em !important;
+  }
+
+  .modalidadeName[data-modalidade="BLITZ"] {
+    font-size: clamp(0.22rem, 1.2vw, 0.4rem) !important;
+    letter-spacing: -0.01em !important;
+  }
+}
+
+@media (max-width: 320px) {
+  .modalidadeName[data-modalidade="BALANCA"] {
+    font-size: clamp(0.18rem, 0.8vw, 0.3rem) !important;
+    letter-spacing: -0.02em !important;
+  }
+
+  .modalidadeName[data-modalidade="BLITZ"] {
+    font-size: clamp(0.2rem, 1vw, 0.35rem) !important;
+    letter-spacing: -0.015em !important;
+  }
+}
+
+/* ✅ AJUSTE FINAL PARA CONTAINERS */
+
+/* Garantir que modalidadeRow use toda largura */
+.modalidadeRow {
+  width: 100% !important;
+  display: block !important;
+  box-sizing: border-box !important;
+}
+
+/* Ajustar compactHeader para não interferir no layout */
+.compactHeader {
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+/* ✅
+ CORREÇÃO PONTUAL - NÚMERO DO DIA NÃO DEVE FICAR NA FRENTE DO HEADER COMPACTO */
+
+/* Ajustar z-index do número do dia para ficar atrás do header compacto */
+.dayNumber {
+  z-index: 0 !important;
+  position: relative !important;
+}
+
+/* Garantir que o header compacto fique sempre acima do número do dia */
+.compactHeader {
+  z-index: 3 !important;
+  position: relative !important;
+}
+
+/* Ajustar o container da operação para ter z-index intermediário */
+.singleOperationInfo {
+  z-index: 2 !important;
+  position: relative !important;
+}
+
+/* Garantir que o botão fique no nível correto */
+.quickActionButton {
+  z-index: 1 !important;
+  position: relative !important;
+}
+
+/* ✅ AJUSTE ESPECÍFICO PARA CÉLULAS COM OPERAÇÕES */
+
+/* Quando a célula tem operações, ajustar o layout para evitar sobreposição */
+.dayCell.hasOperacoes .dayNumber {
+  /* Reduzir ainda mais o z-index quando há operações */
+  z-index: -1 !important;
+
+  /* Garantir que não interfira no layout */
+  margin-bottom: 0.1rem !important;
+}
+
+/* Ajustar especificamente células com operação única */
+.dayCell.singleOperationCell .dayNumber {
+  z-index: -1 !important;
+  margin-bottom: 0.15rem !important;
+}
+
+/* ✅ HIERARQUIA DE Z-INDEX DEFINITIVA */
+
+/*
+Hierarquia de z-index (do mais baixo para o mais alto):
+-1: dayNumber (quando há operações)
+ 0: dayNumber (células vazias)
+ 1: quickActionButton
+ 2: singleOperationInfo
+ 3: compactHeader (modalidadeRow + statsRow)
+*/
+
+/* Garantir que modalidadeRow e statsRow tenham z-index correto */
+.modalidadeRow {
+  z-index: 3 !important;
+  position: relative !important;
+}
+
+.statsRow {
+  z-index: 3 !important;
+  position: relative !important;
+}
+
+/* ✅ AJUSTE PARA DIFERENTES RESOLUÇÕES - ESPAÇAMENTO ENTRE DIA E HEADER */
+
+@media (max-width: 480px) {
+  .dayCell.hasOperacoes .dayNumber {
+    margin-bottom: 0.2rem !important;
+  }
+
+  .compactHeader {
+    margin-top: 0.1rem !important;
+  }
+}
+
+@media (max-width: 375px) {
+  .dayCell.hasOperacoes .dayNumber {
+    margin-bottom: 0.25rem !important;
+  }
+
+  .compactHeader {
+    margin-top: 0.15rem !important;
+  }
+}
+
+@media (max-width: 320px) {
+  .dayCell.hasOperacoes .dayNumber {
+    margin-bottom: 0.3rem !important;
+  }
+
+  .compactHeader {
+    margin-top: 0.2rem !important;
+  }
+}
+
+/* ✅ FALLBACK PARA GARANTIR SEPARAÇÃO VISUAL */
+
+/* Se ainda houver sobreposição, forçar separação com transform */
+.dayCell.hasOperacoes .compactHeader {
+  transform: translateY(2px) !important;
+}
+
+.dayCell.singleOperationCell .compactHeader {
+  transform: translateY(3px) !important;
+}
+
+/* 
+✅ CORREÇÃO CIRÚRGICA - NOME DO MÊS SUMIU NA RESOLUÇÃO 425x375 */
+
+/* Restaurar visibilidade do nome do mês em todas as resoluções */
+.monthYear {
+  z-index: 10 !important;
+  position: relative !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: block !important;
+}
+
+/* Ajuste específico para resolução 425x375 */
+@media (min-width: 420px) and (max-width: 430px) and (min-height: 370px) and (max-height: 380px) {
+  .monthYear {
+    font-size: 1.1rem !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: block !important;
+    z-index: 10 !important;
+  }
+}
+
+/* ✅ AJUSTE CIRÚRGICO - TEXTO DOS BOTÕES RESPONSIVO E PROPORCIONAL */
+
+/* Font-size ultra responsivo para texto dos botões */
+.quickActionButton {
+  /* Font-size baseado no tamanho do próprio botão */
+  font-size: clamp(0.3rem, 2.5vw, 0.8rem) !important;
+
+  /* Ajustar line-height para melhor legibilidade */
+  line-height: 1.1 !important;
+
+  /* Padding proporcional ao tamanho do botão */
+  padding: clamp(0.2rem, 1.5vw, 0.6rem) clamp(0.3rem, 2vw, 0.8rem) !important;
+
+  /* Letter-spacing ajustável para economizar espaço */
+  letter-spacing: clamp(-0.01em, 0.05vw, 0.02em) !important;
+}
+
+/* ✅ BREAKPOINTS ESPECÍFICOS PARA TEXTO DOS BOTÕES */
+
+/* Resolução muito pequena - texto ultra compacto */
+@media (max-width: 320px) {
+  .quickActionButton {
+    font-size: clamp(0.25rem, 2vw, 0.5rem) !important;
+    letter-spacing: -0.01em !important;
+    padding: 0.15rem 0.25rem !important;
+  }
+
+  /* Textos ainda mais compactos */
+  .quickActionButton[data-action="cancelar"]::after {
+    content: "CANCEL" !important;
+  }
+
+  .quickActionButton[data-action="participar"]::after {
+    content: "VOU" !important;
+  }
+
+  .quickActionButton[data-action="fila"]::after {
+    content: "FILA" !important;
+  }
+
+  .quickActionButton[data-action="lotado"]::after {
+    content: "LOTADO" !important;
+  }
+}
+
+/* Resolução pequena - texto compacto */
+@media (min-width: 321px) and (max-width: 375px) {
+  .quickActionButton {
+    font-size: clamp(0.3rem, 2.2vw, 0.55rem) !important;
+    letter-spacing: -0.005em !important;
+    padding: 0.18rem 0.3rem !important;
+  }
+
+  .quickActionButton[data-action="cancelar"]::after {
+    content: "CANCEL" !important;
+  }
+
+  .quickActionButton[data-action="participar"]::after {
+    content: "EU VOU" !important;
+  }
+}
+
+/* Resolução média - texto balanceado */
+@media (min-width: 376px) and (max-width: 425px) {
+  .quickActionButton {
+    font-size: clamp(0.35rem, 2.3vw, 0.6rem) !important;
+    letter-spacing: 0em !important;
+    padding: 0.2rem 0.35rem !important;
+  }
+
+  .quickActionButton[data-action="fila"]::after {
+    content: "FILA" !important;
+  }
+}
+
+/* Resolução média-alta - texto normal */
+@media (min-width: 426px) and (max-width: 480px) {
+  .quickActionButton {
+    font-size: clamp(0.4rem, 2.4vw, 0.65rem) !important;
+    letter-spacing: 0.005em !important;
+    padding: 0.25rem 0.4rem !important;
+  }
+}
+
+/* Resolução alta - texto completo */
+@media (min-width: 481px) {
+  .quickActionButton {
+    font-size: clamp(0.45rem, 2.5vw, 0.75rem) !important;
+    letter-spacing: 0.01em !important;
+    padding: 0.3rem 0.5rem !important;
+  }
+
+  /* Textos completos em telas maiores */
+  .quickActionButton[data-action="cancelar"]::after {
+    content: "CANCELAR" !important;
+  }
+
+  .quickActionButton[data-action="participar"]::after {
+    content: "EU VOU" !important;
+  }
+
+  .quickActionButton[data-action="fila"]::after {
+    content: "ENTRAR NA FILA" !important;
+  }
+
+  .quickActionButton[data-action="lotado"]::after {
+    content: "LOTADO" !important;
+  }
+}
+
+/* ✅ AJUSTE PARA BOTÕES MUITO PEQUENOS - FORÇA LEGIBILIDADE */
+
+/* Se o botão ficar muito pequeno, reduzir ainda mais o texto */
+@media (max-width: 280px) {
+  .quickActionButton {
+    font-size: 0.22rem !important;
+    letter-spacing: -0.015em !important;
+    padding: 0.1rem 0.2rem !important;
+    line-height: 1 !important;
+  }
+
+  /* Textos ultra compactos */
+  .quickActionButton[data-action="cancelar"]::after {
+    content: "X" !important;
+  }
+
+  .quickActionButton[data-action="participar"]::after {
+    content: "✓" !important;
+  }
+
+  .quickActionButton[data-action="fila"]::after {
+    content: "F" !important;
+  }
+
+  .quickActionButton[data-action="lotado"]::after {
+    content: "!" !important;
+  }
+}
+
+/* ✅ GARANTIR QUE O TEXTO NUNCA SEJA CORTADO */
+
+.quickActionButton::after {
+  /* Garantir que o texto se ajuste ao botão */
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+
+  /* Centralizar o texto */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  /* Usar toda a largura disponível */
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ✅ CORRE
+ÇÃO CRÍTICA - NOME DO MÊS NA ROTAÇÃO DE TELA (LANDSCAPE) */
+
+/* Detectar orientação landscape e ajustar o header do calendário */
+@media (orientation: landscape) {
+
+  /* Reduzir altura do header para economizar espaço vertical */
+  .calendarHeader {
+    min-height: 40px !important;
+    padding: 0.4rem 0.75rem !important;
+    gap: 0.3rem !important;
+  }
+
+  /* Garantir que o nome do mês seja sempre visível em landscape */
+  .monthYear {
+    font-size: clamp(0.9rem, 2.5vw, 1.2rem) !important;
+    z-index: 15 !important;
+    position: relative !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: block !important;
+    flex: 1 !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+  }
+
+  /* Botões de navegação mais compactos em landscape */
+  .navButton,
+  .todayButton {
+    padding: 0.3rem 0.6rem !important;
+    font-size: 0.75rem !important;
+    min-height: 32px !important;
+  }
+
+  /* Reduzir altura do grid para dar espaço ao header */
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(45px, 1fr)) !important;
+  }
+
+  /* Células mais compactas em landscape */
+  .dayCell {
+    min-height: 45px !important;
+    padding: 0.2rem !important;
+  }
+}
+
+/* ✅ CORREÇÃO ESPECÍFICA - NÚMEROS DOS DIAS FICANDO ATRÁS */
+
+/* Restaurar z-index correto dos números dos dias */
+.dayNumber {
+  z-index: 1 !important;
+  position: relative !important;
+  /* Remove o z-index negativo que estava causando problema */
+}
+
+/* Ajustar hierarquia de z-index correta */
+.dayCell .dayNumber {
+  z-index: 1 !important;
+}
+
+.dayCell .compactHeader {
+  z-index: 2 !important;
+}
+
+.dayCell .quickActionButton {
+  z-index: 3 !important;
+}
+
+/* ✅ CORREÇÃO ESPECÍFICA PARA CÉLULAS COM OPERAÇÕES */
+
+/* Quando há operações, ajustar apenas o espaçamento, não o z-index */
+.dayCell.hasOperacoes .dayNumber {
+  z-index: 1 !important;
+  /* Restaura z-index positivo */
+  margin-bottom: 0.1rem !important;
+  /* Remove z-index negativo que estava escondendo os números */
+}
+
+.dayCell.singleOperationCell .dayNumber {
+  z-index: 1 !important;
+  /* Restaura z-index positivo */
+  margin-bottom: 0.1rem !important;
+}
+
+/* ✅ AJUSTES PARA DIFERENTES RESOLUÇÕES - MANTER NÚMEROS VISÍVEIS */
+
+/* Resoluções maiores - garantir que números fiquem visíveis */
+@media (min-width: 768px) {
+  .dayNumber {
+    z-index: 2 !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+  }
+
+  .compactHeader {
+    z-index: 3 !important;
+    margin-top: 0.2rem !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dayNumber {
+    z-index: 2 !important;
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+  }
+
+  .compactHeader {
+    z-index: 3 !important;
+    margin-top: 0.25rem !important;
+  }
+}
+
+/* ✅ LANDSCAPE ESPECÍFICO PARA DIFERENTES TAMANHOS */
+
+/* Landscape em telas pequenas (celulares) */
+@media (orientation: landscape) and (max-height: 500px) {
+  .calendarHeader {
+    min-height: 35px !important;
+    padding: 0.3rem 0.5rem !important;
+  }
+
+  .monthYear {
+    font-size: clamp(0.8rem, 3vw, 1rem) !important;
+  }
+
+  .navButton,
+  .todayButton {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.7rem !important;
+    min-height: 28px !important;
+  }
+
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(40px, 1fr)) !important;
+  }
+
+  .dayCell {
+    min-height: 40px !important;
+    padding: 0.15rem !important;
+  }
+
+  .dayNumber {
+    font-size: 0.8rem !important;
+    margin-bottom: 0.05rem !important;
+  }
+
+  .compactHeader {
+    padding: 0.08rem 0.12rem !important;
+    min-height: 12px !important;
+    margin-bottom: 0.1rem !important;
+  }
+}
+
+/* Landscape em telas muito pequenas */
+@media (orientation: landscape) and (max-height: 400px) {
+  .calendarHeader {
+    min-height: 30px !important;
+    padding: 0.2rem 0.4rem !important;
+  }
+
+  .monthYear {
+    font-size: clamp(0.7rem, 3.5vw, 0.9rem) !important;
+  }
+
+  .navButton,
+  .todayButton {
+    padding: 0.2rem 0.4rem !important;
+    font-size: 0.65rem !important;
+    min-height: 24px !important;
+  }
+
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(35px, 1fr)) !important;
+  }
+
+  .dayCell {
+    min-height: 35px !important;
+    padding: 0.1rem !important;
+  }
+
+  .dayNumber {
+    font-size: 0.75rem !important;
+    margin-bottom: 0.03rem !important;
+  }
+
+  .compactHeader {
+    padding: 0.05rem 0.08rem !important;
+    min-height: 10px !important;
+    margin-bottom: 0.05rem !important;
+  }
+
+  .quickActionButton {
+    font-size: 0.5rem !important;
+    padding: 0.1rem 0.15rem !important;
+    min-height: 16px !important;
+  }
+}
+
+/* ✅ GARANTIA FINAL - NOME DO MÊS SEMPRE VISÍVEL */
+
+/* Forçar visibilidade do nome do mês em qualquer situação */
+.monthYear {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 20 !important;
+  position: relative !important;
+}
+
+/* Prevenir que outros elementos escondam o nome do mês */
+.calendarHeader * {
+  z-index: auto !important;
+}
+
+.calendarHeader .monthYear {
+  z-index: 20 !important;
+}
+
+/* ✅ AJUSTE CIRÚRGICO EXCLUSIVO - RESOLUÇÃO 376x520 E MAIORES */
+/* Replicar lógica das resoluções menores que estão funcionando perfeitamente */
+
+@media (min-width: 376px) and (min-height: 520px) {
+
+  /* Garantir que o número do dia fique sempre na frente */
+  .dayNumber {
+    z-index: 5 !important;
+    position: relative !important;
+    margin-bottom: 0.2rem !important;
+  }
+
+  /* Ajustar o compactHeader para ficar atrás do número do dia */
+  .compactHeader {
+    z-index: 2 !important;
+    position: relative !important;
+    margin-top: 0.1rem !important;
+  }
+
+  /* Garantir separação visual adequada */
+  .singleOperationInfo {
+    margin-top: 0.15rem !important;
+  }
+
+  /* Ajustar especificamente para BALANÇA */
+  .lightBALANCA .compactHeader {
+    z-index: 2 !important;
+    margin-top: 0.15rem !important;
+  }
+
+  /* Ajustar especificamente para BLITZ */
+  .lightBLITZ .compactHeader {
+    z-index: 2 !important;
+    margin-top: 0.15rem !important;
+  }
+
+  /* Garantir que o botão fique no nível correto */
+  .quickActionButton {
+    z-index: 1 !important;
+    margin-top: 0.2rem !important;
+  }
+}
+
+/* ✅ AJUSTE ADICIONAL PARA RESOLUÇÕES AINDA MAIORES */
+
+@media (min-width: 426px) and (min-height: 520px) {
+  .dayNumber {
+    z-index: 6 !important;
+    margin-bottom: 0.25rem !important;
+    font-weight: 700 !important;
+  }
+
+  .compactHeader {
+    z-index: 2 !important;
+    margin-top: 0.2rem !important;
+  }
+}
+
+@media (min-width: 481px) and (min-height: 520px) {
+  .dayNumber {
+    z-index: 7 !important;
+    margin-bottom: 0.3rem !important;
+    font-weight: 700 !important;
+  }
+
+  .compactHeader {
+    z-index: 2 !important;
+    margin-top: 0.25rem !important;
+  }
+}
+
+/* ✅ HIERARQUIA Z-INDEX ESPECÍFICA PARA RESOLUÇÕES ≥ 376x520 */
+
+@media (min-width: 376px) and (min-height: 520px) {
+  /*
+  Nova hierarquia z-index para resoluções maiores:
+  7: dayNumber (sempre na frente)
+  2: compactHeader (modalidadeRow + statsRow)
+  1: quickActionButton (atrás de tudo)
+  */
+
+  .dayCell .dayNumber {
+    z-index: 7 !important;
+  }
+
+  .dayCell .compactHeader {
+    z-index: 2 !important;
+  }
+
+  .dayCell .modalidadeRow {
+    z-index: 2 !important;
+  }
+
+  .dayCell .statsRow {
+    z-index: 2 !important;
+  }
+
+  .dayCell .quickActionButton {
+    z-index: 1 !important;
+  }
+}
+
+/* ✅ GARANTIA ADICIONAL - ESPAÇAMENTO FÍSICO PARA EVITAR SOBREPOSIÇÃO */
+
+@media (min-width: 376px) and (min-height: 520px) {
+
+  /* Criar espaço físico entre número do dia e header compacto */
+  .dayCell.hasOperacoes .dayNumber {
+    margin-bottom: 0.3rem !important;
+    padding-bottom: 0.1rem !important;
+  }
+
+  .dayCell.singleOperationCell .dayNumber {
+    margin-bottom: 0.35rem !important;
+    padding-bottom: 0.1rem !important;
+  }
+
+  /* Ajustar posicionamento do compactHeader */
+  .dayCell.hasOperacoes .compactHeader {
+    margin-top: 0.2rem !important;
+    transform: translateY(2px) !important;
+  }
+
+  .dayCell.singleOperationCell .compactHeader {
+    margin-top: 0.25rem !important;
+    transform: translateY(3px) !important;
+  }
+}
+
+/*
+ ✅ CORREÇÃO ESPECÍFICA - BALANÇA SOBREPONDO NÚMERO DO DIA EM 376x520+ */
+
+@media (min-width: 376px) and (min-height: 520px) {
+
+  /* Garantir que o número do dia fique SEMPRE na frente da BALANÇA */
+  .lightBALANCA .dayNumber {
+    z-index: 10 !important;
+    position: relative !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-radius: 3px !important;
+    padding: 0.1rem 0.2rem !important;
+    margin-bottom: 0.3rem !important;
+    font-weight: 700 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  /* Ajustar o compactHeader da BALANÇA para ficar atrás */
+  .lightBALANCA .compactHeader {
+    z-index: 2 !important;
+    position: relative !important;
+    margin-top: 0.2rem !important;
+  }
+
+  /* Ajustar especificamente a modalidadeRow da BALANÇA */
+  .lightBALANCA .modalidadeRow {
+    z-index: 2 !important;
+    position: relative !important;
+  }
+
+  /* Garantir que o nome BALANÇA fique atrás do número */
+  .lightBALANCA .modalidadeName[data-modalidade="BALANCA"] {
+    z-index: 2 !important;
+    position: relative !important;
+  }
+}
+
+/* Ajuste adicional para resoluções maiores */
+@media (min-width: 426px) and (min-height: 520px) {
+  .lightBALANCA .dayNumber {
+    z-index: 15 !important;
+    margin-bottom: 0.35rem !important;
+  }
+}
+
+@media (min-width: 481px) and (min-height: 520px) {
+  .lightBALANCA .dayNumber {
+    z-index: 20 !important;
+    margin-bottom: 0.4rem !important;
+  }
+}
+
+/* ✅ CO
+RREÇÃO UNIVERSAL - DAYNUMBER NO CANTO PARA TODO O CALENDÁRIO */
+
+/* SOBRESCREVER todas as regras anteriores do dayNumber */
+.dayNumber {
+  /* Posicionamento absoluto BEM no canto, quase encostando na grid */
+  position: absolute !important;
+  top: 1px !important;
+  left: 1px !important;
+
+  /* Z-index SUPREMO - nunca fica atrás de NADA */
+  z-index: 999 !important;
+
+  /* Tamanho proporcional e responsivo */
+  font-size: clamp(0.6rem, 1.5vw, 0.85rem) !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+
+  /* Visual consistente e elegante */
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #1f2937 !important;
+  border-radius: 3px !important;
+  padding: 2px 4px !important;
+
+  /* Sombra para destacar */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+
+  /* Dimensões controladas */
+  margin: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: 16px !important;
+  text-align: center !important;
+
+  /* Transição suave */
+  transition: all 0.2s ease !important;
+}
+
+/* Garantir posicionamento relativo nas células */
+.dayCell {
+  position: relative !important;
+}
+
+/* Efeito hover no número */
+.dayNumber:hover {
+  transform: scale(1.05) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* ✅ RESPONSIVIDADE ESCALONADA */
+
+@media (max-width: 320px) {
+  .dayNumber {
+    font-size: 0.55rem !important;
+    padding: 1px 3px !important;
+    top: 0.5px !important;
+    left: 0.5px !important;
+  }
+}
+
+@media (min-width: 321px) and (max-width: 480px) {
+  .dayNumber {
+    font-size: 0.65rem !important;
+    padding: 1.5px 3.5px !important;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .dayNumber {
+    font-size: 0.75rem !important;
+    padding: 2px 4px !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .dayNumber {
+    font-size: 0.85rem !important;
+    padding: 2.5px 5px !important;
+    top: 2px !important;
+    left: 2px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dayNumber {
+    font-size: 1rem !important;
+    padding: 3px 6px !important;
+  }
+}
+
+/* ✅ ESTADOS ESPECIAIS */
+
+.currentDay .dayNumber {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+  color: white !important;
+  border-color: #1d4ed8 !important;
+}
+
+.selected .dayNumber {
+  background: linear-gradient(135deg, #7c3aed, #5b21b6) !important;
+  color: white !important;
+  border-color: #5b21b6 !important;
+}
+
+.otherMonth .dayNumber {
+  background: rgba(255, 255, 255, 0.6) !important;
+  color: #9ca3af !important;
+  border-color: rgba(156, 163, 175, 0.3) !important;
+}
+
+/* ✅ C
+ORREÇÃO CIRÚRGICA PONTUAL - EXCLUSIVAMENTE PARA RESOLUÇÕES ≥ 650x600 */
+/* PROBLEMA: Calendario_compactHeader__jEVkG sobrepõe Calendario_dayNumber__vfCwm em telas wide */
+@media (min-width: 650px) and (min-height: 600px) {
+
+  /* SOLUÇÃO: Forçar dayNumber sempre no topo com z-index máximo */
+  .dayNumber {
+    z-index: 9999 !important;
+    position: relative !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* SOLUÇÃO: Empurrar compactHeader para baixo criando espaço físico */
+  .compactHeader {
+    margin-top: 1.3rem !important;
+    z-index: 1 !important;
+  }
+}
+
+/* ✅ CORREÇÃO ESPECÍFICA PARA LANDSCAPE EM TELAS ≥ 650px */
+@media (min-width: 650px) and (orientation: landscape) {
+  .dayNumber {
+    z-index: 9999 !important;
+    position: relative !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .compactHeader {
+    margin-top: 1.5rem !important;
+    z-index: 1 !important;
+  }
+}
+
+/* ✅ CO
+RREÇÃO CIRÚRGICA DEFINITIVA - EXCLUSIVAMENTE PARA RESOLUÇÕES ≥ 650x600 */
+/* PROBLEMA: Calendario_compactHeader__jEVkG sobrepõe Calendario_dayNumber__vfCwm em telas wide */
+
+@media (min-width: 650px) and (min-height: 600px) {
+
+  /* SOLUÇÃO 1: Criar novo stacking context para dayCell */
+  .dayCell {
+    position: relative !important;
+    z-index: 1 !important;
+  }
+
+  /* SOLUÇÃO 2: Posicionamento absoluto para dayNumber - sempre no topo */
+  .dayNumber {
+    position: absolute !important;
+    top: 2px !important;
+    left: 2px !important;
+    z-index: 999 !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    padding: 0.1rem 0.2rem !important;
+    border-radius: 3px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15) !important;
+    font-weight: 800 !important;
+    color: #1f2937 !important;
+  }
+
+  /* SOLUÇÃO 3: Empurrar compactHeader para baixo criando espaço físico */
+  .compactHeader {
+    position: relative !important;
+    margin-top: 1.8rem !important;
+    z-index: 2 !important;
+  }
+}
+
+/* ✅ CORREÇÃO ESPECÍFICA PARA LANDSCAPE EM TELAS ≥ 650px */
+@media (min-width: 650px) and (orientation: landscape) {
+  .dayCell {
+    position: relative !important;
+    z-index: 1 !important;
+  }
+
+  .dayNumber {
+    position: absolute !important;
+    top: 2px !important;
+    left: 2px !important;
+    z-index: 999 !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    padding: 0.1rem 0.2rem !important;
+    border-radius: 3px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15) !important;
+    font-weight: 800 !important;
+    color: #1f2937 !important;
+  }
+
+  .compactHeader {
+    position: relative !important;
+    margin-top: 2rem !important;
+    z-index: 2 !important;
+  }
+}
+
+/* ✅ CORREÇÃO ADICIONAL PARA TELAS MUITO LARGAS (≥ 1024px) */
+@media (min-width: 1024px) and (min-height: 600px) {
+  .dayNumber {
+    font-size: 1rem !important;
+    padding: 0.15rem 0.25rem !important;
+    top: 3px !important;
+    left: 3px !important;
+  }
+
+  .compactHeader {
+    margin-top: 2.2rem !important;
+  }
+}
+
+/* ✅ 
+MELHORIAS DE RESPONSIVIDADE PARA DESKTOP - EXCLUSIVAMENTE ≥768px */
+/* BASEADO EM: Context7 Tailwind CSS responsive design best practices */
+
+@media (min-width: 768px) and (min-height: 520px) {
+
+  /* 🎯 MELHORIA 1: Proporções balanceadas para células do grid */
+  .dayCell {
+    min-height: 85px !important;
+    padding: 0.4rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    gap: 0.3rem !important;
+  }
+
+  /* 🎯 MELHORIA 2: Números dos dias mais proeminentes */
+  .dayNumber {
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    padding: 0.15rem 0.3rem !important;
+    margin-bottom: 0.25rem !important;
+    line-height: 1.1 !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* 🎯 MELHORIA 3: Headers compactos mais proporcionais */
+  .compactHeader {
+    padding: 0.25rem 0.3rem !important;
+    margin-bottom: 0.4rem !important;
+    min-height: 28px !important;
+    border-radius: 4px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .modalidadeName {
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.02em !important;
+  }
+
+  .participantStats {
+    font-size: 0.6rem !important;
+    font-weight: 600 !important;
+  }
+
+  /* 🎯 MELHORIA 4: Botões com proporções adequadas */
+  .quickActionButton {
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 36px !important;
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    padding: 0.4rem 0.6rem !important;
+    border-radius: 4px !important;
+    margin-top: auto !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* 🎯 MELHORIA 5: Grid com altura otimizada */
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(85px, 1fr)) !important;
+    gap: 3px !important;
+  }
+
+  /* 🎯 MELHORIA 6: Headers dos dias da semana */
+  .dayName {
+    height: 20px !important;
+    font-size: 0.65rem !important;
+    padding: 0.15rem !important;
+    font-weight: 600 !important;
+  }
+}
+
+/* ✅ MELHORIAS ESPECÍFICAS PARA TABLETS GRANDES (≥1024px) */
+@media (min-width: 1024px) and (min-height: 600px) {
+  .dayCell {
+    min-height: 95px !important;
+    padding: 0.5rem !important;
+    gap: 0.35rem !important;
+  }
+
+  .dayNumber {
+    font-size: 1.2rem !important;
+    padding: 0.2rem 0.35rem !important;
+    margin-bottom: 0.3rem !important;
+  }
+
+  .compactHeader {
+    padding: 0.3rem 0.35rem !important;
+    margin-bottom: 0.45rem !important;
+    min-height: 32px !important;
+  }
+
+  .modalidadeName {
+    font-size: 0.75rem !important;
+  }
+
+  .participantStats {
+    font-size: 0.65rem !important;
+  }
+
+  .quickActionButton {
+    height: 36px !important;
+    min-height: 36px !important;
+    max-height: 40px !important;
+    font-size: 0.75rem !important;
+    padding: 0.5rem 0.7rem !important;
+  }
+
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(95px, 1fr)) !important;
+    gap: 4px !important;
+  }
+
+  .dayName {
+    height: 22px !important;
+    font-size: 0.7rem !important;
+  }
+}
+
+/* ✅ MELHORIAS PARA DESKTOPS GRANDES (≥1280px) */
+@media (min-width: 1280px) and (min-height: 720px) {
+  .dayCell {
+    min-height: 105px !important;
+    padding: 0.6rem !important;
+    gap: 0.4rem !important;
+  }
+
+  .dayNumber {
+    font-size: 1.3rem !important;
+    padding: 0.25rem 0.4rem !important;
+    margin-bottom: 0.35rem !important;
+  }
+
+  .compactHeader {
+    padding: 0.35rem 0.4rem !important;
+    margin-bottom: 0.5rem !important;
+    min-height: 36px !important;
+  }
+
+  .modalidadeName {
+    font-size: 0.8rem !important;
+  }
+
+  .participantStats {
+    font-size: 0.7rem !important;
+  }
+
+  .quickActionButton {
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 44px !important;
+    font-size: 0.8rem !important;
+    padding: 0.6rem 0.8rem !important;
+  }
+
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(105px, 1fr)) !important;
+    gap: 5px !important;
+  }
+
+  .dayName {
+    height: 24px !important;
+    font-size: 0.75rem !important;
+  }
+}
+
+/* ✅ MELHORIAS PARA TELAS ULTRA-WIDE (≥1536px) */
+@media (min-width: 1536px) and (min-height: 800px) {
+  .dayCell {
+    min-height: 120px !important;
+    padding: 0.7rem !important;
+    gap: 0.45rem !important;
+  }
+
+  .dayNumber {
+    font-size: 1.4rem !important;
+    padding: 0.3rem 0.45rem !important;
+    margin-bottom: 0.4rem !important;
+  }
+
+  .compactHeader {
+    padding: 0.4rem 0.45rem !important;
+    margin-bottom: 0.55rem !important;
+    min-height: 40px !important;
+  }
+
+  .modalidadeName {
+    font-size: 0.85rem !important;
+  }
+
+  .participantStats {
+    font-size: 0.75rem !important;
+  }
+
+  .quickActionButton {
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 48px !important;
+    font-size: 0.85rem !important;
+    padding: 0.7rem 0.9rem !important;
+  }
+
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(120px, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  .dayName {
+    height: 26px !important;
+    font-size: 0.8rem !important;
+  }
+}
+
+/* ✅ CORREÇ
+ÃO ESPECÍFICA PARA DESKTOP - dayNumber sempre visível */
+/* PROBLEMA: Calendario_dayNumber__vfCwm fica atrás do Calendario_modalidadeName__QAoZr */
+
+@media (min-width: 768px) and (min-height: 520px) {
+
+  /* 🎯 SOLUÇÃO PRINCIPAL: dayNumber sempre no topo absoluto */
+  .dayNumber {
+    position: absolute !important;
+    top: 4px !important;
+    left: 4px !important;
+    z-index: 1000 !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    padding: 0.15rem 0.25rem !important;
+    border-radius: 3px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+    font-size: 0.9rem !important;
+    font-weight: 800 !important;
+    color: #1f2937 !important;
+    line-height: 1 !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* 🎯 AJUSTE: compactHeader empurrado para baixo */
+  .compactHeader {
+    margin-top: 1.8rem !important;
+    position: relative !important;
+    z-index: 2 !important;
+  }
+
+  /* 🎯 AJUSTE: dayCell com posicionamento relativo */
+  .dayCell {
+    position: relative !important;
+    min-height: 75px !important;
+  }
+
+  /* 🎯 AJUSTE: Grid com altura mínima adequada */
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(75px, 1fr)) !important;
+  }
+}
+
+/* ✅ AJUSTES PARA TELAS MAIORES */
+@media (min-width: 1024px) and (min-height: 600px) {
+  .dayNumber {
+    font-size: 1rem !important;
+    padding: 0.2rem 0.3rem !important;
+    top: 5px !important;
+    left: 5px !important;
+  }
+
+  .compactHeader {
+    margin-top: 2rem !important;
+  }
+
+  .dayCell {
+    min-height: 85px !important;
+  }
+
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(85px, 1fr)) !important;
+  }
+}
+
+@media (min-width: 1280px) and (min-height: 720px) {
+  .dayNumber {
+    font-size: 1.1rem !important;
+    padding: 0.25rem 0.35rem !important;
+    top: 6px !important;
+    left: 6px !important;
+  }
+
+  .compactHeader {
+    margin-top: 2.2rem !important;
+  }
+
+  .dayCell {
+    min-height: 95px !important;
+  }
+
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(95px, 1fr)) !important;
+  }
+}
+
+/* ✅ 
+SOLUÇÃO ELEGANTE PARA DESKTOP (≥768px) - UNIR dayNumber + compactHeader */
+/* SUGESTÃO DO USUÁRIO: Criar layout onde elementos se respeitam mutuamente */
+
+@media (min-width: 768px) and (min-height: 520px) {
+
+  /* 🎯 CONTAINER: dayCell como flexbox para organizar elementos */
+  .dayCell {
+    position: relative !important;
+    min-height: 75px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 0.25rem !important;
+  }
+
+  /* 🎯 HEADER UNIFICADO: dayNumber + compactHeader lado a lado */
+  .dayCell::before {
+    content: '' !important;
+    display: block !important;
+    height: 1.5rem !important;
+    /* Espaço reservado para header unificado */
+    width: 100% !important;
+    position: relative !important;
+  }
+
+  /* 🎯 dayNumber: Canto superior esquerdo - posição fixa */
+  .dayNumber {
+    position: absolute !important;
+    top: 3px !important;
+    left: 3px !important;
+    z-index: 15 !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    padding: 0.1rem 0.2rem !important;
+    border-radius: 3px !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15) !important;
+    font-size: 0.85rem !important;
+    font-weight: 800 !important;
+    color: #1f2937 !important;
+    line-height: 1 !important;
+    /* Compacto para não interferir */
+    width: auto !important;
+    max-width: 2rem !important;
+    text-align: center !important;
+  }
+
+  /* 🎯 compactHeader: Lado direito - respeitando espaço do dayNumber */
+  .compactHeader {
+    position: absolute !important;
+    top: 3px !important;
+    right: 3px !important;
+    left: 2.8rem !important;
+    /* Espaço reservado para dayNumber */
+    z-index: 10 !important;
+    margin: 0 !important;
+    /* Flexível para ocupar espaço restante */
+    max-width: calc(100% - 3rem) !important;
+    min-width: 0 !important;
+    /* Permite compressão */
+  }
+
+  /* 🎯 AJUSTE: Conteúdo restante abaixo do header unificado */
+  .operacaoInfo,
+  .singleOperationInfo {
+    margin-top: 1.8rem !important;
+    position: relative !important;
+    z-index: 5 !important;
+  }
+
+  /* 🎯 GRID: Altura adequada para layout unificado */
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(75px, 1fr)) !important;
+  }
+}
+
+/* ✅ AJUSTES PROGRESSIVOS PARA TELAS MAIORES */
+@media (min-width: 1024px) and (min-height: 600px) {
+  .dayCell {
+    min-height: 85px !important;
+    padding: 0.3rem !important;
+  }
+
+  .dayNumber {
+    font-size: 0.9rem !important;
+    padding: 0.15rem 0.25rem !important;
+    max-width: 2.2rem !important;
+  }
+
+  .compactHeader {
+    left: 3rem !important;
+    max-width: calc(100% - 3.3rem) !important;
+  }
+
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(85px, 1fr)) !important;
+  }
+}
+
+@media (min-width: 1280px) and (min-height: 720px) {
+  .dayCell {
+    min-height: 95px !important;
+    padding: 0.35rem !important;
+  }
+
+  .dayNumber {
+    font-size: 1rem !important;
+    padding: 0.2rem 0.3rem !important;
+    max-width: 2.5rem !important;
+  }
+
+  .compactHeader {
+    left: 3.2rem !important;
+    max-width: calc(100% - 3.5rem) !important;
+  }
+
+  .calendarGrid {
+    grid-template-rows: auto repeat(6, minmax(95px, 1fr)) !important;
+  }
+}

@@ -13,6 +13,9 @@
     "lint:fix": "next lint --fix",
     "type-check": "tsc --noEmit",
     "dev:all": "concurrently \"npm run dev\" \"npx -y @supabase/mcp-server-supabase@latest --access-token sbp_3227b5e8f492eec4e20bc0427471ff4def64da3\" \"npx @playwright/mcp@latest\" \"npx -y @upstash/context7-mcp@latest\" --names \"NEXT,SUPABASE,PLAYWRIGHT,CONTEXT7\" --prefix-colors \"blue,yellow,magenta,cyan\"",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:config-validator": "vitest run src/tests/config-validator.test.ts",
     "test:concurrency": "npx tsx src/tests/test-concurrency.ts",
     "test:realtime": "npx tsx src/tests/test-realtime-concurrency.ts",
     "test:simple": "npx tsx src/tests/test-simple-validation.ts",
@@ -49,6 +52,9 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@types/jsdom": "^21.1.7",
     "@types/node": "^20.19.4",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -56,8 +62,10 @@
     "cross-env": "^7.0.3",
     "eslint": "^9",
     "eslint-config-next": "15.3.3",
+    "jsdom": "^26.1.0",
     "tailwindcss": "^4",
     "tsx": "^4.19.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.4"
   }
 }

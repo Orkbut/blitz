@@ -24,7 +24,7 @@ import { X, Users, Clock, AlertCircle, RefreshCw } from 'lucide-react';
 // @ts-ignore - react-hot-toast será instalado
 import { toast } from 'react-hot-toast';
 import styles from './OperacaoDialog.module.css';
-import { useRealtimeEventos } from '@/hooks/useRealtime';
+import { useRealtimeUnified } from '@/hooks/useRealtimeUnified';
 
 interface Operacao {
   id: number;
@@ -232,12 +232,30 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
 
   // ✅ SIMPLIFICADO: Hook agora recebe parâmetros diretamente
 
-  // ✅ NOVO: Hook realtime para eventos/histórico
-  const { isConnected } = useRealtimeEventos({
-    operacaoIds,
-    enabled: true,
-    onNovoEvento: handleNovoEvento,
-    debug: false
+  // ✅ MIGRADO: Hook realtime unificado para eventos/histórico
+  const { isConnected } = useRealtimeUnified({
+    channelId: `eventos-operacoes-${operacaoIds.join('-')}`,
+    tables: ['eventos_operacao'],
+    filters: operacaoIds.length > 0 ? {
+      eventos_operacao: `operacao_id.in.(${operacaoIds.join(',')})`
+    } : undefined,
+    enableRealtime: operacaoIds.length > 0,
+    enablePolling: false,
+    enableFetch: false,
+    debug: false,
+    onDatabaseChange: useCallback((event: any) => {
+      const { table, eventType, payload } = event;
+      
+      // Apenas processar INSERTs na tabela eventos_operacao
+      if (table === 'eventos_operacao' && eventType === 'INSERT' && payload.new) {
+        const novoEvento = payload.new;
+        
+        // Verificar se é uma operação que estamos monitorando
+        if (operacaoIds.length === 0 || operacaoIds.includes(novoEvento.operacao_id)) {
+          handleNovoEvento(novoEvento);
+        }
+      }
+    }, [operacaoIds, handleNovoEvento])
   });
   
   // Atualizar operações quando prop mudar
@@ -285,8 +303,8 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
     setLoading(operacaoId);
     
     try {
-      // Usar API unificada
-      const response = await fetch(`/api/participations`, {
+      // Usar mesma API do calendário principal
+      const response = await fetch('/api/participations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -299,12 +317,13 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
       const data = await response.json();
 
       if (data.success) {
-        toast.success(data.data.mensagem || 'Participação confirmada!');
+        toast.success('Participação confirmada!');
         onOperacaoUpdate(); // Recarregar operações
       } else {
         toast.error(data.error || 'Erro ao confirmar participação');
       }
     } catch (error) {
+      console.error('Erro ao confirmar participação:', error);
       toast.error('Erro ao processar solicitação');
     } finally {
       setLoading(null);
@@ -321,22 +340,20 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
       const response = await fetch('/api/agendamento/cancelar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          membroId: membroIdLocal,
-          operacaoId: operacaoId
-        })
+        body: JSON.stringify({ operacaoId, membroId: membroIdLocal })
       });
 
       const data = await response.json();
 
       if (data.success) {
-        toast.success(data.data.mensagem || 'Participação cancelada!');
+        toast.success('Participação cancelada!');
         onOperacaoUpdate(); // Recarregar operações
       } else {
         toast.error(data.error || 'Erro ao cancelar participação');
       }
     } catch (error) {
-      toast.error('Erro ao processar cancelamento');
+      console.error('Erro ao cancelar participação:', error);
+      toast.error('Erro ao processar solicitação');
     } finally {
       setLoading(null);
     }
@@ -756,7 +773,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <h2>Operações - {format(date, 'dd/MM/yyyy', { locale: ptBR })}</h2>
+          <h2>Operações - {format(date, 'EEEE, dd/MM/yyyy', { locale: ptBR })}</h2>
           <div className={styles.headerActions}>
             <button 
               className={styles.refreshButton}

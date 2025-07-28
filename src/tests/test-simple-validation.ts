@@ -59,8 +59,8 @@ async function testBasicFunctionality() {
   // 4. Verificar hooks em ambiente Node.js (simulado)
   try {
     // Verificar se não há erros de sintaxe nos hooks
-    const useRealtimeModule = await import('../hooks/useRealtimeOperacoes.js').catch(() => null);
-    const useSmartPollingModule = await import('../hooks/useSmartPolling.js').catch(() => null);
+    // const useRealtimeModule = await import('../hooks/useRealtimeOperacoes.js').catch(() => null);
+    // const useSmartPollingModule = await import('../hooks/useSmartPolling.js').catch(() => null);
   } catch (err) {
     // Erro silencioso
   }

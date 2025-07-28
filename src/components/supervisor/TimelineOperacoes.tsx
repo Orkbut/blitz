@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Operacao } from '@/shared/types';
-import { useRealtimeCentralized } from '@/hooks/useRealtimeCentralized';
+import { useRealtimeUnified } from '@/hooks/useRealtimeUnified';
 import { ElegantInlineLoader } from '@/shared/components/ui/LoadingSpinner';
 import styles from './TimelineOperacoes.module.css';
 
@@ -101,26 +101,33 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
     }
   }, [operacaoIds, onRefresh]);
 
-  // Hook realtime unificado
-  const { isConnected } = useRealtimeCentralized({
-    enabled: operacaoIds.length > 0 && !loading,
+  // Hook realtime unificado - migrado para useRealtimeUnified
+  const { isConnected } = useRealtimeUnified({
+    channelId: `timeline-operacoes-${operacaoIds.join('-')}`,
+    tables: ['operacao', 'participacao'],
+    enableRealtime: operacaoIds.length > 0 && !loading,
+    enablePolling: false,
+    enableFetch: false,
     debug: false,
-    onOperacaoChange: useCallback((payload: any) => {
-      if (payload.eventType === 'UPDATE' && onRefresh) {
-        onRefresh();
+    onDatabaseChange: useCallback((event: any) => {
+      const { table, eventType, payload } = event;
+      
+      if (table === 'operacao') {
+        if (eventType === 'UPDATE' && onRefresh) {
+          onRefresh();
+        }
+        if (eventType === 'INSERT' || eventType === 'DELETE') {
+          if (onRefresh) onRefresh();
+        }
+      } else if (table === 'participacao') {
+        const operacaoId = payload.new?.operacao_id || payload.old?.operacao_id;
+        if (operacaoId && operacaoIds.includes(operacaoId)) {
+          setTimeout(() => {
+            reloadOperacoesSilencioso();
+          }, 1000);
+        }
       }
-      if (payload.eventType === 'INSERT' || payload.eventType === 'DELETE') {
-        if (onRefresh) onRefresh();
-      }
-    }, [onRefresh]),
-    onParticipacaoChange: useCallback((payload: any) => {
-      const operacaoId = payload.new?.operacao_id || payload.old?.operacao_id;
-      if (operacaoId && operacaoIds.includes(operacaoId)) {
-        setTimeout(() => {
-          reloadOperacoesSilencioso();
-        }, 1000);
-      }
-    }, [operacaoIds, reloadOperacoesSilencioso])
+    }, [onRefresh, operacaoIds, reloadOperacoesSilencioso])
   });
 
   // Carregar solicitações inicialmente

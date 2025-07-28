@@ -104,7 +104,7 @@ export class RealtimeManager {
       const defaultConfig: RealtimeManagerConfig = {
         maxChannelsPerClient: 100,      // Padrão oficial
         maxEventsPerSecond: 100,        // Padrão oficial  
-        maxJoinsPerSecond: 50,          // Conservador (oficial: 100)
+        maxJoinsPerSecond: 80,          // Aumentado para permitir mais conexões simultâneas
         healthCheckInterval: 30000,     // 30s
         maxReconnectAttempts: 5,        // Limite razoável
         reconnectBackoffMs: 2000       // 2s backoff
@@ -124,11 +124,22 @@ export class RealtimeManager {
    */
   public subscribe(subscription: ChannelSubscription): boolean {
     if (!subscription.enabled) {
+      console.debug(`[RealtimeManager] Subscription disabled: ${subscription.channelId}`);
       return false;
     }
     
-    // 🔐 RATE LIMITING CHECK
+    // 🔐 RATE LIMITING CHECK COM RETRY AUTOMÁTICO
     if (!this.checkRateLimit()) {
+      console.warn(`[RealtimeManager] Rate limit hit for ${subscription.channelId}, scheduling retry...`);
+      
+      // Retry automático após 1 segundo
+      setTimeout(() => {
+        if (this.subscriptions.has(subscription.channelId)) {
+          console.info(`[RealtimeManager] Retrying subscription: ${subscription.channelId}`);
+          this.subscribe(subscription);
+        }
+      }, 1000);
+      
       return false;
     }
     
@@ -137,9 +148,10 @@ export class RealtimeManager {
     
     // 🔄 CRIAR OU REUTILIZAR CANAL
     if (!this.channels.has(subscription.channelId)) {
+      console.debug(`[RealtimeManager] Creating new channel: ${subscription.channelId}`);
       this.createChannel(subscription);
     } else {
-      // Canal reutilizado
+      console.debug(`[RealtimeManager] Reusing existing channel: ${subscription.channelId}`);
     }
     
     return true;
@@ -149,6 +161,7 @@ export class RealtimeManager {
    * 🎯 UNSUBSCRIBE FROM CHANNEL
    */
   public unsubscribe(channelId: string): void {
+    console.debug(`[RealtimeManager] Unsubscribing from channel: ${channelId}`);
     this.subscriptions.delete(channelId);
     
     // 🧹 REMOVER CANAL SE NÃO HÁ MAIS SUBSCRIPTIONS
@@ -158,6 +171,51 @@ export class RealtimeManager {
       this.channels.delete(channelId);
       this.reconnectAttempts.delete(channelId);
     }
+  }
+
+  /**
+   * 🎯 GET RATE LIMITING STATUS
+   * 
+   * Útil para debugging e monitoramento
+   */
+  public getRateLimitStatus(): {
+    joinAttempts: number;
+    maxJoinsPerSecond: number;
+    timeUntilReset: number;
+    canJoin: boolean;
+  } {
+    const now = Date.now();
+    const timeUntilReset = 1000 - (now - this.lastJoinReset);
+    
+    return {
+      joinAttempts: this.joinAttempts,
+      maxJoinsPerSecond: this.config.maxJoinsPerSecond,
+      timeUntilReset: Math.max(0, timeUntilReset),
+      canJoin: this.joinAttempts < this.config.maxJoinsPerSecond
+    };
+  }
+
+  /**
+   * 🎯 GET MANAGER STATS
+   * 
+   * Para debugging e monitoramento
+   */
+  public getStats(): {
+    activeChannels: number;
+    activeSubscriptions: number;
+    rateLimitStatus: ReturnType<typeof this.getRateLimitStatus>;
+    lastEventTime: number;
+    timeSinceLastEvent: number;
+  } {
+    const now = Date.now();
+    
+    return {
+      activeChannels: this.channels.size,
+      activeSubscriptions: this.subscriptions.size,
+      rateLimitStatus: this.getRateLimitStatus(),
+      lastEventTime: this.lastEventTime,
+      timeSinceLastEvent: now - this.lastEventTime
+    };
   }
   
   /**
@@ -235,7 +293,10 @@ export class RealtimeManager {
   }
   
   /**
-   * 🎯 RATE LIMITING BASEADO NA DOCUMENTAÇÃO
+   * 🎯 RATE LIMITING INTELIGENTE
+   * 
+   * Permite burst inicial para carregamento da página,
+   * depois aplica rate limiting mais restritivo.
    */
   private checkRateLimit(): boolean {
     const now = Date.now();
@@ -246,8 +307,18 @@ export class RealtimeManager {
       this.lastJoinReset = now;
     }
     
+    // Permitir burst inicial nos primeiros 5 segundos após instanciação
+    const timeSinceStart = now - this.lastJoinReset;
+    const isInitialBurst = this.channels.size === 0 && timeSinceStart < 5000;
+    
+    // Limite mais permissivo durante burst inicial
+    const effectiveLimit = isInitialBurst 
+      ? this.config.maxJoinsPerSecond * 2  // Dobrar limite durante burst
+      : this.config.maxJoinsPerSecond;
+    
     // Verificar limite
-    if (this.joinAttempts >= this.config.maxJoinsPerSecond) {
+    if (this.joinAttempts >= effectiveLimit) {
+      console.warn(`[RealtimeManager] Rate limit atingido: ${this.joinAttempts}/${effectiveLimit} joins/s`);
       return false;
     }
     

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { TrendingUp, Calendar, Clock, CheckCircle, AlertCircle, Info } from 'lucide-react';
-import { useSmartPolling } from '@/hooks/useSmartPolling';
+// import { useSmartPolling } from '@/hooks/useSmartPolling'; // Hook removido
 
 interface LimitesServidor {
   podeParticiparMais: boolean;

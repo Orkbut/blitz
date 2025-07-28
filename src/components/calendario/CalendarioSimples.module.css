@@ -1,0 +1,1304 @@
+/* ===== CALENDÁRIO RESPONSIVO ESCALÁVEL - MANTÉM VISUAL INTACTO ===== */
+
+/* Container Principal - SEM MARGENS LATERAIS */
+.calendarContainer {
+  background: #ffffff;
+  border-radius: clamp(8px, 2vw, 16px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: none; /* Remove limitação de largura máxima */
+  min-width: 100%; /* Largura mínima total */
+  overflow-x: auto; /* Scroll horizontal quando necessário para alinhamento */
+  overflow-y: hidden;
+  margin: 0; /* Remove margin auto que cria espaços laterais */
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  container-type: inline-size;
+  container-name: calendar;
+  box-sizing: border-box;
+}
+
+/* Wrapper interno para garantir alinhamento perfeito entre header e grid */
+.calendarInner {
+  min-width: 100%;
+  width: max-content; /* Expande conforme necessário */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Garantia de largura total em TODAS as resoluções */
+@media (max-width: 768px) {
+  .calendarContainer {
+    width: 100%;
+    max-width: none;
+    min-width: 100%;
+    margin: 0;
+    border-radius: clamp(4px, 1vw, 8px);
+    border-left: none;
+    border-right: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendarContainer {
+    width: 100%;
+    max-width: none;
+    min-width: 100%;
+    margin: 0;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+}
+
+@media (max-width: 375px) {
+  .calendarContainer {
+    width: 100%;
+    max-width: none;
+    min-width: 100%;
+    margin: 0;
+  }
+}
+
+@media (max-width: 320px) {
+  .calendarContainer {
+    width: 100%;
+    max-width: none;
+    min-width: 100%;
+    margin: 0;
+  }
+}
+
+/* Header do Calendário - Responsivo Fluido */
+.calendarHeader {
+  background: #ffc107;
+  color: #1a1a1a;
+  padding: clamp(8px, 3vw, 18px);
+  display: grid;
+  grid-template-columns: clamp(40px, 8vw, 50px) 1fr clamp(40px, 8vw, 50px) auto;
+  gap: clamp(8px, 2vw, 14px);
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(255, 193, 7, 0.2);
+}
+
+/* Container Queries para Header */
+@container calendar (max-width: 400px) {
+  .calendarHeader {
+    grid-template-columns: 35px 1fr 35px auto;
+    gap: 8px;
+    padding: 10px;
+  }
+}
+
+@container calendar (max-width: 320px) {
+  .calendarHeader {
+    grid-template-columns: 30px 1fr 30px 70px;
+    gap: 6px;
+    padding: 8px;
+  }
+}
+
+/* Botões do lado direito no header */
+.rightButtons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Botões de Navegação - Responsivos */
+.navButton {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+  cursor: pointer;
+  color: #1a1a1a;
+  width: clamp(35px, 8vw, 44px);
+  height: clamp(35px, 8vw, 44px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  min-width: 30px;
+  min-height: 30px;
+}
+
+.navButton:hover {
+  background: rgba(255, 255, 255, 0.3);
+  color: #1a1a1a;
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.monthYear {
+  font-size: clamp(1rem, 4vw, 1.8rem);
+  font-weight: 700;
+  color: #2c3e50;
+  text-align: center;
+  text-transform: capitalize;
+  letter-spacing: clamp(0.3px, 0.5vw, 0.8px);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  text-shadow: 0 1px 2px rgba(44, 62, 80, 0.1);
+  line-height: 1.2;
+  margin: 0;
+  padding: 0 clamp(4px, 1vw, 8px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Container Queries para Título do Mês */
+@container calendar (max-width: 400px) {
+  .monthYear {
+    font-size: 1.2rem;
+    letter-spacing: 0.4px;
+  }
+}
+
+@container calendar (max-width: 320px) {
+  .monthYear {
+    font-size: 1rem;
+    letter-spacing: 0.2px;
+  }
+}
+
+/* Botão Hoje - Responsivo */
+.todayButton {
+  background: rgba(255, 255, 255, 0.95);
+  color: #2c3e50;
+  border: 2px solid rgba(44, 62, 80, 0.2);
+  border-radius: clamp(12px, 3vw, 20px);
+  padding: clamp(6px, 1.5vw, 8px) clamp(8px, 2vw, 14px);
+  font-size: clamp(0.7rem, 2vw, 0.85rem);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: clamp(3px, 1vw, 6px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  white-space: nowrap;
+  min-width: fit-content;
+}
+
+/* Container Queries para Botão Hoje */
+@container calendar (max-width: 400px) {
+  .todayButton {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    gap: 4px;
+  }
+}
+
+@container calendar (max-width: 320px) {
+  .todayButton span {
+    display: none;
+    /* Mostra apenas o ícone em telas muito pequenas */
+  }
+
+  .todayButton {
+    padding: 6px 8px;
+    min-width: 32px;
+    justify-content: center;
+  }
+}
+
+.todayButton:hover {
+  background: #ffffff;
+  color: #2c3e50;
+  border-color: rgba(44, 62, 80, 0.4);
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Dias da Semana - ALINHADO COM O GRID DO CALENDÁRIO (técnica do projeto de referência) */
+.weekdays {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important; /* Mesmo grid do calendário */
+  gap: 0 !important; /* Sem gap como no calendário */
+  background: #2c3e50 !important;
+  color: #ffffff !important;
+  text-align: center !important;
+  font-weight: 800 !important;
+  padding: clamp(8px, 2vw, 12px) 0 !important;
+  font-size: clamp(0.7rem, 2vw, 0.9rem) !important;
+  position: relative !important;
+  z-index: 10 !important;
+  min-height: clamp(36px, 8vw, 44px) !important;
+  letter-spacing: clamp(0.2px, 0.5vw, 0.5px) !important;
+  text-transform: uppercase !important;
+  box-shadow: 0 2px 4px rgba(44, 62, 80, 0.2) !important;
+  border: none !important;
+  outline: none !important;
+  width: 100% !important; /* Largura total como o calendário */
+  box-sizing: border-box !important;
+}
+
+/* Container Queries para Dias da Semana - ALINHAMENTO PERFEITO COM CÉLULAS */
+@container calendar (max-width: 400px) {
+  .weekdays {
+    font-size: 0.75rem !important;
+    min-height: 38px !important;
+    padding: 10px 0 !important;
+    min-width: calc(7 * 120px) !important; /* Mesmo que as células do calendário */
+  }
+  
+  .weekdays>div {
+    min-width: 120px !important; /* Largura mínima igual às células */
+  }
+}
+
+@container calendar (max-width: 320px) {
+  .weekdays {
+    font-size: 0.65rem !important;
+    min-height: 32px !important;
+    padding: 8px 0 !important;
+    letter-spacing: 0.1px !important;
+    min-width: calc(7 * 100px) !important; /* Mesmo que as células do calendário */
+  }
+  
+  .weekdays>div {
+    min-width: 100px !important; /* Largura mínima igual às células */
+  }
+}
+
+.weekdays>div {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 100% !important;
+  padding: 0 !important; /* Sem padding lateral para alinhamento perfeito */
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-sizing: border-box !important;
+  width: 100% !important; /* Largura total da célula */
+  min-width: 0 !important; /* Permite compressão se necessário */
+}
+
+/* Garantia adicional de acessibilidade */
+.calendarContainer .weekdays,
+.calendarContainer .weekdays>div {
+  color: #ffffff !important;
+  background-color: #2c3e50 !important;
+}
+
+/* Grid do Calendário - SEM PADDING LATERAL */
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0; /* Sem gap para alinhamento perfeito */
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 0; /* Sem padding para eliminar margens laterais */
+  border-radius: clamp(4px, 1vw, 8px);
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.05),
+    0 1px 2px rgba(255, 255, 255, 0.8);
+  width: 100%; /* Largura total */
+  min-height: 0; /* Permite flexibilidade */
+  box-sizing: border-box;
+}
+
+/* Largura total em TODAS as resoluções - SEM LIMITAÇÕES */
+.calendarGrid,
+.weekdays {
+  width: 100% !important; /* Largura total sempre */
+  min-width: 100% !important; /* Largura mínima total */
+  max-width: none !important; /* Remove limitação de largura máxima */
+}
+
+/* Container Queries - SEM LIMITAÇÕES DE LARGURA */
+@container calendar (max-width: 400px) {
+  .calendarGrid,
+  .weekdays {
+    width: 100% !important; /* Largura total */
+    min-width: 100% !important; /* Largura mínima total */
+  }
+  
+  .calendarGrid {
+    gap: 0; /* Sem gap para alinhamento perfeito */
+    padding: 0; /* Sem padding para alinhamento perfeito */
+  }
+}
+
+@container calendar (max-width: 320px) {
+  .calendarGrid,
+  .weekdays {
+    width: 100% !important; /* Largura total */
+    min-width: 100% !important; /* Largura mínima total */
+  }
+  
+  .calendarGrid {
+    gap: 0; /* Sem gap para alinhamento perfeito */
+    padding: 0; /* Sem padding para alinhamento perfeito */
+  }
+}
+
+/* Células dos Dias - SEM LIMITAÇÕES DE LARGURA */
+.dayCell {
+  background: linear-gradient(145deg, #ffffff 0%, #fafafa 100%);
+  height: clamp(100px, 15vh, 140px); /* Altura responsiva baseada na viewport */
+  width: 100%; /* Largura total disponível */
+  min-width: 0; /* Remove limitação de largura mínima */
+  padding: clamp(4px, 1.5vw, 8px);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Alinhamento no topo para evitar espaçamento excessivo */
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  box-shadow:
+    inset 1px 1px 2px rgba(255, 255, 255, 0.8),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.03),
+    0 1px 3px rgba(0, 0, 0, 0.02);
+  border-radius: clamp(2px, 0.5vw, 3px);
+  overflow: visible; /* Permite conteúdo expandir se necessário */
+  box-sizing: border-box;
+}
+
+/* Responsividade específica por breakpoints - SEM LIMITAÇÕES DE LARGURA */
+@media (max-width: 768px) {
+  .dayCell {
+    height: clamp(90px, 12vh, 120px) !important;
+    width: 100% !important; /* Largura total disponível */
+    min-width: 0 !important; /* Remove limitação de largura mínima */
+    padding: clamp(2px, 0.4vw, 4px) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .dayCell {
+    height: clamp(80px, 10vh, 100px) !important;
+    width: 100% !important; /* Largura total disponível */
+    min-width: 0 !important; /* Remove limitação de largura mínima */
+    padding: clamp(1px, 0.3vw, 3px) !important;
+  }
+}
+
+@media (max-width: 320px) {
+  .dayCell {
+    height: clamp(70px, 8vh, 90px) !important;
+    width: 100% !important; /* Largura total disponível */
+    min-width: 0 !important; /* Remove limitação de largura mínima */
+    padding: clamp(1px, 0.2vw, 2px) !important;
+  }
+}
+
+/* Container Queries para Células - SEM LIMITAÇÕES DE LARGURA */
+@container calendar (max-width: 500px) {
+  .dayCell {
+    height: clamp(90px, 12vh, 120px);
+    width: 100%; /* Largura total disponível */
+    min-width: 0; /* Remove limitação de largura mínima */
+    padding: clamp(2px, 0.4vw, 4px);
+  }
+}
+
+@container calendar (max-width: 400px) {
+  .dayCell {
+    height: clamp(80px, 10vh, 100px);
+    width: 100%; /* Largura total disponível */
+    min-width: 0; /* Remove limitação de largura mínima */
+    padding: clamp(1px, 0.3vw, 3px);
+  }
+}
+
+@container calendar (max-width: 320px) {
+  .dayCell {
+    height: clamp(70px, 8vh, 90px);
+    width: 100%; /* Largura total disponível */
+    min-width: 0; /* Remove limitação de largura mínima */
+    padding: clamp(1px, 0.2vw, 2px);
+  }
+}
+
+.dayCell:hover {
+  background: linear-gradient(145deg, #fffef7 0%, #fefbf0 100%);
+  box-shadow:
+    inset 1px 1px 3px rgba(255, 255, 255, 0.9),
+    inset -1px -1px 3px rgba(255, 193, 7, 0.08),
+    0 2px 6px rgba(255, 193, 7, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.05);
+  transform: translateY(-1px);
+}
+
+/* Número do Dia - Compacto e Posicionado no Canto */
+.dayNumber {
+  font-size: clamp(0.7rem, 2vw, 0.9rem);
+  font-weight: 700;
+  color: #2c3e50;
+  position: absolute;
+  top: clamp(2px, 0.5vw, 4px);
+  left: clamp(2px, 0.5vw, 4px);
+  min-width: clamp(14px, 3vw, 18px);
+  height: clamp(14px, 3vw, 18px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Container Queries para Número do Dia */
+@container calendar (max-width: 400px) {
+  .dayNumber {
+    font-size: 0.75rem;
+    min-width: 16px;
+    height: 16px;
+    top: 3px;
+    left: 3px;
+  }
+}
+
+@container calendar (max-width: 320px) {
+  .dayNumber {
+    font-size: 0.65rem;
+    min-width: 14px;
+    height: 14px;
+    top: 2px;
+    left: 2px;
+  }
+}
+
+.otherMonth .dayNumber {
+  color: #bbb;
+  opacity: 0.5;
+}
+
+.otherMonth {
+  background: linear-gradient(145deg, #f8f9fa 0%, #f1f3f4 100%);
+  opacity: 0.7;
+  box-shadow:
+    inset 1px 1px 2px rgba(255, 255, 255, 0.6),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.currentDay .dayNumber {
+  background: #ffc107;
+  color: #1a1a1a;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(255, 193, 7, 0.3);
+}
+
+/* Container de Operações - COMPACTO SEM ESPAÇAMENTO EXCESSIVO */
+.operacaoInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start; /* Alinhamento no topo para evitar espaçamento excessivo */
+  gap: clamp(2px, 0.5vw, 4px); /* Gap reduzido */
+  text-align: center;
+  padding: clamp(2px, 0.5vw, 4px);
+  margin-top: clamp(20px, 4vw, 24px); /* Espaço para o número do dia */
+  height: calc(100% - clamp(20px, 4vw, 24px));
+  box-sizing: border-box;
+}
+
+/* Operação Única - LAYOUT COMPACTO COM BOTÃO NO FINAL */
+.singleOperationInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between; /* Header no topo, botão no final */
+  gap: clamp(2px, 0.4vw, 3px); /* Gap reduzido */
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  padding: 0;
+}
+
+/* Header da Operação - ULTRA COMPACTO */
+.operationHeader {
+  background: linear-gradient(145deg, #f8f9fa 0%, #f1f3f4 100%);
+  border: none;
+  border-radius: clamp(3px, 0.8vw, 5px);
+  padding: clamp(2px, 0.5vw, 3px) clamp(3px, 0.7vw, 4px); /* Padding reduzido */
+  width: 100%;
+  text-align: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    inset 1px 1px 2px rgba(255, 255, 255, 0.8),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.05),
+    0 1px 3px rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+  min-height: fit-content;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1px, 0.2vw, 1px); /* Gap mínimo */
+}
+
+/* Container Queries para Header da Operação - ULTRA COMPACTO */
+@container calendar (max-width: 400px) {
+  .operationHeader {
+    padding: 2px 3px; /* Padding mínimo */
+    border-radius: 3px;
+    gap: 0px; /* Sem gap */
+  }
+}
+
+@container calendar (max-width: 320px) {
+  .operationHeader {
+    padding: 1px 2px; /* Padding ultra mínimo */
+    border-radius: 2px;
+    gap: 0px; /* Sem gap */
+  }
+}
+
+.operationHeader.blitz {
+  background: linear-gradient(145deg, #fff8f5 0%, #fef2f2 100%);
+  box-shadow:
+    inset 1px 1px 2px rgba(255, 255, 255, 0.9),
+    inset -1px -1px 2px rgba(249, 115, 22, 0.08),
+    0 1px 3px rgba(249, 115, 22, 0.12);
+}
+
+.operationHeader.balanca {
+  background: linear-gradient(145deg, #f0fdf4 0%, #f7fee7 100%);
+  box-shadow:
+    inset 1px 1px 2px rgba(255, 255, 255, 0.9),
+    inset -1px -1px 2px rgba(34, 197, 94, 0.08),
+    0 1px 3px rgba(34, 197, 94, 0.12);
+}
+
+/* Nome da Modalidade - Responsivo */
+.modalidadeName {
+  font-size: clamp(0.6rem, 1.8vw, 0.75rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: clamp(0.2px, 0.5vw, 0.5px);
+  color: #495057;
+  margin: 0;
+  line-height: 1.1;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Container Queries para Nome da Modalidade */
+@container calendar (max-width: 400px) {
+  .modalidadeName {
+    font-size: 0.65rem;
+    letter-spacing: 0.3px;
+  }
+}
+
+@container calendar (max-width: 320px) {
+  .modalidadeName {
+    font-size: 0.55rem;
+    letter-spacing: 0.1px;
+  }
+}
+
+.modalidadeName.blitz {
+  color: #f97316;
+}
+
+.modalidadeName.balanca {
+  color: #22c55e;
+}
+
+/* Estatísticas - ULTRA COMPACTAS */
+.participantStats {
+  font-size: clamp(0.55rem, 1.6vw, 0.7rem);
+  font-weight: 600;
+  color: #6c757d;
+  margin-top: clamp(1px, 0.2vw, 1px); /* Margem mínima */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1px, 0.3vw, 2px); /* Gap reduzido */
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Container Queries para Estatísticas - ULTRA COMPACTAS */
+@container calendar (max-width: 400px) {
+  .participantStats {
+    font-size: 0.6rem;
+    gap: 1px; /* Gap mínimo */
+    margin-top: 0px; /* Sem margem */
+  }
+}
+
+@container calendar (max-width: 320px) {
+  .participantStats {
+    font-size: 0.5rem;
+    gap: 0px; /* Sem gap */
+    margin-top: 0px; /* Sem margem */
+  }
+}
+
+.queueIndicator {
+  color: #f59e0b;
+  font-weight: 700;
+  font-size: 0.65rem;
+}
+
+/* Botão de Ação - POSICIONADO NO FINAL SEM ESPAÇAMENTO EXCESSIVO */
+.quickActionButton {
+  background: linear-gradient(145deg, #34495e 0%, #2c3e50 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: clamp(8px, 2vw, 12px);
+  padding: clamp(4px, 1vw, 6px) clamp(6px, 1.5vw, 8px);
+  font-size: clamp(0.5rem, 1.4vw, 0.65rem);
+  font-weight: 600;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+  margin-top: clamp(6px, 1.5vw, 10px); /* Margem superior aumentada para posicionar melhor */
+  margin-bottom: 0; /* Sem margem inferior */
+  min-height: clamp(20px, 4.5vw, 28px);
+  max-height: clamp(24px, 5.5vw, 32px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: clamp(0.05px, 0.2vw, 0.2px);
+  box-shadow:
+    0 2px 4px rgba(44, 62, 80, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+  align-self: flex-end; /* Posiciona o botão no final da célula */
+}
+
+/* Ajuste específico para resoluções maiores onde o botão fica cortado */
+@media (min-width: 651px) {
+  .quickActionButton {
+    margin-top: clamp(2px, 0.5vw, 6px) !important;
+    margin-bottom: clamp(3px, 0.8vw, 5px) !important;
+  }
+}
+
+/* Container Queries para Botão de Ação - RESPONSIVIDADE BASEADA NO PROJETO DE REFERÊNCIA */
+@container calendar (max-width: 400px) {
+  .quickActionButton {
+    font-size: clamp(0.38rem, 1.8vw, 0.55rem) !important;
+    padding: clamp(0.2rem, 1vw, 0.35rem) clamp(0.15rem, 0.6vw, 0.25rem) !important;
+    min-height: clamp(18px, 5vw, 26px) !important;
+    max-height: clamp(22px, 6vw, 30px) !important;
+    border-radius: clamp(6px, 1.5vw, 10px) !important;
+    margin-bottom: clamp(2px, 0.5vw, 4px) !important;
+  }
+}
+
+@container calendar (max-width: 320px) {
+  .quickActionButton {
+    font-size: clamp(0.32rem, 1.2vw, 0.45rem) !important;
+    padding: clamp(0.12rem, 0.6vw, 0.25rem) clamp(0.08rem, 0.4vw, 0.15rem) !important;
+    min-height: clamp(14px, 4vw, 20px) !important;
+    max-height: clamp(18px, 5vw, 24px) !important;
+    border-radius: clamp(4px, 1vw, 8px) !important;
+    letter-spacing: clamp(0.005em, 0.02vw, 0.01em) !important;
+    margin-bottom: clamp(1px, 0.3vw, 3px) !important;
+  }
+}
+
+.quickActionButton:hover:not(:disabled) {
+  background: linear-gradient(145deg, #ffd54f 0%, #ffc107 100%);
+  color: #1a1a1a;
+  transform: translateY(-2px) scale(1.02);
+  box-shadow:
+    0 4px 8px rgba(255, 193, 7, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.quickActionButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Variações do Botão - Com Efeito 3D Sutil */
+.quickActionButton.participate {
+  background: linear-gradient(145deg, #34d399 0%, #10b981 100%);
+  color: white;
+  box-shadow:
+    0 2px 4px rgba(16, 185, 129, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.quickActionButton.participate:hover:not(:disabled) {
+  background: linear-gradient(145deg, #6ee7b7 0%, #34d399 100%);
+  box-shadow:
+    0 4px 8px rgba(16, 185, 129, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.quickActionButton.cancel {
+  background: linear-gradient(145deg, #fb923c 0%, #f97316 100%);
+  color: white;
+  box-shadow:
+    0 2px 4px rgba(249, 115, 22, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.quickActionButton.cancel:hover:not(:disabled) {
+  background: linear-gradient(145deg, #fdba74 0%, #fb923c 100%);
+  box-shadow:
+    0 4px 8px rgba(249, 115, 22, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.quickActionButton.queue {
+  background: linear-gradient(145deg, #fbbf24 0%, #f59e0b 100%);
+  color: #1a1a1a;
+  box-shadow:
+    0 2px 4px rgba(245, 158, 11, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.quickActionButton.queue:hover:not(:disabled) {
+  background: linear-gradient(145deg, #fcd34d 0%, #fbbf24 100%);
+  box-shadow:
+    0 4px 8px rgba(245, 158, 11, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.quickActionButton.full {
+  background: linear-gradient(145deg, #9ca3af 0%, #6b7280 100%);
+  color: white;
+  cursor: not-allowed;
+  box-shadow:
+    0 2px 4px rgba(107, 114, 128, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Animação de Loading */
+.spinning {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+  transform-origin: center;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Múltiplas Operações */
+.multipleOperations {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.operationItem {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 249, 250, 0.95) 100%);
+  border: none;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 0.7rem;
+  text-align: center;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    inset 1px 1px 2px rgba(255, 255, 255, 0.8),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.05),
+    0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.operationItem:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 1px 1px 3px rgba(255, 255, 255, 0.9),
+    inset -1px -1px 3px rgba(0, 0, 0, 0.08),
+    0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.operationItem.blitz {
+  border-left: 4px solid #f97316;
+  color: #f97316;
+  background: linear-gradient(145deg, rgba(255, 248, 245, 0.95) 0%, rgba(254, 242, 242, 0.95) 100%);
+}
+
+.operationItem.balanca {
+  border-left: 4px solid #22c55e;
+  color: #22c55e;
+  background: linear-gradient(145deg, rgba(240, 253, 244, 0.95) 0%, rgba(247, 254, 231, 0.95) 100%);
+}
+
+.moreOperations {
+  font-size: 0.65rem;
+  color: #64748b;
+  text-align: center;
+  font-weight: 700;
+  padding: 4px 6px;
+  background: linear-gradient(145deg, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.05) 100%);
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow:
+    inset 1px 1px 2px rgba(255, 255, 255, 0.3),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== RESPONSIVIDADE ESCALÁVEL - FALLBACKS E OTIMIZAÇÕES ===== */
+
+/* Fallback para navegadores sem suporte a Container Queries */
+@supports not (container-type: inline-size) {
+  @media (max-width: 768px) {
+    .calendarHeader {
+      padding: 12px;
+      grid-template-columns: 40px 1fr 40px auto;
+      gap: 10px;
+    }
+
+    .monthYear {
+      font-size: 1.4rem;
+    }
+
+    .navButton {
+      width: 40px;
+      height: 40px;
+      font-size: 1rem;
+    }
+
+    .dayCell {
+      min-height: 90px;
+      padding: 6px;
+    }
+
+    .dayNumber {
+      font-size: 0.9rem;
+    }
+
+    .modalidadeName {
+      font-size: 0.7rem;
+    }
+
+    .participantStats {
+      font-size: 0.65rem;
+    }
+
+    .quickActionButton {
+      font-size: 0.65rem;
+      padding: 6px 8px;
+      min-height: 28px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .calendarHeader {
+      padding: 10px;
+      grid-template-columns: 35px 1fr 35px 70px;
+      gap: 8px;
+    }
+
+    .monthYear {
+      font-size: 1.1rem;
+    }
+
+    .navButton {
+      width: 35px;
+      height: 35px;
+      font-size: 0.9rem;
+    }
+
+    .weekdays {
+      font-size: 0.75rem;
+      padding: 10px 0;
+      min-height: 38px;
+      min-width: calc(7 * 120px) !important; /* Alinhamento com células */
+    }
+    
+    .weekdays>div {
+      min-width: 120px !important; /* Largura mínima igual às células */
+    }
+
+    .dayCell {
+      min-height: 75px;
+      padding: 5px;
+    }
+
+    .dayNumber {
+      font-size: 0.8rem;
+      margin-bottom: 4px;
+    }
+
+    .modalidadeName {
+      font-size: 0.65rem;
+    }
+
+    .participantStats {
+      font-size: 0.6rem;
+    }
+
+    .quickActionButton {
+      font-size: 0.6rem;
+      padding: 5px 6px;
+      min-height: 26px;
+    }
+
+    .operationHeader {
+      padding: 5px 6px;
+    }
+  }
+
+  @media (max-width: 320px) {
+    .calendarHeader {
+      padding: 8px;
+      grid-template-columns: 30px 1fr 30px 60px;
+      gap: 6px;
+    }
+
+    .monthYear {
+      font-size: 1rem;
+    }
+
+    .navButton {
+      width: 30px;
+      height: 30px;
+      font-size: 0.8rem;
+    }
+
+    .todayButton span {
+      display: none;
+    }
+
+    .todayButton {
+      padding: 6px 8px;
+      min-width: 32px;
+      justify-content: center;
+    }
+
+    .weekdays {
+      font-size: 0.65rem;
+      padding: 8px 0;
+      min-height: 32px;
+      min-width: calc(7 * 100px) !important; /* Alinhamento com células */
+    }
+    
+    .weekdays>div {
+      min-width: 100px !important; /* Largura mínima igual às células */
+    }
+
+    .dayCell {
+      min-height: 65px;
+      padding: 3px;
+    }
+
+    .dayNumber {
+      font-size: 0.75rem;
+      margin-bottom: 3px;
+    }
+
+    .modalidadeName {
+      font-size: 0.55rem;
+    }
+
+    .participantStats {
+      font-size: 0.5rem;
+    }
+
+    .quickActionButton {
+      font-size: 0.5rem;
+      padding: 4px 6px;
+      min-height: 22px;
+    }
+
+    .operationHeader {
+      padding: 3px 5px;
+    }
+  }
+}
+
+/* Otimizações específicas para 300px */
+@media (max-width: 300px) {
+  .calendarContainer {
+    min-width: 280px;
+    border-radius: 8px;
+  }
+
+  .calendarHeader {
+    padding: 6px;
+    grid-template-columns: 28px 1fr 28px 50px;
+    gap: 4px;
+  }
+
+  .monthYear {
+    font-size: 0.9rem;
+    letter-spacing: 0.1px;
+  }
+
+  .navButton {
+    width: 28px;
+    height: 28px;
+    font-size: 0.7rem;
+  }
+
+  .todayButton {
+    font-size: 0.6rem;
+    padding: 4px 6px;
+  }
+
+  .weekdays {
+    font-size: 0.6rem;
+    padding: 6px 0;
+    min-height: 28px;
+  }
+
+  .calendarGrid {
+    gap: 1px;
+    padding: 1px;
+  }
+
+  .dayCell {
+    min-height: 55px;
+    padding: 2px;
+  }
+
+  .dayNumber {
+    font-size: 0.7rem;
+    min-width: 14px;
+    height: 14px;
+    margin-bottom: 2px;
+  }
+
+  .modalidadeName {
+    font-size: 0.5rem;
+    letter-spacing: 0.05px;
+  }
+
+  .participantStats {
+    font-size: 0.45rem;
+    gap: 1px;
+  }
+
+  .quickActionButton {
+    font-size: 0.45rem;
+    padding: 3px 4px;
+    min-height: 20px;
+    border-radius: 10px;
+  }
+
+  .operationHeader {
+    padding: 2px 4px;
+    border-radius: 3px;
+  }
+}
+
+/* Ajustes para operações múltiplas em telas pequenas */
+@media (max-width: 480px) {
+  .operationItem.blitz {
+    text-shadow: 0.2px 0.2px 0.6px rgba(249, 115, 22, 0.18) !important;
+    font-variant: small-caps !important;
+    font-family: 'Playfair Display', serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    text-transform: none !important;
+  }
+
+  .operationItem.balanca {
+    text-shadow: 0.2px 0.2px 0.6px rgba(34, 197, 94, 0.18) !important;
+    font-variant: small-caps !important;
+    font-family: 'Playfair Display', serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    text-transform: none !important;
+  }
+}
+
+/* Garantia de legibilidade em todas as resoluções */
+@media (max-width: 400px) {
+
+  .modalidadeName,
+  .participantStats,
+  .quickActionButton {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* ✅ OTIMIZAÇÕES DE PERFORMANCE PARA MOBILE (baseadas no projeto de referência) */
+@media (max-width: 768px) {
+  .calendarContainer {
+    -webkit-overflow-scrolling: touch; /* Scroll suave no iOS */
+    scrollbar-width: thin; /* Scrollbar fina no Firefox */
+  }
+  
+  .dayCell {
+    will-change: transform; /* Otimização de performance para animações */
+  }
+  
+  .quickActionButton {
+    will-change: transform; /* Otimização de performance para hover/active */
+  }
+}
+
+/* ✅ OTIMIZAÇÕES ESPECÍFICAS PARA TOUCH DEVICES */
+@media (hover: none) and (pointer: coarse) {
+  .dayCell.hasOperacoes:hover {
+    transform: none; /* Remove hover em dispositivos touch */
+  }
+  
+  .quickActionButton:hover:not(:disabled) {
+    transform: none; /* Remove hover em dispositivos touch */
+  }
+  
+  .quickActionButton:active:not(:disabled) {
+    transform: scale(0.95) !important; /* Feedback visual para touch */
+    transition: transform 0.1s ease !important;
+  }
+
+  .dayCell,
+  .quickActionButton,
+  .navButton,
+  .todayButton {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+}
+
+/* ✅ ACESSIBILIDADE E USABILIDADE */
+@media (prefers-reduced-motion: reduce) {
+  .dayCell,
+  .quickActionButton,
+  .operationHeader {
+    transition: none !important; /* Remove animações para usuários que preferem menos movimento */
+  }
+}
+
+/* ===== OTIMIZAÇÕES ESPECÍFICAS PARA LAYOUT COMPACTO ===== */
+
+/* Garantia de visibilidade total dos botões */
+@media (max-width: 400px) {
+  .dayCell {
+    padding-bottom: clamp(6px, 2vw, 8px) !important;
+  }
+  
+  .operacaoInfo {
+    margin-top: 22px !important;
+    height: calc(100% - 28px) !important;
+  }
+  
+  .quickActionButton {
+    margin-bottom: 4px !important;
+    flex-shrink: 0 !important;
+  }
+}
+
+@media (max-width: 320px) {
+  .dayCell {
+    padding-bottom: 8px !important;
+  }
+  
+  .operacaoInfo {
+    margin-top: 18px !important;
+    height: calc(100% - 26px) !important;
+  }
+  
+  .quickActionButton {
+    margin-bottom: 3px !important;
+  }
+}
+
+/* Otimização para número do dia em células com operações */
+.dayCell:has(.operacaoInfo) .dayNumber {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  font-weight: 800;
+}
+
+/* Garantia de espaçamento adequado */
+.singleOperationInfo {
+  min-height: 0;
+  overflow: visible;
+}
+
+.operationHeader {
+  margin-bottom: clamp(2px, 0.5vw, 4px);
+}
+
+/* Otimizações de performance para dispositivos móveis */
+@media (hover: none) and (pointer: coarse) {
+  .dayCell,
+  .quickActionButton,
+  .navButton,
+  .todayButton {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  
+  .quickActionButton:active:not(:disabled) {
+    transform: scale(0.98);
+    transition-duration: 0.1s;
+  }
+  
+  /* Aumenta área de toque em dispositivos móveis */
+  .quickActionButton {
+    min-height: 44px;
+  }
+}
+
+/* Fallback para navegadores sem :has() */
+@supports not selector(:has(*)) {
+  .dayNumber {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
+}
+
+/* ✅ CONTAINER SEM LIMITAÇÕES DE LARGURA */
+.calendarWrapper {
+  width: 100%;
+  min-width: 100%; /* Largura mínima total */
+  max-width: none; /* Remove limitação de largura máxima */
+  overflow-x: auto; /* Scroll horizontal quando necessário */
+  padding: 0; /* Remove padding que cria margens laterais */
+  margin: 0; /* Remove qualquer margem */
+  box-sizing: border-box;
+}
+
+/* ✅ GARANTIA DE ALINHAMENTO PERFEITO EM TODAS AS RESOLUÇÕES */
+.weekdays,
+.calendarGrid {
+  min-width: 100%; /* Largura mínima para alinhamento */
+  width: max-content; /* Expande conforme necessário */
+}
+
+/* ✅ OTIMIZAÇÕES ESPECÍFICAS PARA RESOLUÇÃO 300px */
+@media (max-width: 300px) {
+  .weekdays,
+  .calendarGrid {
+    min-width: calc(7 * 80px) !important; /* Células ultra compactas */
+  }
+  
+  .weekdays>div {
+    min-width: 80px !important;
+    font-size: 0.55rem !important;
+  }
+  
+  .dayCell {
+    height: clamp(60px, 7vh, 80px) !important;
+    min-width: clamp(60px, 7vw, 80px) !important;
+    padding: clamp(1px, 0.15vw, 2px) !important;
+  }
+  
+  .quickActionButton {
+    font-size: clamp(0.3rem, 1vw, 0.4rem) !important;
+    padding: clamp(0.1rem, 0.5vw, 0.2rem) clamp(0.06rem, 0.3vw, 0.12rem) !important;
+    min-height: clamp(12px, 3.5vw, 18px) !important;
+    max-height: clamp(16px, 4.5vw, 22px) !important;
+    border-radius: 3px !important;
+  }
+}

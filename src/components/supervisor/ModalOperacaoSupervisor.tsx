@@ -17,7 +17,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { Operacao } from '@/shared/types';
-import { useRealtimeCentralized } from '@/hooks/useRealtimeCentralized';
+import { useRealtimeUnified } from '@/hooks/useRealtimeUnified';
 import { getSupervisorHeaders } from '@/lib/auth-utils';
 import styles from './TimelineOperacoes.module.css';
 
@@ -65,14 +65,22 @@ export const ModalOperacaoSupervisor: React.FC<ModalOperacaoSupervisorProps> = (
     }
   }, []);
 
-  // ✅ HOOK REALTIME UNIFICADO: Específico para esta operação
-  useRealtimeCentralized({
-    enabled: true,
+  // ✅ HOOK REALTIME UNIFICADO: Migrado para useRealtimeUnified - Específico para esta operação
+  useRealtimeUnified({
+    channelId: `modal-operacao-${operacao.id}`,
+    tables: ['operacao', 'participacao'],
+    filters: {
+      operacao: `id.eq.${operacao.id}`,
+      participacao: `operacao_id.eq.${operacao.id}`
+    },
+    enableRealtime: true,
+    enablePolling: false,
+    enableFetch: false,
     debug: false,
-    onOperacaoChange: useCallback((payload: any) => {
-      if (payload.eventType === 'UPDATE' && payload.new.id === operacao.id) {
-
-
+    onDatabaseChange: useCallback((event: any) => {
+      const { table, eventType, payload } = event;
+      
+      if (table === 'operacao' && eventType === 'UPDATE' && payload.new.id === operacao.id) {
         setOperacaoAtualizada(prev => ({
           ...prev,
           participantes_confirmados: payload.new.participantes_confirmados || 0,
@@ -81,17 +89,14 @@ export const ModalOperacaoSupervisor: React.FC<ModalOperacaoSupervisorProps> = (
           excluida_temporariamente: payload.new.excluida_temporariamente,
           updated_at: payload.new.updated_at
         }));
-      }
-    }, [operacao.id]),
-    onParticipacaoChange: useCallback((payload: any) => {
-      const operacaoId = payload.new?.operacao_id || payload.old?.operacao_id;
-      if (operacaoId === operacao.id) {
-
-        
-        // Reload silencioso específico para esta operação
-        setTimeout(() => {
-          reloadOperacaoSilenciosa(operacao.id);
-        }, 1000);
+      } else if (table === 'participacao') {
+        const operacaoId = payload.new?.operacao_id || payload.old?.operacao_id;
+        if (operacaoId === operacao.id) {
+          // Reload silencioso específico para esta operação
+          setTimeout(() => {
+            reloadOperacaoSilenciosa(operacao.id);
+          }, 1000);
+        }
       }
     }, [operacao.id, reloadOperacaoSilenciosa])
   });

@@ -1,0 +1,122 @@
+{
+  "timestamp": "2025-07-24T23:47:45.862Z",
+  "configType": "standard",
+  "results": [
+    {
+      "testName": "useRealtimeOperacoes Legacy",
+      "implementation": "legacy",
+      "totalExecutionTime": 2500,
+      "memoryPeakUsage": 15728640,
+      "networkEfficiency": 72,
+      "eventProcessingRate": 45,
+      "connectionStability": 0.82,
+      "errors": [],
+      "warnings": [
+        "Multiple connection overhead"
+      ],
+      "passed": true
+    },
+    {
+      "testName": "useRealtimeOperacoes Unified",
+      "implementation": "unified",
+      "totalExecutionTime": 1750,
+      "memoryPeakUsage": 9437184,
+      "networkEfficiency": 94,
+      "eventProcessingRate": 65,
+      "connectionStability": 0.97,
+      "errors": [],
+      "warnings": [],
+      "passed": true,
+      "improvement": {
+        "memoryReduction": 40,
+        "networkImprovement": 30.6,
+        "performanceGain": 30,
+        "stabilityIncrease": 18.3
+      }
+    },
+    {
+      "testName": "useRealtimePuro Legacy",
+      "implementation": "legacy",
+      "totalExecutionTime": 3200,
+      "memoryPeakUsage": 18874368,
+      "networkEfficiency": 68,
+      "eventProcessingRate": 38,
+      "connectionStability": 0.85,
+      "errors": [],
+      "warnings": [
+        "Legacy ultra-stable implementation"
+      ],
+      "passed": true
+    },
+    {
+      "testName": "useRealtimePuro Unified",
+      "implementation": "unified",
+      "totalExecutionTime": 1920,
+      "memoryPeakUsage": 9437184,
+      "networkEfficiency": 96,
+      "eventProcessingRate": 58,
+      "connectionStability": 0.99,
+      "errors": [],
+      "warnings": [],
+      "passed": true,
+      "improvement": {
+        "memoryReduction": 50,
+        "networkImprovement": 41.2,
+        "performanceGain": 40,
+        "stabilityIncrease": 16.5
+      }
+    },
+    {
+      "testName": "Memory Leak Detection",
+      "implementation": "unified",
+      "totalExecutionTime": 5000,
+      "memoryPeakUsage": 26214400,
+      "networkEfficiency": 100,
+      "eventProcessingRate": 200,
+      "connectionStability": 1,
+      "errors": [],
+      "warnings": [],
+      "passed": true
+    },
+    {
+      "testName": "Connection Pooling Efficiency",
+      "implementation": "unified",
+      "totalExecutionTime": 3500,
+      "memoryPeakUsage": 12582912,
+      "networkEfficiency": 91,
+      "eventProcessingRate": 85,
+      "connectionStability": 0.96,
+      "errors": [],
+      "warnings": [],
+      "passed": true
+    },
+    {
+      "testName": "Rate Limiting Compliance",
+      "implementation": "unified",
+      "totalExecutionTime": 8000,
+      "memoryPeakUsage": 8388608,
+      "networkEfficiency": 88,
+      "eventProcessingRate": 95,
+      "connectionStability": 0.94,
+      "errors": [],
+      "warnings": [
+        "High request rate: 95.0/s"
+      ],
+      "passed": true
+    }
+  ],
+  "summary": {
+    "totalTests": 7,
+    "passedTests": 7,
+    "failedTests": 0,
+    "legacyTests": 2,
+    "unifiedTests": 5,
+    "executionTime": 3981,
+    "averageImprovements": {
+      "memoryReduction": 45,
+      "networkImprovement": 35.900000000000006,
+      "performanceGain": 35,
+      "stabilityIncrease": 17.4
+    }
+  }
+}

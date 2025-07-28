@@ -4,34 +4,51 @@
   /* 🎨 TEMA CLARO REFINADO - Cores suaves e aconchegantes com toque quente */
   --background: #f8f7f4;
   --foreground: #2c2a26;
-  
+
   /* Fundos - Tons off-white quentes e aconchegantes */
-  --bg-primary: #f8f7f4;           /* Off-white com toque bege */
-  --bg-secondary: #f0ede8;         /* Bege clarinho suave */
-  --bg-card: #fdfcfa;              /* Branco cremoso para cards */
-  --bg-hover: #f4f2ee;             /* Hover suave com toque quente */
-  
+  --bg-primary: #f8f7f4;
+  /* Off-white com toque bege */
+  --bg-secondary: #f0ede8;
+  /* Bege clarinho suave */
+  --bg-card: #fdfcfa;
+  /* Branco cremoso para cards */
+  --bg-hover: #f4f2ee;
+  /* Hover suave com toque quente */
+
   /* Textos - Contrastes suaves mas legíveis com tons mais quentes */
-  --text-primary: #2c2a26;         /* Marrom escuro suave */
-  --text-secondary: #5a564f;       /* Cinza quente médio */
-  --text-disabled: #a8a29e;        /* Cinza claro quente */
-  
+  --text-primary: #2c2a26;
+  /* Marrom escuro suave */
+  --text-secondary: #5a564f;
+  /* Cinza quente médio */
+  --text-disabled: #a8a29e;
+  /* Cinza claro quente */
+
   /* Bordas - Tons harmoniosos e quentes */
-  --border-color: #e7e2db;         /* Bege claro para bordas */
-  
+  --border-color: #e7e2db;
+  /* Bege claro para bordas */
+
   /* Cores principais - Azul elegante (mantendo a identidade) */
-  --primary: #3b82f6;              /* Azul principal */
-  --primary-dark: #2563eb;         /* Azul escuro para hover */
-  --primary-light: #f0f6ff;        /* Azul clarinho levemente quente */
-  
+  --primary: #3b82f6;
+  /* Azul principal */
+  --primary-dark: #2563eb;
+  /* Azul escuro para hover */
+  --primary-light: #f0f6ff;
+  /* Azul clarinho levemente quente */
+
   /* Cores de estado */
-  --success: #059669;              /* Verde esmeralda */
-  --success-light: #d4f4e3;        /* Verde claro com toque quente */
-  --warning: #d97706;              /* Âmbar dourado */
-  --warning-light: #fde6ce;        /* Âmbar claro quente */
-  --danger: #dc2626;               /* Vermelho elegante */
-  --danger-light: #fee8e8;         /* Vermelho claro quente */
-  
+  --success: #059669;
+  /* Verde esmeralda */
+  --success-light: #d4f4e3;
+  /* Verde claro com toque quente */
+  --warning: #d97706;
+  /* Âmbar dourado */
+  --warning-light: #fde6ce;
+  /* Âmbar claro quente */
+  --danger: #dc2626;
+  /* Vermelho elegante */
+  --danger-light: #fee8e8;
+  /* Vermelho claro quente */
+
   /* Sombras suaves com toque mais quente */
   --shadow-sm: 0 1px 2px 0 rgba(44, 42, 38, 0.04);
   --shadow-md: 0 4px 6px -1px rgba(44, 42, 38, 0.07);
@@ -104,7 +121,7 @@ html:not([data-theme]) {
   .animate-fade-in {
     animation: fadeIn 0.3s ease-in-out;
   }
-  
+
   .animate-slide-up {
     animation: slideUp 0.3s ease-out;
   }
@@ -118,6 +135,7 @@ html:not([data-theme]) {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -128,6 +146,7 @@ html:not([data-theme]) {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -139,56 +158,56 @@ html:not([data-theme]) {
   .card {
     @apply bg-white rounded-xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 transform-gpu;
   }
-  
+
   .card:hover {
     @apply -translate-y-1;
   }
-  
+
   .btn-primary {
     @apply bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 transform-gpu;
   }
-  
+
   .btn-primary:hover {
     @apply shadow-lg;
   }
-  
+
   .btn-success {
     @apply bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 transform-gpu;
   }
-  
+
   .btn-danger {
     @apply bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 transform-gpu;
   }
-  
+
   .status-badge {
     @apply px-3 py-1 rounded-full text-sm font-medium border flex items-center transition-all duration-200;
   }
-  
+
   .status-confirmado {
     @apply bg-green-100 text-green-800 border-green-300;
   }
-  
+
   .status-pendente {
     @apply bg-yellow-100 text-yellow-800 border-yellow-300;
   }
-  
+
   .status-cancelado {
     @apply bg-red-100 text-red-800 border-red-300;
   }
-  
+
   .input-field {
     @apply w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200;
     color: #0f172a !important;
   }
-  
+
   .tab-button {
     @apply flex-1 py-4 px-6 text-center font-medium transition-all duration-300;
   }
-  
+
   .tab-active {
     @apply bg-blue-600 text-white border-b-4 border-blue-800;
   }
-  
+
   .tab-inactive {
     @apply text-gray-600 hover:text-blue-600 hover:bg-blue-50;
   }
@@ -198,17 +217,32 @@ html:not([data-theme]) {
    🎯 ESTILOS GLOBAIS PARA TEXTO ESCURO
    ======================================== */
 /* Todos os elementos de formulário com texto escuro */
-input, select, textarea, option {
+input,
+select,
+textarea,
+option {
   color: #0f172a !important;
 }
 
 /* Texto padrão mais escuro */
-p, span, div, label, td, th, li, a {
+p,
+span,
+div,
+label,
+td,
+th,
+li,
+a {
   color: var(--text-primary) !important;
 }
 
 /* Cabeçalhos ainda mais escuros */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   color: #0f172a !important;
 }
 
@@ -243,8 +277,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Toast notifications */
@@ -258,6 +297,7 @@ h1, h2, h3, h4, h5, h6 {
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -277,7 +317,7 @@ h1, h2, h3, h4, h5, h6 {
   .card {
     @apply p-4;
   }
-  
+
   .tab-button {
     @apply py-3 px-4 text-sm;
   }
@@ -285,6 +325,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Melhorias de acessibilidade */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -343,6 +384,7 @@ body {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -370,9 +412,9 @@ body {
   background: linear-gradient(135deg, #ffffff 0%, #fafbff 100%);
   border-radius: 20px;
   padding: 2.5rem 3rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 
-              0 0 0 1px rgba(255, 255, 255, 0.8), 
-              inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(229, 231, 235, 0.6);
   display: flex;
   flex-direction: column;
@@ -427,13 +469,25 @@ body {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
 }
 
 @keyframes fadeInScale {
@@ -441,6 +495,7 @@ body {
     opacity: 0;
     transform: scale(0.9);
   }
+
   100% {
     opacity: 1;
     transform: scale(1);

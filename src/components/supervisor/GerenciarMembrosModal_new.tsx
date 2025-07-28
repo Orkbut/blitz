@@ -26,7 +26,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { X, Plus, Trash2, Search, Users, CheckSquare, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useRealtimeCentralized } from '@/hooks/useRealtimeCentralized';
+import { useRealtimeUnified } from '@/hooks/useRealtimeUnified';
 import { useModal } from '@/hooks/useModal';
 import { UniversalModal } from '@/shared/components/ui';
 import styles from './GerenciarMembrosModal.module.css';

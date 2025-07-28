@@ -1,0 +1,534 @@
+/* ===== HEADER MOBILE-FIRST RESPONSIVO ===== */
+
+.headerContainer {
+  background: linear-gradient(to right, rgb(248 250 252), rgb(239 246 255));
+  border-bottom: 1px solid rgb(219 234 254);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  overflow: visible;
+}
+
+.headerContent {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  height: 44px;
+  min-height: 44px;
+  position: relative;
+  overflow: visible;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  padding-top: 8px;
+}
+
+.logo {
+  flex: 1;
+  min-width: 0;
+}
+
+.logoText {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgb(30 41 59);
+  letter-spacing: 0.01em;
+  margin: 0;
+  white-space: nowrap;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.headerRight {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  flex-shrink: 0;
+  min-width: 0;
+  position: relative;
+  padding-top: 2px;
+}
+
+.regionalInfo {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2px 5px;
+  border-radius: 9999px;
+  font-size: 8px;
+  color: rgb(71 85 105);
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  margin-top: 6px;
+}
+
+.regionalLabel {
+  font-weight: 600;
+  color: rgb(51 65 85);
+}
+
+.regionalValue {
+  margin-left: 4px;
+  font-weight: 700;
+  color: rgb(37 99 235);
+}
+
+.userSection {
+  position: relative;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.userButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 500;
+  color: rgb(51 65 85);
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  border-radius: 6px;
+  padding: 3px 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.12), 0 1px 3px 0 rgba(0, 0, 0, 0.08);
+  min-width: 0;
+  max-width: 120px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(4px);
+  /* Vazamento charmoso controlado */
+  transform: translateY(2px);
+  z-index: 60;
+}
+
+.userButton:hover {
+  color: rgb(15 23 42);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.15), 0 2px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: translateY(clamp(1px, 0.8vw, 3px)) scale(1.02);
+}
+
+.userButton:focus {
+  outline: 2px solid rgb(59 130 246);
+  outline-offset: 2px;
+}
+
+.userAvatar {
+  width: clamp(28px, 5vw, 34px);
+  height: clamp(28px, 5vw, 34px);
+  background: linear-gradient(to bottom right, rgb(219 234 254), rgb(191 219 254));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.12), 0 1px 2px 0 rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.userIcon {
+  width: clamp(16px, 3vw, 18px);
+  height: clamp(16px, 3vw, 18px);
+  color: rgb(37 99 235);
+}
+
+.userInfo {
+  text-align: left;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.userName {
+  font-weight: 700;
+  color: rgb(30 41 59);
+  font-size: clamp(11px, 1.8vw, 13px);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: clamp(80px, 15vw, 150px);
+}
+
+.userDetails {
+  font-size: clamp(9px, 1.5vw, 11px);
+  color: rgb(100 116 139);
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: clamp(80px, 15vw, 150px);
+}
+
+.chevronIcon {
+  width: clamp(12px, 2.2vw, 15px);
+  height: clamp(12px, 2.2vw, 15px);
+  color: rgb(148 163 184);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.userButton:hover .chevronIcon {
+  transform: rotate(180deg);
+  opacity: 1;
+  color: rgb(100 116 139);
+}
+
+/* ===== RESPONSIVIDADE ESPECÍFICA ===== */
+
+/* Tablets pequenos */
+@media (max-width: 768px) {
+  .headerContent {
+    padding: 0 12px;
+    height: 48px;
+  }
+  
+  .headerRight {
+    gap: 10px;
+  }
+  
+  .logoText {
+    font-size: 15px;
+    max-width: 200px;
+  }
+  
+  .userButton {
+    gap: 8px;
+    padding: 5px 8px;
+    transform: translateY(3px);
+  }
+  
+  .regionalInfo {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+}
+
+/* Smartphones */
+@media (max-width: 640px) {
+  .headerContent {
+    padding: 0 10px;
+    height: 46px;
+  }
+  
+  .headerRight {
+    gap: 8px;
+  }
+  
+  .logoText {
+    font-size: 13px;
+    max-width: 160px;
+  }
+  
+  .regionalInfo {
+    padding: 3px 6px;
+    font-size: 10px;
+  }
+  
+  .userButton {
+    gap: 6px;
+    padding: 4px 6px;
+    transform: translateY(2px);
+  }
+  
+  .userName {
+    max-width: 100px;
+    font-size: 11px;
+  }
+  
+  .userDetails {
+    font-size: 9px;
+  }
+  
+  .userAvatar {
+    width: 26px;
+    height: 26px;
+  }
+  
+  .userIcon {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+/* Smartphones pequenos */
+@media (max-width: 480px) {
+  .headerContent {
+    padding: 0 8px;
+    height: 44px;
+  }
+  
+  .headerRight {
+    gap: 6px;
+  }
+  
+  .logoText {
+    font-size: 12px;
+    letter-spacing: 0.01em;
+    max-width: 140px;
+  }
+  
+  .regionalInfo {
+    padding: 2px 5px;
+    font-size: 9px;
+  }
+  
+  .userButton {
+    gap: 5px;
+    padding: 3px 5px;
+    transform: translateY(2px);
+  }
+  
+  .userName {
+    max-width: 85px;
+    font-size: 10px;
+  }
+  
+  .userDetails {
+    font-size: 8px;
+  }
+  
+  .userAvatar {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .userIcon {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .chevronIcon {
+    width: 10px;
+    height: 10px;
+  }
+}
+
+/* Telas muito pequenas (300px) */
+@media (max-width: 320px) {
+  .headerContent {
+    padding: 0 6px;
+    height: 42px;
+  }
+  
+  .headerRight {
+    gap: 4px;
+  }
+  
+  .logoText {
+    font-size: 11px;
+    max-width: 120px;
+  }
+  
+  .regionalInfo {
+    padding: 2px 4px;
+    font-size: 8px;
+  }
+  
+  .regionalLabel {
+    display: none; /* Esconde "Regional:" em telas muito pequenas */
+  }
+  
+  .userButton {
+    gap: 4px;
+    padding: 3px 4px;
+    transform: translateY(1px);
+  }
+  
+  .userName {
+    max-width: 70px;
+    font-size: 9px;
+  }
+  
+  .userDetails {
+    font-size: 7px;
+  }
+  
+  .userAvatar {
+    width: 22px;
+    height: 22px;
+  }
+  
+  .userIcon {
+    width: 11px;
+    height: 11px;
+  }
+  
+  .chevronIcon {
+    width: 9px;
+    height: 9px;
+  }
+  
+  .userInfo {
+    min-width: 0;
+    flex: 1;
+  }
+}
+
+/* Otimizações para dispositivos touch */
+@media (hover: none) and (pointer: coarse) {
+  .userButton {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  
+  .userButton:active {
+    transform: scale(0.98);
+    transition-duration: 0.1s;
+  }
+}/* 
+===== OTIMIZAÇÕES ANTI-COLISÃO ===== */
+
+/* Garantia de espaçamento mínimo entre elementos */
+@media (max-width: 600px) {
+  .headerLeft {
+    max-width: 60%;
+  }
+  
+  .headerRight {
+    max-width: 40%;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 400px) {
+  .headerLeft {
+    max-width: 55%;
+  }
+  
+  .headerRight {
+    max-width: 45%;
+  }
+  
+  .logoText {
+    max-width: 100px;
+  }
+}
+
+@media (max-width: 320px) {
+  .headerLeft {
+    max-width: 50%;
+  }
+  
+  .headerRight {
+    max-width: 50%;
+  }
+  
+  .logoText {
+    max-width: 90px;
+  }
+}
+
+/* Garantia de visibilidade do chevron */
+.chevronIcon {
+  min-width: clamp(9px, 2vw, 15px);
+  min-height: clamp(9px, 2vw, 15px);
+}
+
+/* Otimização para o vazamento charmoso */
+.userButton {
+  position: relative;
+  z-index: 60;
+}
+
+.userButton::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: transparent;
+  border-radius: inherit;
+  z-index: -1;
+}
+
+/* Cores suaves para não prejudicar o calendário */
+.regionalInfo {
+  background: rgba(248, 250, 252, 0.9);
+  color: rgb(71 85 105);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.userButton {
+  background: rgba(248, 250, 252, 0.95);
+  border: 1px solid rgba(226, 232, 240, 0.6);
+}
+
+.userButton:hover {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: rgba(226, 232, 240, 0.8);
+}
+
+/* Ajuste fino para telas muito pequenas */
+@media (max-width: 280px) {
+  .headerContent {
+    padding: 0 4px;
+    height: 40px;
+  }
+  
+  .logoText {
+    font-size: 10px;
+    max-width: 80px;
+  }
+  
+  .regionalInfo {
+    padding: 1px 3px;
+    font-size: 7px;
+  }
+  
+  .userButton {
+    padding: 2px 3px;
+    gap: 3px;
+  }
+  
+  .userName {
+    max-width: 60px;
+    font-size: 8px;
+  }
+  
+  .userDetails {
+    font-size: 6px;
+  }
+  
+  .userAvatar {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .userIcon {
+    width: 10px;
+    height: 10px;
+  }
+  
+  .chevronIcon {
+    width: 8px;
+    height: 8px;
+  }
+}/*
+ Rotação do chevron quando clicado */
+.chevronIcon.rotated {
+  transform: rotate(180deg);
+}
+
+/* Transição suave para o chevron */
+.chevronIcon {
+  transition: transform 0.2s ease, opacity 0.2s ease, color 0.2s ease;
+}

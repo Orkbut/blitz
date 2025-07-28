@@ -6,7 +6,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, startOfWe
 import { ptBR } from 'date-fns/locale';
 
 import { JanelaOperacional } from '@/shared/types';
-import { useRealtimeCentralized } from '@/hooks/useRealtimeCentralized';
+import { useRealtimeUnified } from '@/hooks/useRealtimeUnified';
 import { getSupervisorHeaders, formatarDataBR, formatarPeriodoJanela, obterDataAtualIguatu } from '@/lib/auth-utils';
 
 interface Operacao {
@@ -184,79 +184,86 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
     };
   };
 
-  // 🚀 REALTIME GRANULAR RESTAURADO: A solução que funcionava
-  useRealtimeCentralized({
-    enabled: true,
+  // 🚀 REALTIME UNIFICADO: Migrado para useRealtimeUnified - A solução que funcionava
+  useRealtimeUnified({
+    channelId: `calendario-supervisor-${janelaSelecionada}`,
+    tables: ['operacao', 'participacao'],
+    enableRealtime: true,
+    enablePolling: false,
+    enableFetch: false,
     debug: false,
-    onOperacaoChange: useCallback((payload: any) => {
-      // ✅ REALTIME VERDADEIRO: Atualizar apenas o item modificado (não recarregar tudo)
-      if (janelaSelecionada && payload.new?.janela_id === janelaSelecionada) {
+    onDatabaseChange: useCallback((event: any) => {
+      const { table, eventType, payload } = event;
+      
+      if (table === 'operacao') {
+        // ✅ REALTIME VERDADEIRO: Atualizar apenas o item modificado (não recarregar tudo)
+        if (janelaSelecionada && payload.new?.janela_id === janelaSelecionada) {
 
-        // ✅ EVENTO UPDATE DA OPERAÇÃO: ATUALIZA TODOS OS DADOS DO BACKEND
-        if (payload.eventType === 'UPDATE') {
-          const operacaoId = payload.new.id;
+          // ✅ EVENTO UPDATE DA OPERAÇÃO: ATUALIZA TODOS OS DADOS DO BACKEND
+          if (eventType === 'UPDATE') {
+            const operacaoId = payload.new.id;
 
-          // ✅ CORREÇÃO CRÍTICA: Não atualizar campos calculados que não vêm no payload
-          // Os campos participantes_confirmados e total_solicitacoes são calculados pela API
-          // e não existem na tabela operacao, portanto não vêm no evento UPDATE
-          
+            // ✅ CORREÇÃO CRÍTICA: Não atualizar campos calculados que não vêm no payload
+            // Os campos participantes_confirmados e total_solicitacoes são calculados pela API
+            // e não existem na tabela operacao, portanto não vêm no evento UPDATE
+            
+            setOperacoes(prevOperacoes => {
+              const operacoesArray = Array.isArray(prevOperacoes) ? prevOperacoes : [];
+              return operacoesArray.map(op =>
+                op.id === operacaoId ? {
+                  ...op,
+                  // ✅ ATUALIZAR: Apenas campos que realmente vêm da tabela operacao
+                  ativa: payload.new.ativa,
+                  excluida_temporariamente: payload.new.excluida_temporariamente,
+                  updated_at: payload.new.updated_at,
+                  status: payload.new.status,
+                  limite_participantes: payload.new.limite_participantes,
+                  modalidade: payload.new.modalidade,
+                  tipo: payload.new.tipo,
+                  turno: payload.new.turno,
+                  horario: payload.new.horario,
+                  data_operacao: payload.new.data_operacao
+                  // ❌ NÃO ATUALIZAR: participantes_confirmados e total_solicitacoes
+                  // Esses campos são calculados pela API e serão atualizados no reload silencioso
+                } : op
+              );
+            });
+
+            return; // Processado com sucesso
+          }
+
           setOperacoes(prevOperacoes => {
             const operacoesArray = Array.isArray(prevOperacoes) ? prevOperacoes : [];
-            return operacoesArray.map(op =>
-              op.id === operacaoId ? {
-                ...op,
-                // ✅ ATUALIZAR: Apenas campos que realmente vêm da tabela operacao
-                ativa: payload.new.ativa,
-                excluida_temporariamente: payload.new.excluida_temporariamente,
-                updated_at: payload.new.updated_at,
-                status: payload.new.status,
-                limite_participantes: payload.new.limite_participantes,
-                modalidade: payload.new.modalidade,
-                tipo: payload.new.tipo,
-                turno: payload.new.turno,
-                horario: payload.new.horario,
-                data_operacao: payload.new.data_operacao
-                // ❌ NÃO ATUALIZAR: participantes_confirmados e total_solicitacoes
-                // Esses campos são calculados pela API e serão atualizados no reload silencioso
-              } : op
-            );
-          });
 
-          return; // Processado com sucesso
+            if (eventType === 'INSERT') {
+              // ✅ INSERIR: Adicionar nova operação
+              return [...operacoesArray, payload.new];
+            } else if (eventType === 'DELETE') {
+              // ✅ DELETAR: Remover operação
+              return operacoesArray.filter(op => op.id !== payload.old.id);
+            }
+            return operacoesArray;
+          });
+        }
+      } else if (table === 'participacao') {
+        const operacaoId = payload.new?.operacao_id || payload.old?.operacao_id;
+
+        // 🚨 SOLUÇÃO ROBUSTA: Se operacao_id está undefined, forçar reload completo
+        if (!operacaoId) {
+          setTimeout(() => {
+            carregarOperacoesSilencioso();
+          }, 500);
+          return;
         }
 
-        setOperacoes(prevOperacoes => {
-          const operacoesArray = Array.isArray(prevOperacoes) ? prevOperacoes : [];
-
-          if (payload.eventType === 'INSERT') {
-            // ✅ INSERIR: Adicionar nova operação
-            return [...operacoesArray, payload.new];
-          } else if (payload.eventType === 'DELETE') {
-            // ✅ DELETAR: Remover operação
-            return operacoesArray.filter(op => op.id !== payload.old.id);
-          }
-          return operacoesArray;
-        });
+        if (janelaSelecionada) {
+          // 🚀 SOLUÇÃO ROBUSTA: Reload garantido com timeout menor
+          setTimeout(() => {
+            carregarOperacoesSilencioso();
+          }, 500);
+        }
       }
-    }, [janelaSelecionada]),
-    onParticipacaoChange: useCallback((payload: any) => {
-      const operacaoId = payload.new?.operacao_id || payload.old?.operacao_id;
-
-      // 🚨 SOLUÇÃO ROBUSTA: Se operacao_id está undefined, forçar reload completo
-      if (!operacaoId) {
-        setTimeout(() => {
-          carregarOperacoesSilencioso();
-        }, 500);
-        return;
-      }
-
-      if (janelaSelecionada) {
-        // 🚀 SOLUÇÃO ROBUSTA: Reload garantido com timeout menor
-        setTimeout(() => {
-          carregarOperacoesSilencioso();
-        }, 500);
-      }
-    }, [janelaSelecionada, carregarOperacoesSilencioso]),
+    }, [janelaSelecionada, carregarOperacoesSilencioso])
   });
 
   const { start: calendarStart, end: calendarEnd } = calcularPeriodoVisualizacao();

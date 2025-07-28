@@ -19,7 +19,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { X, Plus, Trash2, Search, Users } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useRealtimeCentralized } from '@/hooks/useRealtimeCentralized';
+import { useRealtimeUnified } from '@/hooks/useRealtimeUnified';
 import { useModal } from '@/hooks/useModal';
 import { UniversalModal } from '@/shared/components/ui';
 import styles from './GerenciarMembrosModal.module.css';
@@ -113,12 +113,23 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
     onUpdate();
   }, [atualizarOperacoes, onUpdate]);
 
-  // 🚀 REALTIME CENTRALIZADO: Hook para atualizações automáticas - AGORA COM HANDLERS ESTÁVEIS
-  const realtimeHook = useRealtimeCentralized({
-    enabled: operacaoIds.length > 0 && !loadingInicial,
+  // 🚀 REALTIME UNIFICADO: Migrado para useRealtimeUnified - Hook para atualizações automáticas
+  const realtimeHook = useRealtimeUnified({
+    channelId: `gerenciar-membros-${operacaoIds.join('-')}`,
+    tables: ['operacao', 'participacao'],
+    enableRealtime: operacaoIds.length > 0 && !loadingInicial,
+    enablePolling: false,
+    enableFetch: false,
     debug: false,
-    onOperacaoChange: handleOperacaoChange,
-    onParticipacaoChange: handleParticipacaoChange,
+    onDatabaseChange: useCallback((event: any) => {
+      const { table, eventType, payload } = event;
+      
+      if (table === 'operacao') {
+        handleOperacaoChange(payload);
+      } else if (table === 'participacao') {
+        handleParticipacaoChange(payload);
+      }
+    }, [handleOperacaoChange, handleParticipacaoChange])
   });
 
   useEffect(() => {
