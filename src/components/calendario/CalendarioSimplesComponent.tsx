@@ -462,7 +462,7 @@ export const CalendarioSimplesComponent: React.FC = () => {
     });
 
     return (
-      <div className={styles.singleOperationInfo}>
+      <div className={`${styles.singleOperationInfo} ${styles.responsive}`}>
         <div className={`${styles.operationHeader} ${styles[operacao.modalidade.toLowerCase()]}`}>
           <div className={`${styles.modalidadeName} ${styles[operacao.modalidade.toLowerCase()]}`}>
             {operacao.modalidade}
@@ -476,7 +476,7 @@ export const CalendarioSimplesComponent: React.FC = () => {
         </div>
 
         <button
-          className={`${styles.quickActionButton} ${styles[estadoInfo.buttonClass]}`}
+          className={`${styles.quickActionButton} ${styles[estadoInfo.buttonClass]} ${styles.responsive}`}
           onClick={(e) => handleQuickAction(operacao.id, estadoInfo.buttonAction, e)}
           disabled={isButtonLoading(operacao.id) || estadoInfo.buttonAction === 'lotado'}
         >
