@@ -492,21 +492,36 @@ export const CalendarioSimplesComponent: React.FC = () => {
     );
   };
 
-  // Renderizar múltiplas operações
+  // Renderizar múltiplas operações - VERSÃO OTIMIZADA PARA LEGIBILIDADE
   const renderMultipleOperations = (operacoes: Operacao[]) => {
     const maxShow = 2;
     const remaining = operacoes.length - maxShow;
 
     return (
       <div className={styles.multipleOperations}>
-        {operacoes.slice(0, maxShow).map((op, idx) => (
-          <div key={idx} className={`${styles.operationItem} ${styles[op.modalidade.toLowerCase()]}`}>
-            {op.modalidade} - {op.participantes_confirmados || 0}/{op.limite_participantes}
-          </div>
-        ))}
+        {operacoes.slice(0, maxShow).map((op, idx) => {
+          const confirmados = op.participantes_confirmados || 0;
+          const limite = op.limite_participantes;
+          const pendentes = op.total_solicitacoes || op.pessoas_na_fila || 0;
+          
+          // Informação compacta mas clara
+          const modalidadeAbrev = op.modalidade === 'BLITZ' ? 'BLZ' : 'BAL';
+          const infoParticipantes = `${confirmados}/${limite}`;
+          const infoFila = pendentes > 0 ? `+${pendentes}` : '';
+          
+          return (
+            <div key={idx} className={`${styles.operationItem} ${styles[op.modalidade.toLowerCase()]}`}>
+              <span className={styles.modalidadeCompact}>{modalidadeAbrev}</span>
+              <span className={styles.participantesCompact}>
+                {infoParticipantes}
+                {infoFila && <span className={styles.filaCompact}>{infoFila}</span>}
+              </span>
+            </div>
+          );
+        })}
         {remaining > 0 && (
           <div className={styles.moreOperations}>
-            +{remaining} operação{remaining > 1 ? 'ões' : ''}
+            +{remaining} op{remaining > 1 ? 's' : ''}
           </div>
         )}
       </div>
