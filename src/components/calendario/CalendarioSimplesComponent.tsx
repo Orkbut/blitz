@@ -3,10 +3,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, startOfWeek, endOfWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Calendar, Loader2, Sun, Moon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Loader2 } from 'lucide-react';
 import { useRealtimeUnified } from '@/hooks/useRealtimeUnified';
 import { OperacaoDialog } from './OperacaoDialog';
-import { supabase } from '@/lib/supabase';
+
 // @ts-ignore - react-hot-toast será instalado
 import { toast } from 'react-hot-toast';
 import styles from './CalendarioSimples.module.css';
@@ -45,7 +45,7 @@ interface Operacao {
 export const CalendarioSimplesComponent: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [membros, setMembros] = useState<Array<{ id: number, nome: string, matricula: string }>>([]);
+
   const [membroAtual, setMembroAtual] = useState<string>(() => {
     // Inicializar com ID do membro logado
     if (typeof window !== 'undefined') {
@@ -64,8 +64,7 @@ export const CalendarioSimplesComponent: React.FC = () => {
   });
   const [loadingButtons, setLoadingButtons] = useState<Set<number>>(new Set());
   const [operacoes, setOperacoes] = useState<Operacao[]>([]);
-  const [loadingOperacoes, setLoadingOperacoes] = useState(true);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
   const [isDarkTheme, setIsDarkTheme] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('calendar-theme') === 'dark';
@@ -84,17 +83,15 @@ export const CalendarioSimplesComponent: React.FC = () => {
     const endDate = endOfMonth(currentDate);
     const membroId = membroAtual;
 
-    // Só mostrar loading na primeira carga
-    if (isInitialLoad) {
-      setLoadingOperacoes(true);
-    }
+
 
     try {
       const params = new URLSearchParams({
         startDate: format(startDate, 'yyyy-MM-dd'),
         endDate: format(endDate, 'yyyy-MM-dd'),
         membroId,
-        _t: Date.now().toString()
+        _t: Date.now().toString(), // Cache busting
+        _realtime: 'true' // Indicador de chamada via realtime
       });
 
       const response = await fetch(`/api/unified/operacoes?${params}`, {
@@ -147,8 +144,7 @@ export const CalendarioSimplesComponent: React.FC = () => {
         toast.error('Erro ao carregar operações: ' + (error as Error).message);
       }
     } finally {
-      setLoadingOperacoes(false);
-      setIsInitialLoad(false);
+      // Fetch concluído
     }
   }, [currentDate, membroAtual]);
 
@@ -157,55 +153,25 @@ export const CalendarioSimplesComponent: React.FC = () => {
     fetchOperacoes();
   }, [fetchOperacoes]);
 
-  // Função refetch para compatibilidade
-  const refetch = useCallback(() => {
+  // Função de reload para compatibilidade
+  const reloadDados = useCallback(() => {
     fetchOperacoes();
   }, [fetchOperacoes]);
 
-  // Hook realtime unificado
-  const { isConnected } = useRealtimeUnified({
-    channelId: `calendario-membro-${membroAtual}`,
+  // 🚀 REALTIME SIMPLES E DIRETO: Mudou no banco = atualiza na tela
+  useRealtimeUnified({
+    channelId: `calendario-realtime-global`,
     tables: ['operacao', 'participacao'],
     enableRealtime: true,
     enablePolling: false,
     enableFetch: false,
     debug: false,
     onDatabaseChange: useCallback((event: any) => {
-      const { table, eventType, payload } = event;
-
-      if (table === 'operacao') {
-        if (eventType === 'UPDATE') {
-          const operacaoId = payload.new.id;
-          setOperacoes(prev => {
-            const novasOperacoes = prev.map(op =>
-              op.id === operacaoId ? {
-                ...op,
-                ativa: payload.new.ativa,
-                excluida_temporariamente: payload.new.excluida_temporariamente,
-                updated_at: payload.new.updated_at,
-                status: payload.new.status,
-                limite_participantes: payload.new.limite_participantes,
-              } : op
-            );
-
-            // Atualizar operacoesPorDia também
-            const operacoesPorDiaMap: Record<string, Operacao[]> = {};
-            novasOperacoes.forEach((op: Operacao) => {
-              const dataKey = format(new Date(op.data_operacao), 'yyyy-MM-dd');
-              if (!operacoesPorDiaMap[dataKey]) {
-                operacoesPorDiaMap[dataKey] = [];
-              }
-              operacoesPorDiaMap[dataKey].push(op);
-            });
-            setOperacoesPorDia(operacoesPorDiaMap);
-
-            return novasOperacoes;
-          });
-        }
-      } else if (table === 'participacao') {
-        // Recarregar dados quando participação muda
-        fetchOperacoes();
-      }
+      const { table, eventType } = event;
+      
+      // SIMPLES: Qualquer mudança = recarrega os dados
+      console.log(`[CalendarioSimples] 📡 ${table} ${eventType} - Recarregando dados...`);
+      fetchOperacoes();
     }, [fetchOperacoes])
   });
 
@@ -273,7 +239,7 @@ export const CalendarioSimplesComponent: React.FC = () => {
   };
 
   // Função para lidar com clique no dia (abre modal)
-  const handleDayClick = (dia: Date, operacoesDia: Operacao[]) => {
+  const handleDayClick = (dia: Date) => {
     setSelectedDate(dia);
   };
 
@@ -589,7 +555,7 @@ export const CalendarioSimplesComponent: React.FC = () => {
                 ${!isCurrentMonth ? styles.otherMonth : ''}
                 ${isCurrentDay ? styles.currentDay : ''}
               `}
-              onClick={() => handleDayClick(day, operacoesDia)}
+              onClick={() => handleDayClick(day)}
             >
               <div className={styles.dayNumber}>
                 {format(day, 'd')}
@@ -614,7 +580,7 @@ export const CalendarioSimplesComponent: React.FC = () => {
           date={selectedDate}
           operacoes={operacoesPorDia[format(selectedDate, 'yyyy-MM-dd')] || []}
           onClose={() => setSelectedDate(null)}
-          onOperacaoUpdate={refetch}
+          onOperacaoUpdate={reloadDados}
         />
       )}
     </div>
