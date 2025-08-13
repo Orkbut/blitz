@@ -773,6 +773,13 @@ TODO FUTURO: Analisar uso destes estilos em:
   border-color: #f5c6cb;
 }
 
+.estadoVisual.historico {
+  background: #f3f4f6;
+  color: #6b7280;
+  border-color: #d1d5db;
+  opacity: 0.8;
+}
+
 /* EU VOU Button */
 .euVouButton {
   padding: 0.75rem 1.75rem;

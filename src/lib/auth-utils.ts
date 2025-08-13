@@ -109,12 +109,20 @@ export function getSupervisorContext() {
 
 /**
  * Formatar data no padrão brasileiro (dd/MM/yyyy) com timezone correto
+ * CORRIGIDO: Trata datas sem horário (YYYY-MM-DD) para evitar problemas de timezone
  */
 export const formatarDataBR = (dataISO: string): string => {
   if (!dataISO) return '';
   try {
-    // Garantir que sempre use o timezone de Iguatu-CE
-    const data = new Date(dataISO);
+    // Se a data vem apenas como YYYY-MM-DD (sem horário), adicionar horário local
+    // para evitar que seja interpretada como UTC e cause mudança de dia
+    let dataParaProcessar = dataISO;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dataISO)) {
+      // Adiciona horário meio-dia para evitar problemas de timezone
+      dataParaProcessar = `${dataISO}T12:00:00`;
+    }
+    
+    const data = new Date(dataParaProcessar);
     return data.toLocaleDateString('pt-BR', {
       timeZone: 'America/Fortaleza',
       day: '2-digit',
@@ -166,4 +174,4 @@ export const formatarPeriodoJanela = (dataInicio: string, dataFim: string): stri
   } catch (error) {
     return `${dataInicio} - ${dataFim}`;
   }
-}; 
+};

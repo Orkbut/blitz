@@ -574,9 +574,7 @@ export default function DiretoriaPage() {
               <div className="text-center py-12">
                 <span className="text-4xl">📄</span>
                 <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhuma operação encontrada</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Não há operações para encaminhar ou com retorno da diretoria.
-                </p>
+                {/* Removidos: descrição e contêiner extra conforme solicitado */}
               </div>
             ) : (
               <div className="space-y-6">
@@ -847,4 +845,4 @@ export default function DiretoriaPage() {
       )}
     </div>
   );
-} 
+}

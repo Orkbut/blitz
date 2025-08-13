@@ -1,0 +1,583 @@
+/**
+ * Estilos CSS para GerenciarMembrosModal
+ * 
+ * Arquivo temporário para testes - será migrado do arquivo original
+ */
+
+.membrosList {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.membrosList.desktop {
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+.membrosList.mobile {
+  grid-template-columns: 1fr;
+}
+
+.semResultados {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: #666;
+}
+
+.semResultados svg {
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.semResultados p {
+  margin: 8px 0;
+}
+
+.membroCard {
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.membroCard:hover {
+  border-color: #2196f3;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.1);
+}
+
+.membroConfirmado {
+  background-color: #f0f9ff;
+  border-color: #0ea5e9;
+}
+
+.membroAguardando {
+  background-color: #fffbeb;
+  border-color: #f59e0b;
+}
+
+/* Skeleton loading styles */
+.memberListSkeleton {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.memberItemSkeleton {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  gap: 12px;
+}
+
+.avatarSkeleton {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+.contentSkeleton {
+  flex: 1;
+}
+
+.nameSkeleton {
+  height: 16px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.emailSkeleton {
+  height: 14px;
+  width: 60%;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+.actionsSkeleton {
+  width: 80px;
+  height: 32px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ===== MEMBER FORM STYLES ===== */
+.memberFormContainer {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  margin: 16px 0;
+  max-width: 500px;
+}
+
+.memberFormHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.memberFormHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.memberForm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+}
+
+.formInput,
+.formSelect {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.formInput:focus,
+.formSelect:focus {
+  outline: none;
+  border-color: #2196f3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+}
+
+.formInput:disabled,
+.formSelect:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.validationErrors {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  color: #dc2626;
+}
+
+.errorMessage {
+  margin: 0;
+  font-size: 14px;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.cancelButton,
+.saveButton {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cancelButton {
+  background-color: #f5f5f5;
+  color: #666;
+}
+
+.cancelButton:hover:not(:disabled) {
+  background-color: #e0e0e0;
+}
+
+.saveButton {
+  background-color: #2196f3;
+  color: white;
+}
+
+.saveButton:hover:not(:disabled) {
+  background-color: #1976d2;
+}
+
+.saveButton:disabled,
+.cancelButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  color: #666;
+  transition: background-color 0.2s ease;
+}
+
+.closeButton:hover {
+  background-color: #f0f0f0;
+}
+
+/* Form skeleton loading */
+.formSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+}
+
+.inputSkeleton {
+  height: 44px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 6px;
+}
+
+.buttonSkeleton {
+  height: 40px;
+  width: 100px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 6px;
+  align-self: flex-end;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 767px) {
+  .memberFormContainer {
+    margin: 8px 0;
+    padding: 16px;
+  }
+  
+  .formActions {
+    flex-direction: column-reverse;
+  }
+  
+  .cancelButton,
+  .saveButton {
+    width: 100%;
+    justify-content: center;
+  }
+}
+/* 
+===== MEMBER ACTIONS STYLES ===== */
+.memberActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  min-height: 32px;
+}
+
+.actionButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.actionButton span {
+  white-space: nowrap;
+}
+
+/* Botão Adicionar */
+.addButton {
+  border-color: #4caf50;
+  color: #4caf50;
+}
+
+.addButton:hover:not(:disabled) {
+  background-color: #4caf50;
+  color: white;
+}
+
+/* Botão Remover */
+.removeButton {
+  border-color: #f44336;
+  color: #f44336;
+}
+
+.removeButton:hover:not(:disabled) {
+  background-color: #f44336;
+  color: white;
+}
+
+/* Botão Aprovar */
+.approveButton {
+  border-color: #2196f3;
+  color: #2196f3;
+}
+
+.approveButton:hover:not(:disabled) {
+  background-color: #2196f3;
+  color: white;
+}
+
+/* Botão Rejeitar */
+.rejectButton {
+  border-color: #ff9800;
+  color: #ff9800;
+}
+
+.rejectButton:hover:not(:disabled) {
+  background-color: #ff9800;
+  color: white;
+}
+
+/* Animação de loading */
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}/*
+ ===== ADDITIONAL LOADING STATES STYLES ===== */
+
+/* Operation Card Skeleton */
+.operationCardSkeleton {
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.operationHeaderSkeleton {
+  height: 20px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+.operationContentSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.operationInfoSkeleton {
+  height: 16px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+.operationInfoSkeleton:first-child {
+  width: 80%;
+}
+
+.operationInfoSkeleton:last-child {
+  width: 60%;
+}
+
+.operationActionsSkeleton {
+  height: 32px;
+  width: 120px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+/* Loading Container */
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  min-height: 200px;
+}
+
+.loadingSpinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #666;
+}
+
+.loadingSpinner p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: #666;
+  min-height: 200px;
+}
+
+.emptyIcon {
+  margin-bottom: 16px;
+  opacity: 0.5;
+  color: #999;
+}
+
+.emptyState p {
+  margin: 8px 0;
+  font-size: 16px;
+}
+
+.emptyHint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 14px;
+  color: #888;
+}
+
+/* Error State */
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: #d32f2f;
+  min-height: 200px;
+}
+
+.errorIcon {
+  margin-bottom: 16px;
+  color: #d32f2f;
+}
+
+.errorState p {
+  margin: 8px 0 16px 0;
+  font-size: 16px;
+}
+
+.retryButton {
+  padding: 8px 16px;
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.retryButton:hover {
+  background-color: #1976d2;
+}
+
+.retryButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Action Loading */
+.actionLoading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.actionLoading span {
+  white-space: nowrap;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+  .loadingContainer,
+  .emptyState,
+  .errorState {
+    padding: 20px 16px;
+    min-height: 150px;
+  }
+  
+  .emptyIcon,
+  .errorIcon {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .emptyState p,
+  .errorState p {
+    font-size: 14px;
+  }
+}

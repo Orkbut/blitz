@@ -233,19 +233,20 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '1rem',
+      padding: 'clamp(0.5rem, 2vw, 1rem)',
       zIndex: 1000,
       animation: 'fadeIn 0.2s ease',
-      overflow: 'hidden',
+      overflow: 'auto',
       overscrollBehavior: 'contain',
-      touchAction: 'none'
+      touchAction: 'pan-y'
     }}>
       <div style={{
         background: 'var(--bg-card)',
-        borderRadius: '20px',
+        borderRadius: 'clamp(8px, 2vw, 16px)',
         width: '100%',
-        maxWidth: 'min(95vw, 750px)',
-        maxHeight: 'min(95vh, 850px)',
+        maxWidth: 'min(98vw, 750px)',
+        maxHeight: 'min(95vh, 800px)',
+        minHeight: 'min(350px, 75vh)',
         display: 'flex',
         flexDirection: 'column',
         boxShadow: 'var(--shadow-xl)',
@@ -253,25 +254,27 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
         animation: 'slideUp 0.3s ease',
         overflow: 'hidden',
         overscrollBehavior: 'contain',
-        touchAction: 'pan-y'
+        touchAction: 'pan-y',
+        margin: 'auto'
       }}>
         {/* Header */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '1.25rem 1.75rem',
+          padding: 'clamp(0.5rem, 1.5vw, 0.875rem) clamp(0.75rem, 2vw, 1.25rem)',
           background: 'linear-gradient(135deg, var(--danger) 0%, #ef4444 100%)',
           color: 'white',
-          minHeight: '70px',
+          minHeight: 'clamp(50px, 8vw, 60px)',
           flexShrink: 0
         }}>
           <h2 style={{
-            fontSize: '1.5rem',
+            fontSize: 'clamp(1rem, 3.5vw, 1.3rem)',
             fontWeight: '700',
             margin: 0,
             flexShrink: 0,
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+            lineHeight: 1.2
           }}>
             Nova Operação
           </h2>
@@ -283,7 +286,7 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
               border: 'none',
               color: 'white',
               cursor: 'pointer',
-              padding: '0.75rem',
+              padding: 'clamp(0.5rem, 1.5vw, 0.625rem)',
               borderRadius: '12px',
               transition: 'all 0.2s ease'
             }}
@@ -304,11 +307,12 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
         <div style={{
           flex: 1,
           overflowY: 'auto',
-          padding: '1.5rem',
+          padding: 'clamp(0.75rem, 2vw, 1rem)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '1.5rem',
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+          gap: 'clamp(0.75rem, 2vw, 1rem)',
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+          minHeight: 0
         }}>
           {loadingJanelas ? (
             <div style={{ textAlign: 'center', padding: '3rem 0' }}>
@@ -322,9 +326,9 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
                 animation: 'spin 1s linear infinite'
               }}></div>
               <p style={{ 
-                marginTop: '1rem', 
+                marginTop: 'clamp(0.75rem, 2vw, 1rem)', 
                 color: 'var(--text-secondary)',
-                fontSize: '1rem',
+                fontSize: 'clamp(0.875rem, 2.5vw, 1rem)',
                 fontWeight: 500
               }}>
                 Carregando janelas operacionais...
@@ -336,10 +340,10 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
               <div>
                 <label style={{
                   display: 'block',
-                  fontSize: '1rem',
+                  fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
                   fontWeight: 600,
                   color: 'var(--text-primary)',
-                  marginBottom: '0.5rem'
+                  marginBottom: 'clamp(0.25rem, 0.75vw, 0.375rem)'
                 }}>
                   Janela Operacional *
                 </label>
@@ -353,16 +357,17 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
                   disabled={loading}
                   style={{
                     width: '100%',
-                    padding: '1rem',
-                    fontSize: '1rem',
+                    padding: 'clamp(0.625rem, 1.5vw, 0.875rem)',
+                    fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
                     border: '2px solid var(--border-color)',
-                    borderRadius: '12px',
+                    borderRadius: 'clamp(8px, 2vw, 12px)',
                     background: 'var(--bg-card)',
                     color: 'var(--text-primary)',
                     cursor: loading ? 'not-allowed' : 'pointer',
                     fontWeight: 500,
                     transition: 'all 0.2s ease',
-                    outline: 'none'
+                    outline: 'none',
+                    minHeight: 'clamp(2.5rem, 5vw, 2.875rem)'
                   }}
                   onFocus={(e) => {
                     if (!loading) {
@@ -385,15 +390,15 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
               </div>
 
               {/* Grid com campos principais */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'clamp(0.75rem, 2vw, 1rem)' }}>
                 {/* Data da Operação */}
                 <div style={{ position: 'relative' }}>
                   <label style={{
                     display: 'block',
-                    fontSize: '1rem',
+                    fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
                     fontWeight: 600,
                     color: 'var(--text-primary)',
-                    marginBottom: '0.5rem'
+                    marginBottom: 'clamp(0.25rem, 0.75vw, 0.375rem)'
                   }}>
                     Data da Operação *
                   </label>
@@ -407,8 +412,8 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
                       placeholder={isJanelaSelecionada ? "Clique para selecionar data" : "Selecione uma janela primeiro"}
                       style={{
                         width: '100%',
-                        padding: '1rem 3rem 1rem 1rem',
-                        fontSize: '1rem',
+                        padding: 'clamp(0.75rem, 2vw, 0.875rem) 2.5rem clamp(0.75rem, 2vw, 0.875rem) clamp(0.75rem, 2vw, 0.875rem)',
+                        fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
                         border: `2px solid ${selectedDates.length > 0 ? 'var(--primary)' : 'var(--border-color)'}`,
                         borderRadius: '12px',
                         cursor: isFormDisabled ? 'not-allowed' : 'pointer',
@@ -502,10 +507,10 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
                 <div>
                   <label style={{
                     display: 'block',
-                    fontSize: '1rem',
+                    fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
                     fontWeight: 600,
                     color: 'var(--text-primary)',
-                    marginBottom: '0.5rem'
+                    marginBottom: 'clamp(0.25rem, 0.75vw, 0.375rem)'
                   }}>
                     Modalidade *
                   </label>
@@ -515,8 +520,8 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
                     disabled={isFormDisabled || limitesJanela.configuracaoHerdada?.modalidadeUnica !== null}
                     style={{
                       width: '100%',
-                      padding: '1rem',
-                      fontSize: '1rem',
+                      padding: 'clamp(0.75rem, 2vw, 0.875rem)',
+                      fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
                       border: `2px solid ${novaOperacao.modalidade ? 'var(--primary)' : 'var(--border-color)'}`,
                       borderRadius: '12px',
                       background: 'var(--bg-card)',
@@ -563,15 +568,15 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
               </div>
 
               {/* Grid com 3 colunas - campos secundários */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 'clamp(0.5rem, 1.5vw, 0.75rem)' }}>
                 {/* Tipo */}
                 <div>
                   <label style={{
                     display: 'block',
-                    fontSize: '1rem',
+                    fontSize: 'clamp(0.75rem, 1.8vw, 0.875rem)',
                     fontWeight: 600,
                     color: 'var(--text-primary)',
-                    marginBottom: '0.5rem'
+                    marginBottom: 'clamp(0.25rem, 0.5vw, 0.375rem)'
                   }}>
                     Tipo
                   </label>
@@ -581,8 +586,8 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
                     disabled={isFormDisabled}
                     style={{
                       width: '100%',
-                      padding: '0.875rem',
-                      fontSize: '0.875rem',
+                      padding: 'clamp(0.625rem, 1.5vw, 0.75rem)',
+                      fontSize: 'clamp(0.75rem, 1.8vw, 0.8rem)',
                       border: '2px solid var(--border-color)',
                       borderRadius: '12px',
                       background: isFormDisabled ? 'var(--bg-secondary)' : 'var(--bg-card)',
@@ -612,10 +617,10 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
                 <div>
                   <label style={{
                     display: 'block',
-                    fontSize: '1rem',
+                    fontSize: 'clamp(0.75rem, 1.8vw, 0.875rem)',
                     fontWeight: 600,
                     color: 'var(--text-primary)',
-                    marginBottom: '0.5rem'
+                    marginBottom: 'clamp(0.25rem, 0.5vw, 0.375rem)'
                   }}>
                     Turno (opcional)
                   </label>
@@ -625,8 +630,8 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
                     disabled={isFormDisabled}
                     style={{
                       width: '100%',
-                      padding: '0.875rem',
-                      fontSize: '0.875rem',
+                      padding: 'clamp(0.625rem, 1.5vw, 0.75rem)',
+                      fontSize: 'clamp(0.75rem, 1.8vw, 0.8rem)',
                       border: '2px solid var(--border-color)',
                       borderRadius: '12px',
                       background: isFormDisabled ? 'var(--bg-secondary)' : 'var(--bg-card)',
@@ -658,10 +663,10 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
                 <div>
                   <label style={{
                     display: 'block',
-                    fontSize: '1rem',
+                    fontSize: 'clamp(0.75rem, 1.8vw, 0.875rem)',
                     fontWeight: 600,
                     color: 'var(--text-primary)',
-                    marginBottom: '0.5rem'
+                    marginBottom: 'clamp(0.25rem, 0.5vw, 0.375rem)'
                   }}>
                     Limite
                   </label>
@@ -671,8 +676,8 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
                     disabled={isFormDisabled}
                     style={{
                       width: '100%',
-                      padding: '0.875rem',
-                      fontSize: '0.875rem',
+                      padding: 'clamp(0.625rem, 1.5vw, 0.75rem)',
+                      fontSize: 'clamp(0.75rem, 1.8vw, 0.8rem)',
                       border: '2px solid var(--border-color)',
                       borderRadius: '12px',
                       background: isFormDisabled ? 'var(--bg-secondary)' : 'var(--bg-card)',
@@ -723,7 +728,7 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
                   padding: '1rem'
                 }}>
                   <p style={{
-                    fontSize: '1rem',
+                    fontSize: 'clamp(0.875rem, 2vw, 0.9rem)',
                     color: 'var(--success-dark)',
                     fontWeight: 600,
                     margin: 0,
@@ -749,8 +754,8 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
         <div style={{
           display: 'flex',
           justifyContent: 'flex-end',
-          gap: '1rem',
-          padding: '1.5rem',
+          gap: 'clamp(0.75rem, 2vw, 1rem)',
+          padding: 'clamp(0.875rem, 2.5vw, 1.25rem)',
           borderTop: '2px solid var(--border-color)',
           flexShrink: 0
         }}>
@@ -758,13 +763,13 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
             onClick={onClose}
             disabled={loading}
             style={{
-              padding: '0.875rem 1.5rem',
+              padding: 'clamp(0.625rem, 1.5vw, 0.75rem) clamp(1rem, 2.5vw, 1.25rem)',
               color: 'var(--text-secondary)',
               background: 'transparent',
               border: 'none',
               borderRadius: '12px',
               fontWeight: 500,
-              fontSize: '1rem',
+              fontSize: 'clamp(0.875rem, 2vw, 0.9rem)',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
               fontFamily: 'inherit',
@@ -787,7 +792,7 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
             onClick={criarOperacoes}
             disabled={loading || selectedDates.length === 0 || !isJanelaSelecionada || !novaOperacao.modalidade}
             style={{
-              padding: '0.875rem 2rem',
+              padding: 'clamp(0.625rem, 1.5vw, 0.75rem) clamp(1.25rem, 3vw, 1.75rem)',
               background: isFormValid && !loading 
                 ? 'var(--danger)' 
                 : 'var(--text-disabled)',
@@ -795,7 +800,7 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
               border: 'none',
               borderRadius: '12px',
               fontWeight: 600,
-              fontSize: '1rem',
+              fontSize: 'clamp(0.875rem, 2vw, 0.9rem)',
               cursor: isFormValid && !loading ? 'pointer' : 'not-allowed',
               transition: 'all 0.2s ease',
               fontFamily: 'inherit',
@@ -852,4 +857,4 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
       `}</style>
     </div>
   );
-}; 
+};

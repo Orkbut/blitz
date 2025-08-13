@@ -15,6 +15,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { EuVouOrchestrator } from '@/core/domain/services/EuVouOrchestrator';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
   console.log(`[TEMP-LOG-API-EU-VOU] 🚀 INÍCIO CHAMADA API EU-VOU`);
@@ -30,6 +31,23 @@ export async function POST(request: NextRequest) {
         { erro: 'Membro ID e Operação ID são obrigatórios' },
         { status: 400 }
       );
+    }
+
+    // 1.5. ✅ VERIFICAR SE OPERAÇÃO ESTÁ INATIVA PELO SUPERVISOR
+    console.log(`[TEMP-LOG-API-EU-VOU] 🔍 Verificando se operação ${operacaoId} está inativa...`);
+    const { data: operacaoStatus } = await supabase
+      .from('operacao')
+      .select('inativa_pelo_supervisor')
+      .eq('id', operacaoId)
+      .single();
+
+    if (operacaoStatus?.inativa_pelo_supervisor) {
+      console.log(`[TEMP-LOG-API-EU-VOU] 📁 Operação ${operacaoId} está inativa pelo supervisor`);
+      return NextResponse.json({
+        sucesso: false,
+        mensagem: 'Esta operação está no histórico e não aceita mais solicitações',
+        tipo: 'OPERACAO_INATIVA'
+      }, { status: 403 });
     }
 
     // 2. ✅ INSTANCIAR ORCHESTRATOR E EXECUTAR (usa validação para SOLICITAÇÃO)

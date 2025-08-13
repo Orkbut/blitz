@@ -210,19 +210,20 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '1rem',
+      padding: 'clamp(0.5rem, 2vw, 1rem)',
       zIndex: 1000,
       animation: 'fadeIn 0.2s ease',
-      overflow: 'hidden',
+      overflow: 'auto',
       overscrollBehavior: 'contain',
-      touchAction: 'none'
+      touchAction: 'pan-y'
     }}>
       <div style={{
         background: 'var(--bg-card)',
-        borderRadius: '20px',
+        borderRadius: 'clamp(12px, 3vw, 20px)',
         width: '100%',
-        maxWidth: 'min(95vw, 520px)',
-        maxHeight: 'min(90vh, auto)',
+        maxWidth: 'min(98vw, 520px)',
+        maxHeight: 'min(95vh, 800px)',
+        minHeight: 'min(400px, 80vh)',
         height: 'auto',
         display: 'flex',
         flexDirection: 'column',
@@ -231,25 +232,27 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
         animation: 'slideUp 0.3s ease',
         overflow: 'hidden',
         overscrollBehavior: 'contain',
-        touchAction: 'pan-y'
+        touchAction: 'pan-y',
+        margin: 'auto'
       }}>
         {/* Header */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '1.25rem 1.75rem',
+          padding: 'clamp(0.5rem, 1.5vw, 0.875rem) clamp(0.75rem, 2vw, 1.25rem)',
           background: 'var(--primary)',
           color: 'white',
-          minHeight: '70px',
+          minHeight: 'clamp(50px, 8vw, 60px)',
           flexShrink: 0
         }}>
           <h2 style={{
-            fontSize: '1.5rem',
+            fontSize: 'clamp(1rem, 3.5vw, 1.25rem)',
             fontWeight: '700',
             margin: 0,
             flexShrink: 0,
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+            lineHeight: 1.2
           }}>
             📅 Nova Janela Operacional
           </h2>
@@ -261,12 +264,12 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
               border: 'none',
               color: 'white',
               cursor: 'pointer',
-              padding: '0.75rem',
+              padding: '0.5rem',
               borderRadius: '12px',
               transition: 'all 0.2s ease'
             }}
           >
-            <X size={24} />
+            <X size={20} />
           </button>
         </div>
 
@@ -274,20 +277,21 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
         <div style={{
           flex: 1,
           overflowY: 'auto',
-          padding: '1.5rem',
+          padding: 'clamp(0.75rem, 2vw, 1rem)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '1.5rem',
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+          gap: 'clamp(0.75rem, 2vw, 1rem)',
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+          minHeight: 0
         }}>
           {/* Período Operacional */}
           <div style={{ position: 'relative' }}>
             <label style={{
               display: 'block',
-              fontSize: '1rem',
+              fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
               fontWeight: 600,
               color: 'var(--text-primary)',
-              marginBottom: '0.5rem'
+              marginBottom: 'clamp(0.25rem, 0.5vw, 0.375rem)'
             }}>
               Período Operacional *
             </label>
@@ -302,10 +306,10 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
                 aria-label="Período operacional - clique para abrir calendário"
                 style={{
                   width: '100%',
-                  padding: '1rem 3rem 1rem 1rem',
+                  padding: 'clamp(0.5rem, 1.5vw, 0.75rem) clamp(2rem, 4vw, 2.5rem) clamp(0.5rem, 1.5vw, 0.75rem) clamp(0.5rem, 1.5vw, 0.75rem)',
                   border: `2px solid ${formatarPeriodo() ? 'var(--primary)' : 'var(--border-color)'}`,
-                  borderRadius: '12px',
-                  fontSize: '1rem',
+                  borderRadius: 'clamp(8px, 2vw, 12px)',
+                  fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
                   cursor: loading ? 'not-allowed' : 'pointer',
                   background: 'var(--bg-card)',
                   color: loading ? 'var(--text-disabled)' : formatarPeriodo() ? 'var(--text-primary)' : 'var(--text-secondary)',
@@ -313,7 +317,7 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
                   transition: 'all 0.2s ease',
                   outline: 'none',
                   boxShadow: formatarPeriodo() ? '0 0 0 3px rgba(59, 130, 246, 0.2)' : 'none',
-                  height: '3.25rem',
+                  height: 'clamp(2.25rem, 4vw, 2.75rem)',
                   boxSizing: 'border-box'
                 }}
                 onFocus={(e) => {
@@ -334,12 +338,12 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
               />
               <div style={{
                 position: 'absolute',
-                right: '1rem',
+                right: 'clamp(0.5rem, 1.5vw, 0.75rem)',
                 top: '50%',
                 transform: 'translateY(-50%)',
                 pointerEvents: 'none'
               }}>
-                <svg style={{ width: '1.5rem', height: '1.5rem', color: 'var(--text-secondary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg style={{ width: 'clamp(1rem, 2.5vw, 1.25rem)', height: 'clamp(1rem, 2.5vw, 1.25rem)', color: 'var(--text-secondary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
@@ -363,10 +367,12 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
                 <div 
                   style={{
                     position: 'fixed',
-                    top: '40%',
+                    top: 'clamp(30%, 40vh, 40%)',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
-                    zIndex: 1050
+                    zIndex: 1050,
+                    maxWidth: '95vw',
+                    maxHeight: '80vh'
                   }}
                 >
                   <MultiDateCalendar
@@ -396,32 +402,32 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
           <div>
             <label style={{
               display: 'block',
-              fontSize: '1rem',
+              fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
               fontWeight: 600,
               color: 'var(--text-primary)',
-              marginBottom: '0.5rem'
+              marginBottom: 'clamp(0.25rem, 0.5vw, 0.375rem)'
             }}>
               Modalidades *
             </label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(0.375rem, 1vw, 0.5rem)' }}>
               {['BLITZ', 'BALANCA'].map((modalidade) => (
                 <label key={modalidade} style={{ 
                   display: 'flex', 
                   alignItems: 'center', 
                   cursor: loading ? 'not-allowed' : 'pointer',
-                  fontSize: '1rem',
+                  fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
                   color: novaJanela.modalidades.includes(modalidade) ? 'var(--primary)' : 'var(--text-primary)',
                   fontWeight: 600,
-                  padding: '1rem',
+                  padding: 'clamp(0.5rem, 1.5vw, 0.75rem)',
                   border: `2px solid ${novaJanela.modalidades.includes(modalidade) ? 'var(--primary)' : 'var(--border-color)'}`,
-                  borderRadius: '12px',
+                  borderRadius: 'clamp(8px, 2vw, 12px)',
                   background: novaJanela.modalidades.includes(modalidade) 
                     ? 'rgba(59, 130, 246, 0.1)' 
                     : 'white',
                   transition: 'all 0.2s ease',
                   boxShadow: novaJanela.modalidades.includes(modalidade) ? '0 0 0 3px rgba(59, 130, 246, 0.2)' : 'none',
                   opacity: loading ? 0.6 : 1,
-                  minHeight: '3.25rem'
+                  minHeight: 'clamp(2.25rem, 4vw, 2.75rem)'
                 }}
                 onMouseEnter={(e) => {
                   if (!loading && !novaJanela.modalidades.includes(modalidade)) {
@@ -456,23 +462,23 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
                     disabled={loading}
                     aria-label={`Modalidade ${modalidade === 'BLITZ' ? 'Blitz' : 'Balança'}`}
                     style={{ 
-                      marginRight: '0.75rem', 
-                      width: '18px', 
-                      height: '18px',
+                      marginRight: 'clamp(0.375rem, 1vw, 0.5rem)', 
+                      width: 'clamp(14px, 2.5vw, 16px)', 
+                      height: 'clamp(14px, 2.5vw, 16px)',
                       cursor: loading ? 'not-allowed' : 'pointer',
                       accentColor: 'var(--primary)'
                     }}
                   />
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(0.1rem, 0.25vw, 0.15rem)' }}>
                     <span style={{ 
                       fontWeight: 600,
-                      fontSize: '1rem',
+                      fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
                       color: 'inherit'
                     }}>
                       {modalidade === 'BLITZ' ? 'BLITZ' : 'BALANÇA'}
                     </span>
                     <span style={{
-                      fontSize: '0.875rem',
+                      fontSize: 'clamp(0.7rem, 1.5vw, 0.8rem)',
                       opacity: 0.8,
                       fontWeight: 400
                     }}>
@@ -488,10 +494,10 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
           <div>
             <label style={{
               display: 'block',
-              fontSize: '1rem',
+              fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
               fontWeight: 600,
               color: 'var(--text-primary)',
-              marginBottom: '0.5rem'
+              marginBottom: 'clamp(0.25rem, 0.5vw, 0.375rem)'
             }}>
               Limite Máximo de Participantes
             </label>
@@ -505,10 +511,10 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
               aria-label="Limite máximo de participantes"
               style={{
                 width: '100%',
-                padding: '1rem',
+                padding: 'clamp(0.5rem, 1.5vw, 0.75rem)',
                 border: '2px solid var(--border-color)',
-                borderRadius: '12px',
-                fontSize: '1rem',
+                borderRadius: 'clamp(8px, 2vw, 12px)',
+                fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
                 textAlign: 'center',
                 fontWeight: 600,
                 color: 'var(--text-primary)',
@@ -516,7 +522,7 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
                 outline: 'none',
                 transition: 'all 0.2s ease',
                 cursor: loading ? 'not-allowed' : 'text',
-                height: '3.25rem',
+                height: 'clamp(2.25rem, 4vw, 2.75rem)',
                 boxSizing: 'border-box',
                 MozAppearance: 'textfield',
                 WebkitAppearance: 'none'
@@ -543,27 +549,29 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
         <div style={{
           display: 'flex',
           justifyContent: 'flex-end',
-                      gap: '1rem',
-            padding: '1.5rem',
+          gap: 'clamp(0.5rem, 1.5vw, 0.75rem)',
+          padding: 'clamp(0.75rem, 2vw, 1rem)',
           borderTop: '2px solid var(--border-color)',
-          flexShrink: 0
+          flexShrink: 0,
+          flexWrap: 'wrap'
         }}>
           <button
             onClick={onClose}
             disabled={loading}
             aria-label="Cancelar criação da janela operacional"
             style={{
-              padding: '0.875rem 1.5rem',
+              padding: 'clamp(0.5rem, 1.5vw, 0.625rem) clamp(0.75rem, 2vw, 1rem)',
               color: 'var(--text-primary)',
               background: 'var(--bg-secondary)',
               border: '2px solid var(--border-color)',
-              borderRadius: '12px',
+              borderRadius: 'clamp(8px, 2vw, 12px)',
               fontWeight: 500,
-              fontSize: '1rem',
+              fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
               cursor: loading ? 'not-allowed' : 'pointer',
               transition: 'all 0.2s ease',
               fontFamily: 'inherit',
-              minHeight: '3rem'
+              minHeight: 'clamp(2rem, 4vw, 2.5rem)',
+              flex: '0 1 auto'
             }}
             onMouseEnter={(e) => {
               if (!loading) {
@@ -593,14 +601,14 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
             aria-label="Criar nova janela operacional"
             aria-disabled={loading || novaJanela.periodo.length === 0 || novaJanela.modalidades.length === 0}
             style={{
-              padding: '0.875rem 2rem',
+              padding: 'clamp(0.5rem, 1.5vw, 0.625rem) clamp(1rem, 3vw, 1.25rem)',
               background: (loading || novaJanela.periodo.length === 0 || novaJanela.modalidades.length === 0) 
                 ? '#94a3b8' : 'var(--primary)',
               color: 'white',
               border: 'none',
-              borderRadius: '12px',
+              borderRadius: 'clamp(8px, 2vw, 12px)',
               fontWeight: 600,
-              fontSize: '1rem',
+              fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
               cursor: (loading || novaJanela.periodo.length === 0 || novaJanela.modalidades.length === 0) 
                 ? 'not-allowed' : 'pointer',
               transition: 'all 0.2s ease',
@@ -608,8 +616,9 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
               boxShadow: (loading || novaJanela.periodo.length === 0 || novaJanela.modalidades.length === 0) 
                 ? 'none' : '0 4px 12px rgba(59, 130, 246, 0.3)',
               transform: 'translateY(0)',
-              minHeight: '3rem',
-              opacity: (loading || novaJanela.periodo.length === 0 || novaJanela.modalidades.length === 0) ? 0.7 : 1
+              minHeight: 'clamp(2rem, 4vw, 2.5rem)',
+              opacity: (loading || novaJanela.periodo.length === 0 || novaJanela.modalidades.length === 0) ? 0.7 : 1,
+              flex: '0 1 auto'
             }}
             onMouseEnter={(e) => {
               if (!(loading || novaJanela.periodo.length === 0 || novaJanela.modalidades.length === 0)) {
@@ -686,4 +695,4 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
       </style>
     </div>
   );
-}; 
+};

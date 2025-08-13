@@ -123,6 +123,10 @@ export default function SupervisorPage() {
   const [operacaoParaHorario, setOperacaoParaHorario] = useState<any>(null);
   const horarioButtonRefs = useRef<{ [key: number]: React.RefObject<HTMLButtonElement> }>({});
 
+  // ✅ NOVO: STATE PARA HEADER INTERATIVO COM SCROLL
+  const [headerVisible, setHeaderVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
   useEffect(() => {
     carregarDados();
   }, [activeTab]);
@@ -619,6 +623,44 @@ export default function SupervisorPage() {
     carregarSolicitacoesMemoizado();
   }, [carregarOperacoesMemoizado, carregarSolicitacoesMemoizado]); // ✅ Dependências estáveis
 
+  // ✅ Efeito para ocultar header no scroll para baixo e mostrar no scroll para cima
+  useEffect(() => {
+    let ticking = false;
+    const handleScroll = () => {
+      const currentY = window.scrollY || window.pageYOffset;
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          if (currentY > lastScrollY && currentY > 30) {
+            setHeaderVisible(false);
+          } else {
+            setHeaderVisible(true);
+          }
+          setLastScrollY(currentY);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
+
+  // Fechar o dropdown automaticamente ao esconder o header ou durante rolagem
+  useEffect(() => {
+    if (!headerVisible && showDropdownMenu) {
+      setShowDropdownMenu(false);
+    }
+  }, [headerVisible]);
+
+  useEffect(() => {
+    const onScrollCloseMenu = () => {
+      if (showDropdownMenu) setShowDropdownMenu(false);
+    };
+    window.addEventListener('scroll', onScrollCloseMenu, { passive: true });
+    return () => window.removeEventListener('scroll', onScrollCloseMenu);
+  }, [showDropdownMenu]);
+
   // ✅ FUNÇÃO PARA LIDAR COM MÚLTIPLAS OPERAÇÕES
   const handleOperacaoClick = (operacoes: Operacao[]) => {
     if (operacoes.length === 0) return;
@@ -645,83 +687,184 @@ export default function SupervisorPage() {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
-      {/* 🎯 HEADER MELHORADO - Mais limpo e organizado */}
-      <header className="sticky top-0 z-40 bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
-          <div className="flex items-center justify-between gap-2">
-            {/* Brand compacto + Navegação */}
-            <div className="flex items-center gap-3 sm:gap-6 flex-1 min-w-0">
-              <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                  <span className="text-base sm:text-lg">🎯</span>
+      {/* 🎯 HEADER MELHORADO - RESPONSIVO COM CLAMP */}
+      <header className={`sticky top-0 z-40 bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg transition-transform duration-300 ease-in-out ${headerVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}
+        style={{ willChange: 'transform, opacity' }}>
+        <div 
+          className="max-w-7xl mx-auto"
+          style={{
+            padding: 'clamp(8px, 2vw, 16px) clamp(12px, 3vw, 24px)',
+            boxSizing: 'border-box'
+          }}
+        >
+          <div 
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 'clamp(4px, 1vw, 8px)',
+              flexWrap: 'nowrap'
+            }}
+          >
+            {/* Brand compacto + Navegação - RESPONSIVO COM CLAMP */}
+            <div 
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'clamp(8px, 2vw, 16px)',
+                flex: '1',
+                minWidth: '0'
+              }}
+            >
+              <div 
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 'clamp(4px, 1vw, 8px)',
+                  flexShrink: '0'
+                }}
+              >
+                <div 
+                  className="bg-white/20 rounded-lg flex items-center justify-center"
+                  style={{
+                    width: 'clamp(24px, 5vw, 32px)',
+                    height: 'clamp(24px, 5vw, 32px)',
+                    borderRadius: 'clamp(4px, 1vw, 8px)'
+                  }}
+                >
+                  <span style={{ fontSize: 'clamp(0.8rem, 2.5vw, 1.2rem)' }}>🎯</span>
                 </div>
-                <h1 className="text-sm sm:text-lg font-bold text-white truncate">Portal do Supervisor</h1>
+                <h1 
+                  className="font-bold text-white"
+                  style={{
+                    fontSize: 'clamp(0.7rem, 2.5vw, 1.1rem)',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    minWidth: '0'
+                  }}
+                >
+                  Portal do Supervisor
+                </h1>
               </div>
               
-              {/* Navegação integrada */}
-              <div className="hidden sm:flex bg-white/10 backdrop-blur rounded-lg p-1">
+              {/* Navegação integrada - RESPONSIVA COM CLAMP */}
+              <div 
+                className="bg-white/10 backdrop-blur rounded-lg"
+                style={{
+                  padding: 'clamp(2px, 0.5vw, 4px)',
+                  borderRadius: 'clamp(4px, 1vw, 8px)',
+                  display: 'flex',
+                  gap: 'clamp(1px, 0.2vw, 2px)'
+                }}
+              >
                 <button 
                   onClick={() => setActiveTab('operacoes')}
-                  className={`px-3 py-1.5 text-sm font-medium rounded transition-all ${
+                  className={`font-medium rounded transition-all ${
                     activeTab === 'operacoes'
                       ? 'bg-white/20 text-white'
                       : 'text-blue-100 hover:bg-white/10'
                   }`}
+                  style={{
+                    padding: 'clamp(4px, 1vw, 8px) clamp(6px, 1.5vw, 12px)',
+                    fontSize: 'clamp(0.6rem, 1.5vw, 0.8rem)',
+                    borderRadius: 'clamp(3px, 0.8vw, 6px)',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    minWidth: '0'
+                  }}
                 >
-                  📅 Calendário
+                  <span style={{ fontSize: 'clamp(0.6rem, 1.5vw, 0.8rem)' }}>📅</span>
+                  <span 
+                    className="hidden sm:inline"
+                    style={{ 
+                      marginLeft: 'clamp(2px, 0.5vw, 4px)',
+                      minWidth: '0',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    Calendário
+                  </span>
                 </button>
                 <button 
                   onClick={() => setActiveTab('janelas')}
-                  className={`px-3 py-1.5 text-sm font-medium rounded transition-all ${
+                  className={`font-medium rounded transition-all ${
                     activeTab === 'janelas'
                       ? 'bg-white/20 text-white'
                       : 'text-blue-100 hover:bg-white/10'
                   }`}
+                  style={{
+                    padding: 'clamp(4px, 1vw, 8px) clamp(6px, 1.5vw, 12px)',
+                    fontSize: 'clamp(0.6rem, 1.5vw, 0.8rem)',
+                    borderRadius: 'clamp(3px, 0.8vw, 6px)',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    minWidth: '0'
+                  }}
                 >
-                  🗂️ Janelas
-                </button>
-              </div>
-
-              {/* Navegação mobile */}
-              <div className="sm:hidden flex bg-white/10 backdrop-blur rounded-lg p-1">
-                <button 
-                  onClick={() => setActiveTab('operacoes')}
-                  className={`px-2 py-1 text-xs font-medium rounded transition-all ${
-                    activeTab === 'operacoes'
-                      ? 'bg-white/20 text-white'
-                      : 'text-blue-100 hover:bg-white/10'
-                  }`}
-                >
-                  📅
-                </button>
-                <button 
-                  onClick={() => setActiveTab('janelas')}
-                  className={`px-2 py-1 text-xs font-medium rounded transition-all ${
-                    activeTab === 'janelas'
-                      ? 'bg-white/20 text-white'
-                      : 'text-blue-100 hover:bg-white/10'
-                  }`}
-                >
-                  🗂️
+                  <span style={{ fontSize: 'clamp(0.6rem, 1.5vw, 0.8rem)' }}>🗂️</span>
+                  <span 
+                    className="hidden sm:inline"
+                    style={{ 
+                      marginLeft: 'clamp(2px, 0.5vw, 4px)',
+                      minWidth: '0',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    Janelas
+                  </span>
                 </button>
               </div>
             </div>
 
-            {/* Menu compacto + Usuário */}
-            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-              {/* Menu dropdown - CORRIGIDO para funcionar em mobile */}
-              <div className="relative dropdown-menu-container">
+            {/* Menu compacto + Usuário - RESPONSIVO COM CLAMP */}
+            <div 
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'clamp(4px, 1vw, 8px)',
+                flexShrink: '0'
+              }}
+            >
+              {/* Menu dropdown - RESPONSIVO COM CLAMP */}
+              <div className={`relative dropdown-menu-container transition-opacity duration-200 ${headerVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+                style={{ willChange: 'opacity' }}>
                 <button 
                   onClick={() => setShowDropdownMenu(!showDropdownMenu)}
-                  className="px-2 sm:px-3 py-2 text-xs sm:text-sm bg-white/10 rounded-lg text-white hover:bg-white/20 transition-all flex items-center gap-1"
+                  className="bg-white/10 text-white hover:bg-white/20 transition-all flex items-center"
+                  style={{
+                    padding: 'clamp(6px, 1.5vw, 10px) clamp(8px, 2vw, 12px)',
+                    borderRadius: 'clamp(4px, 1vw, 8px)',
+                    fontSize: 'clamp(0.6rem, 1.5vw, 0.8rem)',
+                    gap: 'clamp(2px, 0.5vw, 4px)',
+                    minWidth: 'clamp(60px, 12vw, 80px)',
+                    boxSizing: 'border-box'
+                  }}
                 >
-                  <span className="text-sm">⚙️</span>
-                  <span className="hidden sm:inline">Menu</span>
+                  <span style={{ fontSize: 'clamp(0.6rem, 1.5vw, 0.8rem)' }}>⚙️</span>
+                  <span 
+                    className="hidden sm:inline"
+                    style={{ 
+                      minWidth: '0',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    Menu
+                  </span>
                   <svg 
-                    className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform ${showDropdownMenu ? 'rotate-180' : ''}`} 
+                    className={`transition-transform ${showDropdownMenu ? 'rotate-180' : ''}`} 
                     fill="none" 
                     stroke="currentColor" 
                     viewBox="0 0 24 24"
+                    style={{
+                      width: 'clamp(12px, 2.5vw, 16px)',
+                      height: 'clamp(12px, 2.5vw, 16px)'
+                    }}
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
@@ -757,11 +900,32 @@ export default function SupervisorPage() {
                 )}
               </div>
 
-              {/* Usuário com responsividade corrigida */}
-              <div className="flex items-center gap-2">
+              {/* Usuário com responsividade - RESPONSIVO COM CLAMP */}
+              <div 
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 'clamp(4px, 1vw, 8px)'
+                }}
+              >
                 {/* Versão completa - apenas em telas médias e grandes */}
-                <div className="hidden md:flex items-center gap-2 bg-white/10 rounded-lg px-3 py-2 border border-white/20">
-                  <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                <div 
+                  className="hidden md:flex items-center bg-white/10 border border-white/20"
+                  style={{
+                    gap: 'clamp(4px, 1vw, 8px)',
+                    borderRadius: 'clamp(4px, 1vw, 8px)',
+                    padding: 'clamp(6px, 1.5vw, 12px) clamp(8px, 2vw, 16px)',
+                    boxSizing: 'border-box'
+                  }}
+                >
+                  <div 
+                    className="bg-green-500 text-white rounded-full flex items-center justify-center font-bold"
+                    style={{
+                      width: 'clamp(28px, 6vw, 36px)',
+                      height: 'clamp(28px, 6vw, 36px)',
+                      fontSize: 'clamp(0.6rem, 1.5vw, 0.8rem)'
+                    }}
+                  >
                     {(() => {
                       const supervisorAuth = localStorage.getItem('supervisorAuth');
                       if (supervisorAuth) {
@@ -775,8 +939,16 @@ export default function SupervisorPage() {
                       return 'DA';
                     })()}
                   </div>
-                  <div>
-                    <div className="text-sm font-medium text-white">
+                  <div style={{ minWidth: '0', overflow: 'hidden' }}>
+                    <div 
+                      className="font-medium text-white"
+                      style={{
+                        fontSize: 'clamp(0.6rem, 1.5vw, 0.8rem)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
                       {(() => {
                         const supervisorAuth = localStorage.getItem('supervisorAuth');
                         if (supervisorAuth) {
@@ -790,7 +962,15 @@ export default function SupervisorPage() {
                         return 'Douglas Santos';
                       })()}
                     </div>
-                    <div className="text-xs text-blue-100">
+                    <div 
+                      className="text-blue-100"
+                      style={{
+                        fontSize: 'clamp(0.5rem, 1.2vw, 0.7rem)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
                       {(() => {
                         const supervisorAuth = localStorage.getItem('supervisorAuth');
                         if (supervisorAuth) {
@@ -807,8 +987,15 @@ export default function SupervisorPage() {
                   </div>
                 </div>
 
-                {/* Versão compacta - apenas em telas pequenas */}
-                <div className="md:hidden w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                {/* Versão compacta - apenas em telas pequenas - RESPONSIVA */}
+                <div 
+                  className="md:hidden bg-green-500 text-white rounded-full flex items-center justify-center font-bold"
+                  style={{
+                    width: 'clamp(28px, 6vw, 36px)',
+                    height: 'clamp(28px, 6vw, 36px)',
+                    fontSize: 'clamp(0.6rem, 1.5vw, 0.8rem)'
+                  }}
+                >
                   {(() => {
                     const supervisorAuth = localStorage.getItem('supervisorAuth');
                     if (supervisorAuth) {
@@ -823,7 +1010,7 @@ export default function SupervisorPage() {
                   })()}
                 </div>
 
-                {/* Botão sair - sempre visível */}
+                {/* Botão sair - sempre visível - RESPONSIVO */}
                 <button
                   onClick={() => {
                     if (confirm('Deseja realmente sair do sistema?')) {
@@ -832,10 +1019,23 @@ export default function SupervisorPage() {
                       window.location.href = '/';
                     }
                   }}
-                  className="p-2 text-blue-100 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  className="text-blue-100 hover:text-white hover:bg-white/10 transition-colors"
                   title="Sair do sistema"
+                  style={{
+                    padding: 'clamp(6px, 1.5vw, 10px)',
+                    borderRadius: 'clamp(4px, 1vw, 8px)',
+                    boxSizing: 'border-box'
+                  }}
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                    style={{
+                      width: 'clamp(16px, 3vw, 20px)',
+                      height: 'clamp(16px, 3vw, 20px)'
+                    }}
+                  >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                   </svg>
                 </button>
@@ -846,7 +1046,7 @@ export default function SupervisorPage() {
       </header>
 
       {/* ✅ CONTEÚDO PRINCIPAL */}
-      <main className="max-w-7xl mx-auto px-4 py-3">
+      <main className="max-w-7xl mx-auto px-3 pt-2 pb-3">
         {/* TAB: OPERAÇÕES */}
         {activeTab === 'operacoes' && (
           <CalendarioSupervisor
@@ -1152,4 +1352,4 @@ export default function SupervisorPage() {
       )}
     </div>
   );
-} 
+}

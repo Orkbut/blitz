@@ -49,6 +49,12 @@ export interface Operacao {
   excluida_temporariamente?: boolean;
   data_exclusao?: string;
   motivo_exclusao?: string;
+
+  // ✅ Campos de inativação pelo supervisor
+  inativa_pelo_supervisor?: boolean;
+  data_inativacao?: string;
+  motivo_inativacao?: string;
+  supervisor_inativacao_id?: number;
 }
 
 // ✅ Interface para Janela Operacional

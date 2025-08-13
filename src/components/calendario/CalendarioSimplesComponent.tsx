@@ -30,6 +30,11 @@ interface Operacao {
   ativa?: boolean;
   excluida_temporariamente?: boolean;
   updated_at?: string;
+  // Campos para inativação de operações
+  inativa_pelo_supervisor?: boolean;
+  data_inativacao?: string;
+  motivo_inativacao?: string;
+  supervisor_inativacao_id?: number;
   janela?: {
     id: number;
     dataInicio: string;
@@ -90,6 +95,9 @@ export const CalendarioSimplesComponent: React.FC = () => {
         startDate: format(startDate, 'yyyy-MM-dd'),
         endDate: format(endDate, 'yyyy-MM-dd'),
         membroId,
+        portal: 'membro',
+        includeParticipantes: 'true',
+        includeInactive: 'true', // Incluir operações inativas para histórico completo
         _t: Date.now().toString(), // Cache busting
         _realtime: 'true' // Indicador de chamada via realtime
       });
@@ -119,12 +127,27 @@ export const CalendarioSimplesComponent: React.FC = () => {
         console.log('[CalendarioSimples] 🔍 Primeira operação:', data.data?.[0]);
 
         const operacoesData = data.data || [];
+        
+        // 🔍 DEBUG: Log detalhado das operações recebidas
+        console.log('[CalendarioSimples] 🔍 OPERAÇÕES RECEBIDAS:', operacoesData.length);
+        operacoesData.forEach((op: Operacao, index: number) => {
+          console.log(`[CalendarioSimples] 📋 Operação ${index + 1}:`, {
+            id: op.id,
+            data_operacao: op.data_operacao,
+            modalidade: op.modalidade,
+            status: op.status,
+            ativa: op.ativa
+          });
+        });
+        
         setOperacoes(operacoesData);
 
         // Processar operações por dia para o modal
         const operacoesPorDiaMap: Record<string, Operacao[]> = {};
         operacoesData.forEach((op: Operacao) => {
-          const dataKey = format(new Date(op.data_operacao), 'yyyy-MM-dd');
+          // ✅ CORREÇÃO TIMEZONE: Usar substring para evitar problemas de fuso horário
+      const dataKey = op.data_operacao.substring(0, 10); // Extrai apenas YYYY-MM-DD
+          console.log(`[CalendarioSimples] 🗓️ Processando operação ${op.id}: ${op.data_operacao} -> ${dataKey}`);
           if (!operacoesPorDiaMap[dataKey]) {
             operacoesPorDiaMap[dataKey] = [];
           }
@@ -266,6 +289,18 @@ export const CalendarioSimplesComponent: React.FC = () => {
 
     if (isButtonLoading(operacaoId)) return;
 
+    // Verificar se a operação está inativa
+    const operacao = operacoes.find(op => op.id === operacaoId);
+    if (operacao?.inativa_pelo_supervisor) {
+      toast.error('Esta operação está arquivada e não aceita mais solicitações');
+      return;
+    }
+
+    // Não permitir ações em operações históricas
+    if (action === 'historico') {
+      return;
+    }
+
     setButtonLoading(operacaoId, true);
 
     try {
@@ -283,6 +318,13 @@ export const CalendarioSimplesComponent: React.FC = () => {
   };
 
   const handleEuVou = async (operacaoId: number) => {
+    // Verificar se a operação está inativa
+    const operacao = operacoes.find(op => op.id === operacaoId);
+    if (operacao?.inativa_pelo_supervisor) {
+      toast.error('Esta operação está arquivada e não aceita mais solicitações');
+      return;
+    }
+
     try {
       const response = await fetch('/api/participations', {
         method: 'POST',
@@ -309,6 +351,13 @@ export const CalendarioSimplesComponent: React.FC = () => {
   };
 
   const handleCancelar = async (operacaoId: number) => {
+    // Verificar se a operação está inativa
+    const operacao = operacoes.find(op => op.id === operacaoId);
+    if (operacao?.inativa_pelo_supervisor) {
+      toast.error('Esta operação está arquivada e não aceita mais solicitações');
+      return;
+    }
+
     try {
       const response = await fetch('/api/agendamento/cancelar', {
         method: 'POST',
@@ -340,13 +389,27 @@ export const CalendarioSimplesComponent: React.FC = () => {
   // Obter operações de um dia específico
   const getOperacoesDia = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
+    
+    // 🔍 DEBUG: Log detalhado para dias específicos
+    if (dateStr === '2025-08-22' || dateStr === '2025-08-23') {
+      console.log(`[CalendarioSimples] 🔍 ANALISANDO DIA ${dateStr}:`);
+      console.log(`[CalendarioSimples] 📊 Total de operações disponíveis: ${operacoes.length}`);
+      operacoes.forEach((op, index) => {
+        const opDate = op.data_operacao.substring(0, 10); // ✅ CORREÇÃO TIMEZONE
+        console.log(`[CalendarioSimples] 📋 Op ${index + 1} (ID ${op.id}): ${op.data_operacao} -> ${opDate} | Match: ${opDate === dateStr}`);
+      });
+    }
+    
     const operacoesDia = operacoes.filter(op => {
-      const opDate = format(new Date(op.data_operacao), 'yyyy-MM-dd');
+      const opDate = op.data_operacao.substring(0, 10); // ✅ CORREÇÃO TIMEZONE
       return opDate === dateStr;
     });
 
     if (operacoesDia.length > 0) {
       console.log(`[CalendarioSimples] 📅 ${dateStr}: ${operacoesDia.length} operações`);
+      if (dateStr === '2025-08-22' || dateStr === '2025-08-23') {
+        console.log(`[CalendarioSimples] 🎯 Operações encontradas para ${dateStr}:`, operacoesDia.map(op => ({ id: op.id, modalidade: op.modalidade })));
+      }
     }
 
     return operacoesDia;
@@ -354,13 +417,24 @@ export const CalendarioSimplesComponent: React.FC = () => {
 
   // Função para obter estado visual (mesma lógica do OperacaoDialog)
   const getEstadoVisualInfo = (operacao: Operacao) => {
+    // Verificar se a operação está inativa
+    if (operacao.inativa_pelo_supervisor) {
+      return {
+        buttonText: '📁 Arquivo',
+        buttonClass: 'historico',
+        buttonAction: 'historico',
+        isInactive: true
+      };
+    }
+
     const estado = operacao.minha_participacao?.estado_visual;
 
     if (estado === 'CONFIRMADO' || estado === 'ADICIONADO_SUP') {
       return {
         buttonText: 'CANCELAR',
         buttonClass: 'cancel',
-        buttonAction: 'cancelar'
+        buttonAction: 'cancelar',
+        isInactive: false
       };
     }
 
@@ -368,7 +442,8 @@ export const CalendarioSimplesComponent: React.FC = () => {
       return {
         buttonText: 'CANCELAR',
         buttonClass: 'cancel',
-        buttonAction: 'cancelar'
+        buttonAction: 'cancelar',
+        isInactive: false
       };
     }
 
@@ -376,7 +451,8 @@ export const CalendarioSimplesComponent: React.FC = () => {
       return {
         buttonText: 'CANCELAR',
         buttonClass: 'cancel',
-        buttonAction: 'cancelar'
+        buttonAction: 'cancelar',
+        isInactive: false
       };
     }
 
@@ -393,20 +469,23 @@ export const CalendarioSimplesComponent: React.FC = () => {
         return {
           buttonText: 'EU VOU',
           buttonClass: 'participate',
-          buttonAction: 'participar'
+          buttonAction: 'participar',
+          isInactive: false
         };
       } else {
         return {
           buttonText: 'ENTRAR NA FILA',
           buttonClass: 'queue',
-          buttonAction: 'participar'
+          buttonAction: 'participar',
+          isInactive: false
         };
       }
     } else {
       return {
         buttonText: 'LOTADO',
         buttonClass: 'full',
-        buttonAction: 'lotado'
+        buttonAction: 'lotado',
+        isInactive: false
       };
     }
   };
@@ -418,17 +497,19 @@ export const CalendarioSimplesComponent: React.FC = () => {
     const pendentes = operacao.total_solicitacoes || operacao.pessoas_na_fila || 0;
 
     const estadoInfo = getEstadoVisualInfo(operacao);
+    const isInativa = operacao.inativa_pelo_supervisor;
 
     console.log(`[CalendarioSimples] 🔍 Operação ${operacao.id}:`, {
       estadoVisual: operacao.minha_participacao?.estado_visual,
       confirmados,
       limite,
       pendentes,
-      estadoInfo
+      estadoInfo,
+      isInativa
     });
 
     return (
-      <div className={`${styles.singleOperationInfo} ${styles.responsive}`}>
+      <div className={`${styles.singleOperationInfo} ${styles.responsive} ${isInativa ? styles.operacaoInativa : ''}`}>
         <div className={`${styles.operationHeader} ${styles[operacao.modalidade.toLowerCase()]}`}>
           <div className={`${styles.modalidadeName} ${styles[operacao.modalidade.toLowerCase()]}`}>
             {operacao.modalidade}
@@ -441,19 +522,25 @@ export const CalendarioSimplesComponent: React.FC = () => {
           </div>
         </div>
 
-        <button
-          className={`${styles.quickActionButton} ${styles[estadoInfo.buttonClass]} ${styles.responsive}`}
-          onClick={(e) => handleQuickAction(operacao.id, estadoInfo.buttonAction, e)}
-          disabled={isButtonLoading(operacao.id) || estadoInfo.buttonAction === 'lotado'}
-        >
-          {isButtonLoading(operacao.id) ? (
-            <span className={styles.spinning}>
-              <Loader2 size={16} />
-            </span>
-          ) : (
-            estadoInfo.buttonText
-          )}
-        </button>
+        {!isInativa ? (
+          <button
+            className={`${styles.quickActionButton} ${styles[estadoInfo.buttonClass]} ${styles.responsive}`}
+            onClick={(e) => handleQuickAction(operacao.id, estadoInfo.buttonAction, e)}
+            disabled={isButtonLoading(operacao.id) || estadoInfo.buttonAction === 'lotado'}
+          >
+            {isButtonLoading(operacao.id) ? (
+              <span className={styles.spinning}>
+                <Loader2 size={16} />
+              </span>
+            ) : (
+              estadoInfo.buttonText
+            )}
+          </button>
+        ) : (
+          <div className={styles.historicoText}>
+            📁 Arquivo
+          </div>
+        )}
       </div>
     );
   };
@@ -469,6 +556,7 @@ export const CalendarioSimplesComponent: React.FC = () => {
           const confirmados = op.participantes_confirmados || 0;
           const limite = op.limite_participantes;
           const pendentes = op.total_solicitacoes || op.pessoas_na_fila || 0;
+          const isInativa = op.inativa_pelo_supervisor;
           
           // Informação compacta mas clara
           const modalidadeAbrev = op.modalidade === 'BLITZ' ? 'BLZ' : 'BAL';
@@ -476,12 +564,13 @@ export const CalendarioSimplesComponent: React.FC = () => {
           const infoFila = pendentes > 0 ? `+${pendentes}` : '';
           
           return (
-            <div key={idx} className={`${styles.operationItem} ${styles[op.modalidade.toLowerCase()]}`}>
+            <div key={idx} className={`${styles.operationItem} ${styles[op.modalidade.toLowerCase()]} ${isInativa ? styles.operacaoInativa : ''}`}>
               <span className={styles.modalidadeCompact}>{modalidadeAbrev}</span>
               <span className={styles.participantesCompact}>
                 {infoParticipantes}
                 {infoFila && <span className={styles.filaCompact}>{infoFila}</span>}
               </span>
+              {isInativa && <span className={styles.historicoIndicator}>📁</span>}
             </div>
           );
         })}

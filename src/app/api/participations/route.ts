@@ -167,11 +167,12 @@ async function handleJoinOperation(operationId: string, membroId: string, data?:
       }, { status: 404 });
     }
 
-    // Buscar regional da operação
+    // Buscar regional da operação e verificar se está inativa
     const { data: operacao } = await supabase
       .from('operacao')
       .select(`
         id,
+        inativa_pelo_supervisor,
         janela:janela_operacional!inner(
           regional_id,
           regional:regional_id(nome)
@@ -187,6 +188,16 @@ async function handleJoinOperation(operationId: string, membroId: string, data?:
         success: false,
         error: 'Operação não encontrada ou inativa'
       }, { status: 404 });
+    }
+
+    // 🔒 VERIFICAR SE OPERAÇÃO ESTÁ INATIVA PELO SUPERVISOR
+    if (operacao.inativa_pelo_supervisor) {
+      console.log(`📁 [INATIVACAO] Operação ${operationId} está inativa pelo supervisor`);
+      return Response.json({
+        success: false,
+        error: 'Esta operação está no histórico e não aceita mais solicitações',
+        codigo_erro: 'OPERACAO_INATIVA'
+      }, { status: 403 });
     }
 
     // Verificar se as regionais coincidem
@@ -287,7 +298,7 @@ async function handleCancelParticipation(participationId?: string, operationId?:
     if (!participacaoId && operationId && membroId) {
       const { data: participacao } = await supabase
         .from('participacao')
-        .select('id')
+        .select('id, operacao!inner(inativa_pelo_supervisor)')
         .eq('operacao_id', operationId)
         .eq('membro_id', membroId)
         .eq('ativa', true)
@@ -297,11 +308,39 @@ async function handleCancelParticipation(participationId?: string, operationId?:
         return Response.json({ success: false, error: 'Participation not found' }, { status: 404 });
       }
 
+      // 🔒 VERIFICAR SE OPERAÇÃO ESTÁ INATIVA PELO SUPERVISOR
+      if ((participacao as any).operacao.inativa_pelo_supervisor) {
+        console.log(`📁 [INATIVACAO] Tentativa de cancelar participação em operação inativa ${operationId}`);
+        return Response.json({
+          success: false,
+          error: 'Esta operação está no histórico e não aceita mais alterações',
+          codigo_erro: 'OPERACAO_INATIVA'
+        }, { status: 403 });
+      }
+
       participacaoId = participacao.id.toString();
     }
 
     if (!participacaoId) {
       return Response.json({ success: false, error: 'Could not determine participation to cancel' }, { status: 400 });
+    }
+
+    // Se temos participationId mas não operationId, verificar se operação está inativa
+    if (participacaoId && !operationId) {
+      const { data: participacaoCompleta } = await supabase
+        .from('participacao')
+        .select('operacao!inner(inativa_pelo_supervisor)')
+        .eq('id', participacaoId)
+        .single();
+
+      if (participacaoCompleta && (participacaoCompleta as any).operacao.inativa_pelo_supervisor) {
+        console.log(`📁 [INATIVACAO] Tentativa de cancelar participação ${participacaoId} em operação inativa`);
+        return Response.json({
+          success: false,
+          error: 'Esta operação está no histórico e não aceita mais alterações',
+          codigo_erro: 'OPERACAO_INATIVA'
+        }, { status: 403 });
+      }
     }
 
     // Soft delete the participation

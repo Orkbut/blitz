@@ -122,6 +122,17 @@ export interface UseRealtimeUnifiedReturn<T = any> {
   lastFetchReason: string | null;
   fromCache: boolean;
 
+  // 🚀 CACHE CONTROL METHODS
+  clearCache: () => void;
+  invalidateCacheForTables: (tables: string[]) => void;
+  getCacheStats: () => {
+    size: number;
+    keys: string[];
+    pendingRequests: number;
+    hitRate: number;
+    memoryUsage: number;
+  };
+
   // 🐛 DEBUG INFO
   debugInfo: {
     channelId: string;
@@ -296,21 +307,56 @@ function getActivityTracker(): ActivityTracker {
 
 // 🎯 DATA FETCHING UTILITIES
 class DataFetcher {
-  private cache = new Map<string, { data: any[], timestamp: number, reason: string }>();
+  private cache = new Map<string, { data: any[], timestamp: number, reason: string, hash: string }>();
+  private pendingRequests = new Map<string, Promise<FetchResult<any>>>();
+  private maxCacheSize = 50; // Limite de entradas no cache
+  private cacheAccessOrder = new Map<string, number>(); // Para LRU
 
   private getCacheKey(config: UseRealtimeUnifiedConfig): string {
     const key = {
       endpoint: config.apiEndpoint || config.fetchConfig?.endpoint,
       startDate: config.startDate,
       endDate: config.endDate,
-      tables: config.tables.sort(),
+      tables: [...config.tables].sort(), // Cria nova array para evitar mutação
       filters: config.filters
     };
     return JSON.stringify(key);
   }
 
+  private getDataHash(data: any[]): string {
+    // Hash simples baseado no tamanho e primeiro/último item
+    if (!data.length) return '0';
+    const first = JSON.stringify(data[0]);
+    const last = data.length > 1 ? JSON.stringify(data[data.length - 1]) : first;
+    return `${data.length}-${first.length}-${last.length}`;
+  }
+
   private isCacheValid(timestamp: number, cacheTimeout: number): boolean {
     return (Date.now() - timestamp) < cacheTimeout;
+  }
+
+  private evictLRU(): void {
+    if (this.cache.size <= this.maxCacheSize) return;
+    
+    // Encontra a entrada menos recentemente usada
+    let oldestKey = '';
+    let oldestTime = Date.now();
+    
+    for (const [key, accessTime] of this.cacheAccessOrder) {
+      if (accessTime < oldestTime) {
+        oldestTime = accessTime;
+        oldestKey = key;
+      }
+    }
+    
+    if (oldestKey) {
+      this.cache.delete(oldestKey);
+      this.cacheAccessOrder.delete(oldestKey);
+    }
+  }
+
+  private updateCacheAccess(key: string): void {
+    this.cacheAccessOrder.set(key, Date.now());
   }
 
   async fetchData<T = any>(
@@ -325,6 +371,7 @@ class DataFetcher {
     // Check cache first
     const cached = this.cache.get(cacheKey);
     if (cached && this.isCacheValid(cached.timestamp, cacheTimeout)) {
+      this.updateCacheAccess(cacheKey);
       return {
         data: cached.data,
         success: true,
@@ -334,6 +381,27 @@ class DataFetcher {
       };
     }
 
+    // Deduplicação: verifica se já existe uma requisição pendente para a mesma chave
+    const pendingRequest = this.pendingRequests.get(cacheKey);
+    if (pendingRequest) {
+      return pendingRequest;
+    }
+
+    // Cria a promise da requisição e adiciona à lista de pendentes
+    const fetchPromise = this.performActualFetch(config, reason, abortController, cacheKey, cached, startTime);
+    this.pendingRequests.set(cacheKey, fetchPromise);
+    
+    return fetchPromise;
+  }
+
+  private async performActualFetch<T = any>(
+    config: UseRealtimeUnifiedConfig,
+    reason: string,
+    abortController: AbortController | undefined,
+    cacheKey: string,
+    cached: any,
+    startTime: number
+  ): Promise<FetchResult<T>> {
     try {
       let fetchConfig: FetchConfig;
 
@@ -384,13 +452,27 @@ class DataFetcher {
 
       const data = await response.json();
       const result = Array.isArray(data) ? data : [data];
+      const dataHash = this.getDataHash(result);
 
-      // Cache the result
-      this.cache.set(cacheKey, {
-        data: result,
-        timestamp: startTime,
-        reason
-      });
+      // Verifica se os dados realmente mudaram
+      const hasDataChanged = !cached || cached.hash !== dataHash;
+      
+      if (hasDataChanged) {
+        // Evita cache muito grande
+        this.evictLRU();
+        
+        // Cache the result
+        this.cache.set(cacheKey, {
+          data: result,
+          timestamp: startTime,
+          reason,
+          hash: dataHash
+        });
+        this.updateCacheAccess(cacheKey);
+      }
+
+      // Remove da lista de requisições pendentes
+      this.pendingRequests.delete(cacheKey);
 
       return {
         data: result,
@@ -401,6 +483,9 @@ class DataFetcher {
       };
 
     } catch (error) {
+      // Remove da lista de requisições pendentes em caso de erro
+      this.pendingRequests.delete(cacheKey);
+      
       const errorMessage = error instanceof Error ? error.message : 'Unknown fetch error';
 
       return {
@@ -452,13 +537,82 @@ class DataFetcher {
 
   clearCache(): void {
     this.cache.clear();
+    this.cacheAccessOrder.clear();
+    this.pendingRequests.clear();
   }
 
-  getCacheStats(): { size: number; keys: string[] } {
+  // Invalidação inteligente baseada em tabelas afetadas
+  invalidateCacheForTables(tables: string[]): void {
+    const keysToDelete: string[] = [];
+    
+    for (const [key, _] of this.cache) {
+      try {
+        const parsedKey = JSON.parse(key);
+        const keyTables = parsedKey.tables || [];
+        
+        // Se alguma tabela do cache coincide com as tabelas afetadas
+        if (tables.some(table => keyTables.includes(table))) {
+          keysToDelete.push(key);
+        }
+      } catch (error) {
+        // Se não conseguir parsear a chave, remove por segurança
+        keysToDelete.push(key);
+      }
+    }
+    
+    keysToDelete.forEach(key => {
+      this.cache.delete(key);
+      this.cacheAccessOrder.delete(key);
+    });
+  }
+
+  // Invalidação baseada em endpoint
+  invalidateCacheForEndpoint(endpoint: string): void {
+    const keysToDelete: string[] = [];
+    
+    for (const [key, _] of this.cache) {
+      try {
+        const parsedKey = JSON.parse(key);
+        if (parsedKey.endpoint === endpoint) {
+          keysToDelete.push(key);
+        }
+      } catch (error) {
+        keysToDelete.push(key);
+      }
+    }
+    
+    keysToDelete.forEach(key => {
+      this.cache.delete(key);
+      this.cacheAccessOrder.delete(key);
+    });
+  }
+
+  getCacheStats(): { 
+    size: number; 
+    keys: string[]; 
+    pendingRequests: number;
+    hitRate: number;
+    memoryUsage: number;
+  } {
+    const totalRequests = this.cacheAccessOrder.size;
+    const cacheHits = Array.from(this.cacheAccessOrder.values()).length;
+    
     return {
       size: this.cache.size,
-      keys: Array.from(this.cache.keys())
+      keys: Array.from(this.cache.keys()),
+      pendingRequests: this.pendingRequests.size,
+      hitRate: totalRequests > 0 ? (cacheHits / totalRequests) * 100 : 0,
+      memoryUsage: this.estimateMemoryUsage()
     };
+  }
+
+  private estimateMemoryUsage(): number {
+    let totalSize = 0;
+    for (const [key, value] of this.cache) {
+      totalSize += key.length * 2; // Aproximação para string UTF-16
+      totalSize += JSON.stringify(value.data).length * 2;
+    }
+    return totalSize;
   }
 }
 
@@ -516,6 +670,9 @@ export const useRealtimeUnified = <T = any>(
       lastFetchTime: null,
       lastFetchReason: null,
       fromCache: false,
+      clearCache: () => { },
+      invalidateCacheForTables: () => { },
+      getCacheStats: () => ({ size: 0, keys: [], pendingRequests: 0, hitRate: 0, memoryUsage: 0 }),
       debugInfo: {
         channelId: 'invalid',
         tablesMonitored: [],
@@ -570,7 +727,13 @@ export const useRealtimeUnified = <T = any>(
   const debouncedConnectionUpdater = useDebouncedStateUpdater<Partial<RealtimeHookState>>(
     (updates) => {
       rafSchedulerRef.current.schedule(() => {
-        setState(prev => ({ ...prev, ...updates }));
+        setState(prev => {
+          // Only update if values actually changed to prevent unnecessary re-renders
+          const hasChanges = Object.keys(updates).some(key => 
+            prev[key as keyof RealtimeHookState] !== updates[key as keyof RealtimeHookState]
+          );
+          return hasChanges ? { ...prev, ...updates } : prev;
+        });
       });
     },
     50 // 50ms debounce for connection status
@@ -583,33 +746,52 @@ export const useRealtimeUnified = <T = any>(
       const eventTime = Date.now();
       const eventCount = events.length;
       
-      rafSchedulerRef.current.schedule(() => {
-        setState(prev => ({
-          ...prev,
-          lastEventTime: eventTime,
-          eventsReceived: prev.eventsReceived + eventCount,
-          error: null // Clear any previous errors on successful events
-        }));
+      // Use optimized state updater
+      updateStateOptimized({
+        lastEventTime: eventTime,
+        eventsReceived: state.eventsReceived + eventCount,
+        error: null // Clear any previous errors on successful events
       });
 
       // Call user callback for each event (but batched)
       if (configRef.current.onDatabaseChange) {
-        events.forEach(event => {
-          try {
-            configRef.current.onDatabaseChange!(event);
-          } catch (error) {
-            handleRealtimeError(error instanceof Error ? error : new Error('Database change callback error'), {
-              operation: 'database_change_callback',
-              channelId: event.channelId,
-              table: event.table,
-              timestamp: Date.now()
+        // Use requestIdleCallback for non-critical callback processing
+        if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+          window.requestIdleCallback(() => {
+            events.forEach(event => {
+              try {
+                configRef.current.onDatabaseChange!(event);
+              } catch (error) {
+                handleRealtimeError(error instanceof Error ? error : new Error('Database change callback error'), {
+                  operation: 'database_change_callback',
+                  channelId: event.channelId,
+                  table: event.table,
+                  timestamp: Date.now()
+                });
+              }
             });
-          }
-        });
+          });
+        } else {
+          // Fallback for environments without requestIdleCallback
+          setTimeout(() => {
+            events.forEach(event => {
+              try {
+                configRef.current.onDatabaseChange!(event);
+              } catch (error) {
+                handleRealtimeError(error instanceof Error ? error : new Error('Database change callback error'), {
+                  operation: 'database_change_callback',
+                  channelId: event.channelId,
+                  table: event.table,
+                  timestamp: Date.now()
+                });
+              }
+            });
+          }, 0);
+        }
       }
 
-      // Debug logging for batched events
-      if (configRef.current.debug) {
+      // Debug logging for batched events (only in development)
+      if (configRef.current.debug && process.env.NODE_ENV === 'development') {
         console.log(`[useRealtimeUnified] Processed ${eventCount} batched database events:`, {
           channelId,
           events: events.map(e => ({ table: e.table, eventType: e.eventType })),
@@ -648,8 +830,11 @@ export const useRealtimeUnified = <T = any>(
   }
 
   // 🎯 DEBOUNCED REFETCH FUNCTION
-  const debouncedRefetch = useMemo(() => 
-    debounce((reason: string) => {
+  const debouncedRefetch = useMemo(() => {
+    const debouncedFn = debounce((reason: string) => {
+      // Check if component is still mounted and fetch is enabled
+      if (configRef.current.enableFetch === false) return;
+      
       performFetch(reason).catch(error => {
         handleRealtimeError(error instanceof Error ? error : new Error('Debounced refetch failed'), {
           operation: 'debounced_refetch',
@@ -657,9 +842,15 @@ export const useRealtimeUnified = <T = any>(
           timestamp: Date.now()
         });
       });
-    }, 100), // 100ms debounce for refetch
-    [channelId]
-  );
+    }, 100); // 100ms debounce for refetch
+    
+    // Cleanup function for the debounced refetch
+    cleanupManager.addCleanup(() => {
+      debouncedFn.cancel();
+    });
+    
+    return debouncedFn;
+  }, [channelId, cleanupManager]);
 
   // 🎯 MEMOIZED STATE UPDATER
   const updateStateOptimized = useCallback((updates: Partial<RealtimeHookState>) => {
@@ -679,7 +870,22 @@ export const useRealtimeUnified = <T = any>(
     const mergedUpdates = allUpdates.reduce((acc, update) => ({ ...acc, ...update }), {});
     
     rafSchedulerRef.current.schedule(() => {
-      setState(prev => ({ ...prev, ...mergedUpdates }));
+      setState(prev => {
+        // Shallow comparison to prevent unnecessary re-renders
+        const hasChanges = Object.keys(mergedUpdates).some(key => {
+          const newValue = mergedUpdates[key as keyof RealtimeHookState];
+          const oldValue = prev[key as keyof RealtimeHookState];
+          
+          // Deep comparison for arrays and objects
+          if (Array.isArray(newValue) && Array.isArray(oldValue)) {
+            return JSON.stringify(newValue) !== JSON.stringify(oldValue);
+          }
+          
+          return newValue !== oldValue;
+        });
+        
+        return hasChanges ? { ...prev, ...mergedUpdates } : prev;
+      });
     });
   }, []);
 
@@ -739,17 +945,34 @@ export const useRealtimeUnified = <T = any>(
           fromCache: result.fromCache
         });
 
-        // Call onDataUpdate callback
+        // Call onDataUpdate callback (non-blocking)
         if (configRef.current.onDataUpdate) {
-          try {
-            configRef.current.onDataUpdate(result.data);
-          } catch (error) {
-            // Handle callback error through error handler
-            handleRealtimeError(error instanceof Error ? error : new Error('Callback error'), {
-              operation: 'data_update_callback',
-              channelId,
-              timestamp: Date.now()
+          // Use requestIdleCallback for non-critical callback processing
+          if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+            window.requestIdleCallback(() => {
+              try {
+                configRef.current.onDataUpdate!(result.data);
+              } catch (error) {
+                handleRealtimeError(error instanceof Error ? error : new Error('Callback error'), {
+                  operation: 'data_update_callback',
+                  channelId,
+                  timestamp: Date.now()
+                });
+              }
             });
+          } else {
+            // Fallback for environments without requestIdleCallback
+            setTimeout(() => {
+              try {
+                configRef.current.onDataUpdate!(result.data);
+              } catch (error) {
+                handleRealtimeError(error instanceof Error ? error : new Error('Callback error'), {
+                  operation: 'data_update_callback',
+                  channelId,
+                  timestamp: Date.now()
+                });
+              }
+            }, 0);
           }
         }
 
@@ -1037,6 +1260,27 @@ export const useRealtimeUnified = <T = any>(
     // Registrar evento de dados
     const eventId = `${event.table}-${event.eventType}-${event.timestamp}`;
     connectionHealthMonitor.recordDataEvent('received', eventId, event.table, event.payload ? JSON.stringify(event.payload).length : undefined);
+    
+    // 🚀 INVALIDAÇÃO INTELIGENTE DO CACHE
+    // Invalida cache para tabelas afetadas quando há mudanças significativas
+    if (dataFetcherRef.current && ['INSERT', 'UPDATE', 'DELETE'].includes(event.eventType)) {
+      dataFetcherRef.current.invalidateCacheForTables([event.table]);
+      
+      // Se a configuração tem endpoint específico, também invalida por endpoint
+      const endpoint = configRef.current.apiEndpoint || configRef.current.fetchConfig?.endpoint;
+      if (endpoint) {
+        dataFetcherRef.current.invalidateCacheForEndpoint(endpoint);
+      }
+      
+      // Debug logging para invalidação de cache
+      if (configRef.current.debug) {
+        debugLogger.info('Cache invalidated for database change', {
+          table: event.table,
+          eventType: event.eventType,
+          endpoint
+        });
+      }
+    }
     
     // Debug logging
     if (configRef.current.debug) {
@@ -1535,6 +1779,35 @@ export const useRealtimeUnified = <T = any>(
     reconnect,
     disconnect,
     forceExecute,
+
+    // 🚀 CACHE CONTROL METHODS
+    clearCache: useCallback(() => {
+      if (dataFetcherRef.current) {
+        dataFetcherRef.current.clearCache();
+        if (configRef.current.debug) {
+          debugLogger.info('Cache cleared manually', { channelId });
+        }
+      }
+    }, [channelId]),
+    
+    invalidateCacheForTables: useCallback((tables: string[]) => {
+      if (dataFetcherRef.current) {
+        dataFetcherRef.current.invalidateCacheForTables(tables);
+        if (configRef.current.debug) {
+          debugLogger.info('Cache invalidated for tables', { channelId, tables });
+        }
+      }
+    }, [channelId]),
+    
+    getCacheStats: useCallback(() => {
+      return dataFetcherRef.current?.getCacheStats() || {
+        size: 0,
+        keys: [],
+        pendingRequests: 0,
+        hitRate: 0,
+        memoryUsage: 0
+      };
+    }, []),
 
     // Debug
     debugInfo

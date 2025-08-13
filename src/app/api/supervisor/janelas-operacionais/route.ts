@@ -255,9 +255,10 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const janelaId = searchParams.get('id');
 
-
+    console.log(`🔍 [DELETE] Iniciando exclusão de janela. ID: ${janelaId}`);
 
     if (!janelaId) {
+      console.log('❌ [DELETE] ID da janela não fornecido');
       return NextResponse.json({
         success: false,
         error: 'ID da janela é obrigatório'
@@ -265,6 +266,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // 1. Verificar se a janela existe
+    console.log(`🔍 [DELETE] Buscando janela ID: ${janelaId}`);
     const { data: janela, error: janelaError } = await supabase
       .from('janela_operacional')
       .select('id, data_inicio, data_fim, modalidades')
@@ -272,15 +274,81 @@ export async function DELETE(request: NextRequest) {
       .eq('ativa', true)
       .single();
 
+    console.log(`🔍 [DELETE] Resultado busca janela:`, {
+      janela,
+      janelaError,
+      hasJanela: !!janela,
+      hasError: !!janelaError
+    });
+
     if (janelaError || !janela) {
-      console.log('❌ [DELETE] Janela não encontrada');
+      console.log('❌ [DELETE] Janela não encontrada ou erro na busca');
       return NextResponse.json({
         success: false,
-        error: 'Janela não encontrada ou inativa'
+        error: 'Janela não encontrada ou inativa',
+        debug: {
+          janelaId,
+          janelaError: janelaError?.message,
+          hasJanela: !!janela
+        }
       }, { status: 404 });
     }
 
-    console.log(`✅ [DELETE] Janela encontrada. Executando exclusão com superpoder...`);
+    // 2. Verificar se existem operações inativas na janela (Requirement 4.1)
+    console.log(`🔍 [DELETE] Verificando operações inativas na janela ${janelaId}`);
+    const { data: operacoesInativas, error: operacoesError } = await supabase
+      .from('operacao')
+      .select('id, data_operacao, modalidade, tipo, inativa_pelo_supervisor, ativa')
+      .eq('janela_id', janelaId)
+      .eq('inativa_pelo_supervisor', true)
+      .eq('ativa', true);
+
+    console.log(`🔍 [DELETE] Resultado busca operações inativas:`, {
+      operacoesInativas,
+      operacoesError,
+      count: operacoesInativas?.length || 0,
+      hasError: !!operacoesError
+    });
+
+    if (operacoesError) {
+      console.error('❌ [DELETE] Erro ao verificar operações inativas:', operacoesError);
+      return NextResponse.json({
+        success: false,
+        error: 'Erro ao verificar operações inativas',
+        debug: {
+          operacoesError: operacoesError.message
+        }
+      }, { status: 500 });
+    }
+
+    // 3. Se existem operações inativas, bloquear exclusão (Requirements 4.2, 4.3)
+    if (operacoesInativas && operacoesInativas.length > 0) {
+      console.log(`❌ [DELETE] Exclusão bloqueada: ${operacoesInativas.length} operações inativas encontradas`);
+      
+      const operacoesDetalhes = operacoesInativas.map(op => ({
+        id: op.id,
+        data: op.data_operacao,
+        modalidade: op.modalidade,
+        tipo: op.tipo
+      }));
+
+      console.log(`🔍 [DELETE] Detalhes das operações inativas:`, operacoesDetalhes);
+
+      return NextResponse.json({
+        success: false,
+        error: 'Não é possível excluir janela com operações inativas',
+        details: {
+          motivo: 'Existem operações marcadas como históricas nesta janela',
+          operacoesInativas: operacoesDetalhes,
+          totalOperacoesInativas: operacoesInativas.length,
+          acao: 'Reative todas as operações antes de excluir a janela',
+          regra: 'Requirement 4.1, 4.2, 4.3: Sistema deve impedir exclusão de janelas com operações inativas'
+        },
+        boundedContext: 'supervisor'
+      }, { status: 409 }); // 409 Conflict
+    }
+
+    console.log(`✅ [DELETE] Janela encontrada e sem operações inativas. Executando exclusão com superpoder...`);
 
     // 2. Executar exclusão usando função de superpoder
     const { data: resultado, error: superpoderError } = await supabase

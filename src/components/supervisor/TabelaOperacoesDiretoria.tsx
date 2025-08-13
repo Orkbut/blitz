@@ -290,20 +290,23 @@ export default function TabelaOperacoesDiretoria({
     <div className="overflow-x-auto">
       {Object.entries(dadosAgrupados).map(([periodo, registros]) => (
         <div key={periodo} className="mb-6 last:mb-0">
-            {/* Cabeçalho do Período - PORTARIA MOR */}
             <div className="bg-yellow-400 px-4 py-2 border border-dashed border-gray-600">
               <h3 className="font-bold text-black text-sm">
                 Período: {periodo}
               </h3>
-              <p className="text-black text-xs font-medium">
-                Local: Quixelô
-              </p>
-              {registros.length > 0 && registros[0].sequenciaPortaria && (
-                <p className="text-black text-xs font-medium">
-                  Sequência: {registros[0].sequenciaPortaria}
-                </p>
-              )}
             </div>
+            {false && (
+              <>
+                <p className="text-black text-xs font-medium">
+                  Local: Quixelô
+                </p>
+                {registros.length > 0 && registros[0].sequenciaPortaria && (
+                  <p className="text-black text-xs font-medium">
+                    Sequência: {registros[0].sequenciaPortaria}
+                  </p>
+                )}
+              </>
+            )}
 
             {/* Tabela para este período */}
             <table className="w-full border-collapse border border-dashed border-gray-600">
@@ -361,4 +364,4 @@ export default function TabelaOperacoesDiretoria({
         ))}
     </div>
   );
-} 
+}

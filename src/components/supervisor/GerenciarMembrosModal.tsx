@@ -16,8 +16,8 @@
  * - O supervisor tem poderes administrativos para gerenciar participações
  */
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { X, Plus, Trash2, Search, Users } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
+import { X, Plus, Trash2, Search, Users, Calendar, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useRealtimeUnified } from '@/hooks/useRealtimeUnified';
 import { useModal } from '@/hooks/useModal';
@@ -59,19 +59,324 @@ interface GerenciarMembrosModalProps {
   operacaoEspecifica?: any; // ✅ NOVA PROP: Quando vem da aba operações
 }
 
-export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ onClose, onUpdate, operacaoEspecifica }) => {
+// ✅ COMPONENTE MEMOIZADO: Card de Operação
+interface OperacaoCardProps {
+  operacao: OperacaoParticipacao;
+  isSelected: boolean;
+  onSelect: (operacao: OperacaoParticipacao) => void;
+  formatarDataCompleta: (data: string) => any;
+}
+
+const OperacaoCard = memo<OperacaoCardProps>(({ operacao, isSelected, onSelect, formatarDataCompleta }) => {
+  // ✅ MEMOIZAÇÃO: Formatação de data (cálculo pesado)
+  const dataInfo = useMemo(() =>
+    formatarDataCompleta(operacao.data_operacao),
+    [operacao.data_operacao, formatarDataCompleta]
+  );
+
+  // ✅ MEMOIZAÇÃO: Contadores de participantes (filtros pesados)
+  const { confirmados, naFila, pendentes } = useMemo(() => {
+    const participantes = operacao.participantes || [];
+    return {
+      confirmados: participantes.filter((p: any) =>
+        p.estado_visual === 'CONFIRMADO' || p.estado_visual === 'ADICIONADO_SUP'
+      ).length,
+      naFila: participantes.filter((p: any) => p.estado_visual === 'NA_FILA').length,
+      pendentes: participantes.filter((p: any) => p.estado_visual === 'PENDENTE').length
+    };
+  }, [operacao.participantes]);
+
+  const handleClick = useCallback(() => {
+    onSelect(operacao);
+  }, [operacao, onSelect]);
+
+  return (
+    <div
+      className={`${styles.operacaoCard} ${isSelected ? styles.selecionada : ''}`}
+      onClick={handleClick}
+    >
+      {/* Data em destaque */}
+      <div className={styles.dataDestaque}>
+        <div className={styles.diaMes}>{dataInfo.diaMes}</div>
+        <div className={styles.mesAno}>
+          <div className={styles.mes}>{dataInfo.mes}</div>
+          <div className={styles.ano}>{dataInfo.ano}</div>
+        </div>
+        <div className={styles.diaSemana}>{dataInfo.diaSemanaAbrev}</div>
+      </div>
+
+      {/* Informações da operação */}
+      <div className={styles.operacaoInfo}>
+        <div className={styles.operacaoHeader}>
+          <div className={`${styles.modalidadeBadge} ${styles[operacao.modalidade.toLowerCase()]}`}>
+            {operacao.modalidade}
+          </div>
+          <div className={`${styles.tipoBadge} ${styles[operacao.tipo.toLowerCase()]}`}>
+            {operacao.tipo}
+          </div>
+        </div>
+
+        <div className={styles.turnoInfo}>
+          🕐 <strong>{operacao.turno}</strong>
+        </div>
+
+        <div className={styles.participacaoInfo}>
+          <div className={styles.participacaoItem}>
+            <span className={styles.label}>Confirmados:</span>
+            <span className={`${styles.valor} ${styles.confirmados}`}>
+              {confirmados}/{operacao.limite_participantes}
+            </span>
+          </div>
+
+          {naFila > 0 && (
+            <div className={styles.participacaoItem}>
+              <span className={styles.label}>Na fila:</span>
+              <span className={`${styles.valor} ${styles.fila}`}>
+                {naFila}
+              </span>
+            </div>
+          )}
+
+          {pendentes > 0 && (
+            <div className={styles.participacaoItem}>
+              <span className={styles.label}>Pendentes:</span>
+              <span className={`${styles.valor} ${styles.pendentes}`}>
+                {pendentes}
+              </span>
+            </div>
+          )}
+
+          <div className={styles.totalItem}>
+            <span className={styles.totalLabel}>Total solicitações:</span>
+            <span className={styles.totalValor}>
+              {confirmados + naFila + pendentes}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+OperacaoCard.displayName = 'OperacaoCard';
+
+// ✅ COMPONENTE MEMOIZADO: Card de Membro
+interface MembroCardProps {
+  membro: Membro;
+  participacao: any;
+  statusInfo: any;
+  loadingStates: Record<string, boolean>;
+  onAdicionarMembro: (membroId: number) => void | Promise<void>;
+  onAprovarSolicitacao: (participacaoId: number) => void | Promise<void>;
+  onRejeitarSolicitacao: (participacaoId: number) => void | Promise<void>;
+  onRemoverMembro: (participacaoId: number) => void | Promise<void>;
+}
+
+const MembroCard = memo<MembroCardProps>(({
+  membro,
+  participacao,
+  statusInfo,
+  loadingStates,
+  onAdicionarMembro,
+  onAprovarSolicitacao,
+  onRejeitarSolicitacao,
+  onRemoverMembro
+}) => {
+  const temParticipacao = !!participacao;
+
+  const obterClasseFundo = useCallback(() => {
+    if (!participacao) {
+      return '';
+    }
+
+    switch (participacao.estado_visual) {
+      case 'CONFIRMADO':
+      case 'ADICIONADO_SUP':
+        return styles.membroConfirmado;
+      case 'NA_FILA':
+      case 'PENDENTE':
+        return styles.membroAguardando;
+      default:
+        return '';
+    }
+  }, [participacao]);
+
+  const handleAdicionar = useCallback(() => {
+    onAdicionarMembro(membro.id);
+  }, [membro.id, onAdicionarMembro]);
+
+  const handleAprovar = useCallback(() => {
+    if (participacao) {
+      onAprovarSolicitacao(participacao.id);
+    }
+  }, [participacao, onAprovarSolicitacao]);
+
+  const handleRejeitar = useCallback(() => {
+    if (participacao) {
+      onRejeitarSolicitacao(participacao.id);
+    }
+  }, [participacao, onRejeitarSolicitacao]);
+
+  const handleRemover = useCallback(() => {
+    if (participacao) {
+      onRemoverMembro(participacao.id);
+    }
+  }, [participacao, onRemoverMembro]);
+
+  return (
+    <div className={`${styles.membroCard} ${obterClasseFundo()}`}>
+      <div className={styles.membroInfo}>
+        <div className={styles.membroNomeContainer}>
+          <h4>{membro.nome}</h4>
+          {temParticipacao && participacao.estado_visual !== 'ADICIONADO_SUP' && (
+            <span className={styles.posicaoCronologica} title="Solicitou participação">
+              📋
+            </span>
+          )}
+        </div>
+        <p>Mat: {membro.matricula} • {membro.perfil}</p>
+      </div>
+
+      <div className={styles.membroActions}>
+        {statusInfo.label && (
+          <span className={`${styles.statusBadge} ${statusInfo.className}`}>
+            {statusInfo.label}
+          </span>
+        )}
+
+        <div className={styles.actionButtons}>
+          {statusInfo.acoes.includes('adicionar') && (
+            <button
+              onClick={handleAdicionar}
+              disabled={loadingStates[`add-${membro.id}`]}
+              className={styles.btnAdicionar}
+            >
+              <Plus size={16} />
+              {loadingStates[`add-${membro.id}`] ? 'Adicionando...' : 'Adicionar'}
+            </button>
+          )}
+
+          {statusInfo.acoes.includes('aprovar') && participacao && (
+            <button
+              onClick={handleAprovar}
+              disabled={loadingStates[`approve-${participacao.id}`]}
+              className={styles.btnAprovar}
+            >
+              {loadingStates[`approve-${participacao.id}`] ? '⏳ Aprovando...' : '✓ Aprovar'}
+            </button>
+          )}
+
+          {statusInfo.acoes.includes('rejeitar') && participacao && (
+            <button
+              onClick={handleRejeitar}
+              disabled={loadingStates[`reject-${participacao.id}`]}
+              className={styles.btnRejeitar}
+            >
+              {loadingStates[`reject-${participacao.id}`] ? '⏳ Rejeitando...' : '✗ Rejeitar'}
+            </button>
+          )}
+
+          {statusInfo.acoes.includes('remover') && participacao && (
+            <button
+              onClick={handleRemover}
+              disabled={loadingStates[`remove-${participacao.id}`]}
+              className={styles.btnRemover}
+            >
+              <Trash2 size={16} />
+              {loadingStates[`remove-${participacao.id}`] ? 'Removendo...' : 'Remover'}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+});
+
+MembroCard.displayName = 'MembroCard';
+
+// ✅ COMPONENTE MEMOIZADO: Barra de Busca
+interface SearchBoxProps {
+  searchTerm: string;
+  onSearchChange: (term: string) => void;
+}
+
+const SearchBox = memo<SearchBoxProps>(({ searchTerm, onSearchChange }) => {
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    onSearchChange(e.target.value);
+  }, [onSearchChange]);
+
+  return (
+    <div className={styles.searchBox}>
+      <Search size={20} />
+      <input
+        type="text"
+        placeholder="Buscar por nome ou matrícula (opcional)"
+        value={searchTerm}
+        onChange={handleChange}
+      />
+    </div>
+  );
+});
+
+SearchBox.displayName = 'SearchBox';
+
+const GerenciarMembrosModalComponent: React.FC<GerenciarMembrosModalProps> = ({ onClose, onUpdate, operacaoEspecifica }) => {
   const [membros, setMembros] = useState<Membro[]>([]);
   const [operacoes, setOperacoes] = useState<OperacaoParticipacao[]>([]);
   const [operacaoSelecionada, setOperacaoSelecionada] = useState<OperacaoParticipacao | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(false);
   const [loadingInicial, setLoadingInicial] = useState(true); // ✅ NOVO: Loading inicial separado
   const [loadingDetalhes, setLoadingDetalhes] = useState(false);
   const [loadingMembros, setLoadingMembros] = useState(false);
+  // 🚀 NOVO: Loading individual por ação/participação
+  const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
 
   // Hook para modais modernos
   const modal = useModal();
+
+  // 🚀 FUNÇÃO OTIMIZADA: Definir loading individual
+  const setLoadingState = useCallback((key: string, isLoading: boolean) => {
+    setLoadingStates(prev => ({
+      ...prev,
+      [key]: isLoading
+    }));
+  }, []);
+
+  // ✅ HANDLERS DE EVENTOS (declarados primeiro para evitar erros de hoisting)
+  const handleEscapeKey = useCallback((event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      onClose();
+    }
+  }, [onClose]);
+
+  const handleResize = useCallback(() => {
+    // Resize handler simplificado sem logs
+  }, []);
+
+  const handleWheel = useCallback((event: WheelEvent) => {
+    const target = event.target as Element;
+    const modalContent = target.closest(`.${styles.container}`);
+
+    // Se o scroll está acontecendo fora do modal, prevenir
+    if (!modalContent) {
+      event.preventDefault();
+    }
+  }, []);
+
+  const handleTouchMove = useCallback((event: TouchEvent) => {
+    const target = event.target as Element;
+    const modalContent = target.closest(`.${styles.container}`);
+
+    // Se o toque está acontecendo fora do modal, prevenir
+    if (!modalContent) {
+      event.preventDefault();
+    }
+  }, []);
+
+  const handleContainerClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+  }, []);
 
   // 🚀 REALTIME: Monitorar mudanças nas operações do modal
   const operacaoIds = useMemo(() => {
@@ -123,7 +428,7 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
     debug: false,
     onDatabaseChange: useCallback((event: any) => {
       const { table, eventType, payload } = event;
-      
+
       if (table === 'operacao') {
         handleOperacaoChange(payload);
       } else if (table === 'participacao') {
@@ -136,29 +441,18 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
     carregarDadosOtimizado();
   }, []);
 
-  // ✅ FUNCIONALIDADE ESC: Fechar modal com ESC
+  // ✅ FUNCIONALIDADE ESC: Fechar modal com ESC (otimizado)
   useEffect(() => {
-    const handleEscapeKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
-
     document.addEventListener('keydown', handleEscapeKey);
     return () => {
       document.removeEventListener('keydown', handleEscapeKey);
     };
-  }, [onClose]);
+  }, [handleEscapeKey]);
 
-  // ✅ PREVENIR SCROLL DA PÁGINA ATRÁS
+  // ✅ PREVENIR SCROLL DA PÁGINA ATRÁS (otimizado)
   useEffect(() => {
     // Salvar posição atual do scroll
     const scrollY = window.scrollY;
-
-    // ✅ MONITORAMENTO MÍNIMO - Logs removidos para performance
-    const handleResize = () => {
-      // Resize handler simplificado sem logs
-    };
 
     window.addEventListener('resize', handleResize);
 
@@ -167,30 +461,6 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
     document.body.style.position = 'fixed';
     document.body.style.top = `-${scrollY}px`;
     document.body.style.width = '100%';
-
-    // ✅ MODAL DIAGNOSTICS REMOVED - Melhor performance
-
-    // Prevenir eventos de scroll no modal
-    const handleWheel = (event: WheelEvent) => {
-      const target = event.target as Element;
-      const modalContent = target.closest(`.${styles.container}`);
-
-      // Se o scroll está acontecendo fora do modal, prevenir
-      if (!modalContent) {
-        event.preventDefault();
-      }
-    };
-
-    // Prevenir gestos de toque que causam scroll
-    const handleTouchMove = (event: TouchEvent) => {
-      const target = event.target as Element;
-      const modalContent = target.closest(`.${styles.container}`);
-
-      // Se o toque está acontecendo fora do modal, prevenir
-      if (!modalContent) {
-        event.preventDefault();
-      }
-    };
 
     document.addEventListener('wheel', handleWheel, { passive: false });
     document.addEventListener('touchmove', handleTouchMove, { passive: false });
@@ -209,7 +479,7 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
       document.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('resize', handleResize);
     };
-  }, []);
+  }, [handleResize, handleWheel, handleTouchMove]);
 
   // ✅ AUTO-SELECIONAR operação quando vem da aba operações
   useEffect(() => {
@@ -220,6 +490,66 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
       }
     }
   }, [operacaoEspecifica, operacoes]);
+
+  // ✅ MEMOIZAÇÃO: Estatísticas da operação selecionada
+  const estatisticasOperacao = useMemo(() => {
+    if (!operacaoSelecionada?.participantes) {
+      return { confirmados: 0, naFila: 0, pendentes: 0, total: 0 };
+    }
+
+    const participantes = operacaoSelecionada.participantes;
+    const confirmados = participantes.filter(p =>
+      p.estado_visual === 'CONFIRMADO' || p.estado_visual === 'ADICIONADO_SUP'
+    ).length;
+    const naFila = participantes.filter(p => p.estado_visual === 'NA_FILA').length;
+    const pendentes = participantes.filter(p => p.estado_visual === 'PENDENTE').length;
+
+    return {
+      confirmados,
+      naFila,
+      pendentes,
+      total: confirmados + naFila + pendentes,
+      vagasDisponiveis: operacaoSelecionada.limite_participantes - confirmados
+    };
+  }, [operacaoSelecionada]);
+
+  // ✅ MEMOIZAÇÃO: Função de formatação de data (cálculo pesado)
+  const formatarDataCompleta = useCallback((data: string) => {
+    try {
+      const date = new Date(data);
+      const dia = date.getDate().toString().padStart(2, '0');
+      const mes = date.toLocaleDateString('pt-BR', { month: 'short' });
+      const ano = date.getFullYear().toString();
+      const diaSemana = date.toLocaleDateString('pt-BR', { weekday: 'long' });
+
+      return {
+        diaMes: dia,
+        mes: mes.charAt(0).toUpperCase() + mes.slice(1),
+        ano,
+        diaSemanaAbrev: diaSemana.substring(0, 3).toUpperCase(),
+        dataCompleta: `${dia}/${mes.toLowerCase()}/${ano}`
+      };
+    } catch {
+      return {
+        diaMes: '??',
+        mes: 'Err',
+        ano: '????',
+        dataCompleta: data,
+        diaSemanaAbrev: 'ERR'
+      };
+    }
+  }, []);
+
+
+
+  // ✅ CALLBACKS MEMOIZADOS PARA COMPONENTES FILHOS
+  const handleSearchChange = useCallback((term: string) => {
+    setSearchTerm(term);
+  }, []);
+
+  const handleOperacaoSelect = useCallback((operacao: OperacaoParticipacao) => {
+    setOperacaoSelecionada(operacao);
+  }, []);
 
   // ✅ FUNÇÃO: Carregar lista de membros
   const carregarMembros = useCallback(async () => {
@@ -254,195 +584,145 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
     }
   }, []);
 
-  // ✅ FUNÇÃO: Carregar dados otimizados para o modal
+  // ✅ FUNÇÃO SUPER OTIMIZADA: Carregar dados específicos da operação
   const carregarDadosOtimizado = useCallback(async () => {
     if (!operacaoEspecifica) return;
-
-    // Optimized data loading logging removed for performance
-    // Operation ID logging removed for performance
 
     setLoadingDetalhes(true);
 
     try {
       // ✅ REQUISIÇÃO OTIMIZADA: Buscar apenas dados essenciais
       const startDate = format(parseISO(operacaoEspecifica.data_operacao), 'yyyy-MM-dd');
-      const endDate = startDate;
-
+      
       const params = new URLSearchParams({
         startDate,
-        endDate,
+        endDate: startDate,
         portal: 'supervisor',
         includeParticipantes: 'true',
         mode: 'light',
         _t: Date.now().toString()
       });
 
-      const url = `/api/unified/operacoes?${params}`;
+      const [operacoesResponse, membrosResponse] = await Promise.all([
+        fetch(`/api/unified/operacoes?${params}`, {
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        }),
+        // ✅ CARREGAMENTO PARALELO: Buscar membros em paralelo se necessário
+        membros.length === 0 ? fetch('/api/supervisor/membros', {
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache',
+            ...getSupervisorHeaders()
+          }
+        }) : Promise.resolve(null)
+      ]);
 
-      const response = await fetch(url, {
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      if (!operacoesResponse.ok) {
+        throw new Error(`HTTP ${operacoesResponse.status}: ${operacoesResponse.statusText}`);
       }
 
-      const data = await response.json();
+      const operacoesData = await operacoesResponse.json();
 
-      if (data.success) {
+      if (operacoesData.success) {
         // ✅ ENCONTRAR A OPERAÇÃO ESPECÍFICA
-        const operacaoAtualizada = data.data?.find((op: any) => op.id === operacaoEspecifica.id);
+        const operacaoAtualizada = operacoesData.data?.find((op: any) => op.id === operacaoEspecifica.id);
 
         if (operacaoAtualizada) {
-          // Operation found logging removed for performance
-          // Operation ID logging removed for performance
-
-          // ✅ PROCESSAR PARTICIPANTES POR ESTADO
-          const participantes = operacaoAtualizada.participantes || [];
-
-          const confirmados = participantes.filter((p: any) => p.estado_visual === 'CONFIRMADO');
-          const pendentes = participantes.filter((p: any) => p.estado_visual === 'PENDENTE' || p.estado_visual === 'NA_FILA');
-          const aguardandoSupervisor = participantes.filter((p: any) => p.estado_visual === 'AGUARDANDO_SUPERVISOR');
-
-          // Participants processing logging removed for performance
-          // Confirmed count logging removed for performance
-          // Pending/queue count logging removed for performance
-          // Waiting supervisor count logging removed for performance
-
           // ✅ ATUALIZAR ESTADOS
-          setOperacoes(data.data || []);
+          setOperacoes(operacoesData.data || []);
           setOperacaoSelecionada(operacaoAtualizada);
 
-          // States updated successfully logging removed for performance
-
-          // ✅ BUSCAR LISTA DE MEMBROS SE NECESSÁRIO
-          if (membros.length === 0) {
-            // Loading members list logging removed for performance
-            await carregarMembros();
+          // ✅ PROCESSAR MEMBROS SE FORAM CARREGADOS EM PARALELO
+          if (membrosResponse && membros.length === 0) {
+            if (membrosResponse.ok) {
+              const membrosData = await membrosResponse.json();
+              if (membrosData.success) {
+                setMembros(membrosData.data || []);
+              }
+            }
           }
         } else {
           console.error('❌ [MODAL-SUPERVISOR] Operação não encontrada:', operacaoEspecifica.id);
           throw new Error(`Operação ${operacaoEspecifica.id} não encontrada`);
         }
       } else {
-        throw new Error(data.error || 'Erro ao buscar dados da operação');
+        throw new Error(operacoesData.error || 'Erro ao buscar dados da operação');
       }
     } catch (error) {
       console.error('❌ [MODAL-SUPERVISOR] Erro ao carregar dados:', error);
       setError(error instanceof Error ? error.message : 'Erro ao carregar dados');
     } finally {
       setLoadingDetalhes(false);
-      // Loading finished logging removed for performance
-
-      // 🔍 CRITICAL: Setar loadingInicial para false APÓS carregar tudo
       setLoadingInicial(false);
     }
-  }, [operacaoEspecifica, membros.length, carregarMembros]);
+  }, [operacaoEspecifica, membros.length]);
 
-  // ✅ BUSCA E ORDENAÇÃO POR GRUPOS: Confirmados primeiro, depois fila, depois demais
+  // ✅ MEMOIZAÇÃO SUPER OTIMIZADA: Filtros e ordenação de membros
   const membrosDisponiveis = useMemo(() => {
-    // 🔍 FILTRAR MEMBROS ATIVOS
-    let membrosParaExibir = membros.filter(m => {
+    // ✅ EARLY RETURN: Se não há membros, retornar array vazio
+    if (!membros.length) return [];
+
+    // 🔍 FILTRO COMBINADO: Ativos + busca + ocultar administrador principal
+    const termo = searchTerm.toLowerCase().trim();
+    const membrosFiltrados = membros.filter(m => {
       if (!m.ativo) return false;
-
-      // Se não há termo de busca, mostra todos os membros ativos
-      if (!searchTerm.trim()) return true;
-
-      // Se há termo de busca, filtra por nome ou matrícula
-      const termo = searchTerm.toLowerCase().trim();
-      return (
-        m.nome.toLowerCase().includes(termo) ||
-        m.matricula.includes(termo)
-      );
+      // 🚫 OCULTAR ADMINISTRADOR PRINCIPAL: Filtrar por matrícula 'unmistk'
+      if (m.matricula === 'unmistk') return false;
+      if (!termo) return true;
+      return m.nome.toLowerCase().includes(termo) || m.matricula.includes(termo);
     });
 
-    // 🎯 NOVA ORDENAÇÃO POR GRUPOS: Conforme solicitação do usuário
-    if (operacaoSelecionada?.participantes) {
-      // Sorting diagnosis logging removed for performance
-      // Operation ID logging removed for performance
-      // Total participants logging removed for performance
-
-      // 🔍 DIAGNÓSTICO ESPECÍFICO: Verificar se as datas estão chegando do backend
-      // API participants diagnosis logging removed for performance
-      // Individual participant logging removed for performance
-
-      // 📋 SEPARAR PARTICIPANTES POR ESTADO VISUAL
-      const participantesConfirmados = operacaoSelecionada.participantes.filter(p => p.estado_visual === 'CONFIRMADO');
-      const participantesPendentes = operacaoSelecionada.participantes.filter(p => p.estado_visual === 'PENDENTE');
-      const participantesNaFila = operacaoSelecionada.participantes.filter(p => p.estado_visual === 'NA_FILA');
-
-      // Confirmed participants logging removed for performance
-      // Pending participants logging removed for performance
-      // Queued participants logging removed for performance
-
-      // 📋 ORDENAR POR DATA DE PARTICIPAÇÃO (CRONOLÓGICA) dentro de cada grupo
-      const ordenarPorDataParticipacao = (a: any, b: any) => {
-        const participacaoA = operacaoSelecionada.participantes?.find(p => p.membro_id === a.id);
-        const participacaoB = operacaoSelecionada.participantes?.find(p => p.membro_id === b.id);
-
-        if (participacaoA && participacaoB) {
-          const dataA = new Date(participacaoA.data_participacao || 0).getTime();
-          const dataB = new Date(participacaoB.data_participacao || 0).getTime();
-          return dataA - dataB; // Quem solicitou primeiro vem primeiro
-        }
-
-        return a.nome.localeCompare(b.nome);
-      };
-
-      const resultado = membrosParaExibir.sort((membroA, membroB) => {
-        const participacaoA = operacaoSelecionada.participantes?.find(p => p.membro_id === membroA.id);
-        const participacaoB = operacaoSelecionada.participantes?.find(p => p.membro_id === membroB.id);
-
-        // Função para determinar prioridade do grupo
-        const obterPrioridadeGrupo = (participacao: any) => {
-          if (!participacao) return 3; // DISPONÍVEL = menor prioridade
-
-          switch (participacao.estado_visual) {
-            case 'CONFIRMADO': return 1; // CONFIRMADO = maior prioridade (aparece primeiro)
-            case 'NA_FILA':
-            case 'PENDENTE': return 2; // AGUARDANDO = prioridade média (aparece segundo)
-            default: return 3; // OUTROS = menor prioridade
-          }
-        };
-
-        const prioridadeA = obterPrioridadeGrupo(participacaoA);
-        const prioridadeB = obterPrioridadeGrupo(participacaoB);
-
-        // 📊 PRIORIDADE 1: Separar por grupos (confirmados, fila, demais)
-        if (prioridadeA !== prioridadeB) {
-          return prioridadeA - prioridadeB; // Menor número = maior prioridade
-        }
-
-        // 📊 PRIORIDADE 2: Dentro do mesmo grupo, ORDEM CRONOLÓGICA (quem solicitou primeiro)
-        if (participacaoA && participacaoB) {
-          const dataA = new Date(participacaoA.data_participacao || 0).getTime();
-          const dataB = new Date(participacaoB.data_participacao || 0).getTime();
-
-          // Date comparison diagnosis logging removed for performance
-
-          return dataA - dataB; // Quem solicitou primeiro vem primeiro
-        }
-
-        // 📊 PRIORIDADE 3: Se não têm participação, ordem alfabética
-        return membroA.nome.localeCompare(membroB.nome);
-      });
-
-      // 🔍 LOG DA ORDEM FINAL
-      // Final order diagnosis logging removed for performance
-      // Individual member order logging removed for performance
-
-      return resultado;
+    // ✅ SEM OPERAÇÃO: Ordem alfabética simples
+    if (!operacaoSelecionada?.participantes?.length) {
+      return membrosFiltrados.sort((a, b) => a.nome.localeCompare(b.nome));
     }
 
-    // 📊 FALLBACK: Sem operação selecionada, ordem alfabética simples
-    return membrosParaExibir.sort((a, b) => a.nome.localeCompare(b.nome));
-  }, [membros, searchTerm, operacaoSelecionada]);
+    // ✅ COM OPERAÇÃO: Ordenação inteligente super otimizada
+    const participantes = operacaoSelecionada.participantes;
 
-  // 🚨 NOVO: Sistema FIFO com Justificativa
-  const adicionarMembro = async (membroId: number, justificativaFifo?: string) => {
+    // 📊 MAPA DE PARTICIPAÇÕES (otimizado para lookup O(1))
+    const participacaoMap = new Map();
+    participantes.forEach(p => participacaoMap.set(p.membro_id, p));
+
+    // 🎯 MAPA DE PRIORIDADES (pré-calculado para performance)
+    const prioridadeMap = {
+      'CONFIRMADO': 1,
+      'ADICIONADO_SUP': 1,
+      'NA_FILA': 2,
+      'PENDENTE': 2
+    };
+
+    // 📋 ORDENAÇÃO SUPER OTIMIZADA
+    return membrosFiltrados.sort((membroA, membroB) => {
+      const participacaoA = participacaoMap.get(membroA.id);
+      const participacaoB = participacaoMap.get(membroB.id);
+
+      const prioridadeA = participacaoA ? (prioridadeMap[participacaoA.estado_visual] || 3) : 3;
+      const prioridadeB = participacaoB ? (prioridadeMap[participacaoB.estado_visual] || 3) : 3;
+
+      // 1º: Ordenar por grupo (prioridade)
+      if (prioridadeA !== prioridadeB) {
+        return prioridadeA - prioridadeB;
+      }
+
+      // 2º: Dentro do mesmo grupo, ordenar cronologicamente
+      if (participacaoA && participacaoB && participacaoA.data_participacao && participacaoB.data_participacao) {
+        const dataA = new Date(participacaoA.data_participacao).getTime();
+        const dataB = new Date(participacaoB.data_participacao).getTime();
+        if (dataA !== dataB) return dataA - dataB;
+      }
+
+      // 3º: Fallback alfabético
+      return membroA.nome.localeCompare(membroB.nome);
+    });
+
+  }, [membros, searchTerm, operacaoSelecionada?.id, operacaoSelecionada?.participantes]);
+
+  // ✅ FUNÇÃO MEMOIZADA: Sistema FIFO com Justificativa
+  const adicionarMembro = useCallback(async (membroId: number, justificativaFifo?: string) => {
     if (!operacaoSelecionada) return;
 
     // ✅ VALIDAÇÃO DE LIMITES: Verificar se servidor pode ser confirmado
@@ -553,7 +833,10 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
       }
     }
 
-    setLoading(true);
+    // 🚀 OTIMIZAÇÃO: Loading individual por membro
+    const loadingKey = `add-${membroId}`;
+    setLoadingState(loadingKey, true);
+    
     try {
       const response = await fetch('/api/supervisor/gerenciar-participacao', {
         method: 'POST',
@@ -599,11 +882,11 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
         'error'
       );
     } finally {
-      setLoading(false);
+      setLoadingState(loadingKey, false);
     }
-  };
+  }, [operacaoSelecionada, membrosDisponiveis, modal, onUpdate, setLoadingState]);
 
-  const removerMembro = async (participacaoId: number) => {
+  const removerMembro = useCallback(async (participacaoId: number) => {
     if (!operacaoSelecionada) return;
 
     modal.showConfirm(
@@ -611,11 +894,13 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
       'Tem certeza que deseja remover este membro da operação?',
       () => executeRemoverMembro(participacaoId)
     );
-  };
+  }, [operacaoSelecionada, modal]);
 
-  const executeRemoverMembro = async (participacaoId: number) => {
-
-    setLoading(true);
+  const executeRemoverMembro = useCallback(async (participacaoId: number) => {
+    // 🚀 OTIMIZAÇÃO: Loading individual por participação
+    const loadingKey = `remove-${participacaoId}`;
+    setLoadingState(loadingKey, true);
+    
     try {
       const response = await fetch('/api/supervisor/gerenciar-participacao', {
         method: 'POST',
@@ -648,18 +933,24 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
         'error'
       );
     } finally {
-      setLoading(false);
+      setLoadingState(loadingKey, false);
     }
-  };
+  }, [modal, onUpdate, setLoadingState]);
 
-  const executeRejeitarSolicitacao = async (participacaoId: number) => {
+  const executeRejeitarSolicitacao = useCallback(async (participacaoId: number) => {
     if (!operacaoSelecionada) return;
 
-    setLoading(true);
+    // 🚀 OTIMIZAÇÃO: Loading individual por participação
+    const loadingKey = `reject-${participacaoId}`;
+    setLoadingState(loadingKey, true);
+    
     try {
       const response = await fetch(`/api/supervisor/solicitacoes/${participacaoId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
+        },
         body: JSON.stringify({
           acao: 'rejeitar'
         })
@@ -692,11 +983,11 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
         'error'
       );
     } finally {
-      setLoading(false);
+      setLoadingState(loadingKey, false);
     }
-  };
+  }, [modal, onUpdate, setLoadingState]);
 
-  const rejeitarSolicitacao = async (participacaoId: number) => {
+  const rejeitarSolicitacao = useCallback(async (participacaoId: number) => {
     if (!operacaoSelecionada) return;
 
     modal.showConfirm(
@@ -704,9 +995,9 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
       'Tem certeza que deseja rejeitar esta solicitação? O membro não poderá participar desta operação.',
       () => executeRejeitarSolicitacao(participacaoId)
     );
-  };
+  }, [operacaoSelecionada, modal, executeRejeitarSolicitacao]);
 
-  const aprovarSolicitacao = async (participacaoId: number, justificativaFifo?: string) => {
+  const aprovarSolicitacao = useCallback(async (participacaoId: number, justificativaFifo?: string) => {
     if (!operacaoSelecionada) return;
 
     const participacaoParaAprovar = operacaoSelecionada.participantes?.find(p => p.id === participacaoId);
@@ -763,7 +1054,10 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
       }
     }
 
-    setLoading(true);
+    // 🚀 OTIMIZAÇÃO: Loading individual por participação
+    const loadingKey = `approve-${participacaoId}`;
+    setLoadingState(loadingKey, true);
+    
     try {
       const payload = {
         acao: 'aprovar',
@@ -785,62 +1079,58 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
     } catch (error) {
       modal.showAlert('❌ Erro de Conexão', 'Não foi possível conectar ao servidor.', 'error');
     } finally {
-      setLoading(false);
+      setLoadingState(loadingKey, false);
     }
-  };
+  }, [operacaoSelecionada, membros, modal, onUpdate, setLoadingState]);
 
-  const getStatusParticipacao = (participacao: any) => {
-    // Participation evaluation logging removed for performance
+  // ✅ MEMOIZAÇÃO OTIMIZADA: Cache de status de participação com limpeza automática
+  const statusCache = useMemo(() => new Map(), [operacaoSelecionada?.id]);
 
-    if (!participacao) {
-      // No participation logging removed for performance
-      return { tipo: 'DISPONIVEL', label: null, acoes: ['adicionar'] };
+  const getStatusParticipacao = useCallback((participacao: any) => {
+    // Cache key otimizado
+    const cacheKey = participacao ? `${participacao.id}-${participacao.estado_visual}` : 'no-participation';
+
+    // Verificar cache primeiro
+    if (statusCache.has(cacheKey)) {
+      return statusCache.get(cacheKey);
     }
 
-    switch (participacao.estado_visual) {
-      case 'CONFIRMADO':
-        // Confirmed status logging removed for performance
-        return {
-          tipo: 'CONFIRMADO',
-          label: '✅ Confirmado',
-          className: styles.confirmado,
-          acoes: ['remover']
-        };
+    // ✅ OTIMIZAÇÃO: Objeto de configuração estático para evitar recriações
+    const statusConfig = {
+      CONFIRMADO: {
+        tipo: 'CONFIRMADO',
+        label: '✅ Confirmado',
+        className: styles.confirmado,
+        acoes: ['remover']
+      },
+      ADICIONADO_SUP: {
+        tipo: 'ADICIONADO_SUP',
+        label: '👑 Adicionado pelo Supervisor',
+        className: styles.adicionadoSupervisor,
+        acoes: ['remover']
+      },
+      PENDENTE: {
+        tipo: 'PENDENTE',
+        label: '⏳ Aguardando Aprovação',
+        className: styles.pendente,
+        acoes: ['aprovar', 'rejeitar']
+      },
+      NA_FILA: {
+        tipo: 'NA_FILA',
+        label: '⏳ Na Fila',
+        className: styles.na_fila,
+        acoes: ['aprovar', 'rejeitar']
+      }
+    };
 
-      case 'ADICIONADO_SUP':
-        // Added by supervisor logging removed for performance
-        return {
-          tipo: 'ADICIONADO_SUP',
-          label: '👑 Adicionado pelo Supervisor',
-          className: styles.adicionadoSupervisor,
-          acoes: ['remover']
-        };
+    const result = participacao && statusConfig[participacao.estado_visual] 
+      ? statusConfig[participacao.estado_visual]
+      : { tipo: 'DISPONIVEL', label: null, acoes: ['adicionar'] };
 
-      case 'PENDENTE':
-        // Pending status logging removed for performance
-        return {
-          tipo: 'PENDENTE',
-          label: '⏳ Aguardando Aprovação',
-          className: styles.pendente,
-          acoes: ['aprovar', 'rejeitar']
-        };
-
-      case 'NA_FILA':
-        // Queue status logging removed for performance
-        return {
-          tipo: 'NA_FILA',
-          label: '⏳ Na Fila',
-          className: styles.na_fila,
-          acoes: ['aprovar', 'rejeitar']
-        };
-
-      default:
-        // Unknown status logging removed for performance
-        return { tipo: 'DISPONIVEL', label: null, acoes: ['adicionar'] };
-    }
-  };
-
-  const statusInfo = getStatusParticipacao(operacaoSelecionada?.participantes);
+    // Armazenar no cache
+    statusCache.set(cacheKey, result);
+    return result;
+  }, [statusCache, styles]);
 
   const formatarData = (data: string) => {
     try {
@@ -853,40 +1143,24 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
     }
   };
 
-  const formatarDataCompleta = (data: string) => {
+  const formatarDataComSemana = (data: string) => {
     try {
       const date = new Date(data);
-      const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-      const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-
-      const diaSemana = diasSemana[date.getDay()];
       const dia = date.getDate().toString().padStart(2, '0');
-      const mes = meses[date.getMonth()];
+      const mes = (date.getMonth() + 1).toString().padStart(2, '0');
       const ano = date.getFullYear();
-
-      return {
-        diaMes: dia,
-        mes: mes,
-        ano: ano,
-        diaSemana: diaSemana,
-        dataCompleta: `${dia}/${mes.toLowerCase()}/${ano}`,
-        diaSemanaAbrev: diaSemana.substring(0, 3).toUpperCase()
-      };
+      const diaSemana = date.toLocaleDateString('pt-BR', { weekday: 'short' });
+      return `${diaSemana}, ${dia}/${mes}/${ano}`;
     } catch {
-      return {
-        diaMes: '00',
-        mes: 'Jan',
-        ano: 2025,
-        diaSemana: 'Segunda',
-        dataCompleta: data,
-        diaSemanaAbrev: 'SEG'
-      };
+      return data;
     }
   };
 
+
+
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.container} onClick={(e) => e.stopPropagation()}>
+      <div className={styles.container} onClick={handleContainerClick}>
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.headerContent}>
@@ -922,19 +1196,13 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
             {operacaoEspecifica && (
               <div className={styles.operacaoDetails}>
                 <div className={styles.operacaoType}>
-                  {operacaoEspecifica.modalidade}
                   <strong>{operacaoEspecifica.modalidade} {operacaoEspecifica.tipo}</strong>
                 </div>
-                <div className={styles.operacaoMeta}>
-                  <span className={styles.metaItem}>
-                    📅 <strong>{formatarData(operacaoEspecifica.data_operacao)}</strong>
-                  </span>
-                  <span className={styles.metaItem}>
-                    🕐 <strong>{operacaoEspecifica.turno}</strong>
-                  </span>
-                  <span className={styles.metaItem}>
-                    🏢 <strong>{operacaoEspecifica.regional || 'Sem Regional'}</strong>
-                  </span>
+                <div className={styles.metaItem}>
+                  <Calendar size={16} /> <span>{formatarDataComSemana(operacaoEspecifica.data_operacao)}</span>
+                </div>
+                <div className={styles.metaItem}>
+                  <Clock size={16} /> <span>{operacaoEspecifica.turno}</span>
                 </div>
               </div>
             )}
@@ -962,82 +1230,15 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
           <div className={styles.operacaoSelector}>
             <h3>1. Selecione a Operação</h3>
             <div className={styles.operacoesList}>
-              {operacoes.map(operacao => {
-                const dataInfo = formatarDataCompleta(operacao.data_operacao);
-                const confirmados = operacao.participantes?.filter((p: any) =>
-                  p.estado_visual === 'CONFIRMADO' || p.estado_visual === 'ADICIONADO_SUP'
-                ).length || 0;
-                const naFila = operacao.participantes?.filter((p: any) => p.estado_visual === 'NA_FILA').length || 0;
-                const pendentes = operacao.participantes?.filter((p: any) => p.estado_visual === 'PENDENTE').length || 0;
-
-                return (
-                  <div
-                    key={operacao.id}
-                    className={`${styles.operacaoCard} ${operacaoSelecionada?.id === operacao.id ? styles.selecionada : ''}`}
-                    onClick={() => setOperacaoSelecionada(operacao)}
-                  >
-                    {/* Data em destaque */}
-                    <div className={styles.dataDestaque}>
-                      <div className={styles.diaMes}>{dataInfo.diaMes}</div>
-                      <div className={styles.mesAno}>
-                        <div className={styles.mes}>{dataInfo.mes}</div>
-                        <div className={styles.ano}>{dataInfo.ano}</div>
-                      </div>
-                      <div className={styles.diaSemana}>{dataInfo.diaSemanaAbrev}</div>
-                    </div>
-
-                    {/* Informações da operação */}
-                    <div className={styles.operacaoInfo}>
-                      <div className={styles.operacaoHeader}>
-                        <div className={`${styles.modalidadeBadge} ${styles[operacao.modalidade.toLowerCase()]}`}>
-                          {operacao.modalidade}
-                        </div>
-                        <div className={`${styles.tipoBadge} ${styles[operacao.tipo.toLowerCase()]}`}>
-                          {operacao.tipo}
-                        </div>
-                      </div>
-
-                      <div className={styles.turnoInfo}>
-                        🕐 <strong>{operacao.turno}</strong>
-                      </div>
-
-                      <div className={styles.participacaoInfo}>
-                        <div className={styles.participacaoItem}>
-                          <span className={styles.label}>Confirmados:</span>
-                          <span className={`${styles.valor} ${styles.confirmados}`}>
-                            {confirmados}/{operacao.limite_participantes}
-                          </span>
-                        </div>
-
-                        {naFila > 0 && (
-                          <div className={styles.participacaoItem}>
-                            <span className={styles.label}>Na fila:</span>
-                            <span className={`${styles.valor} ${styles.fila}`}>
-                              {naFila}
-                            </span>
-                          </div>
-                        )}
-
-                        {pendentes > 0 && (
-                          <div className={styles.participacaoItem}>
-                            <span className={styles.label}>Pendentes:</span>
-                            <span className={`${styles.valor} ${styles.pendentes}`}>
-                              {pendentes}
-                            </span>
-                          </div>
-                        )}
-
-                        <div className={styles.totalItem}>
-                          <span className={styles.totalLabel}>Total solicitações:</span>
-                          <span className={styles.totalValor}>
-                            {confirmados + naFila + pendentes}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {operacoes.map(operacao => (
+                <OperacaoCard
+                  key={operacao.id}
+                  operacao={operacao}
+                  isSelected={operacaoSelecionada?.id === operacao.id}
+                  onSelect={handleOperacaoSelect}
+                  formatarDataCompleta={formatarDataCompleta}
+                />
+              ))}
             </div>
           </div>
         )}
@@ -1047,15 +1248,10 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
             {/* Conteúdo Otimizado - Foco Total nos Membros */}
             <div className={styles.content}>
               <div className={styles.adicionarTab}>
-                <div className={styles.searchBox}>
-                  <Search size={20} />
-                  <input
-                    type="text"
-                    placeholder="Buscar por nome ou matrícula (opcional)"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
+                <SearchBox
+                  searchTerm={searchTerm}
+                  onSearchChange={handleSearchChange}
+                />
 
                 <div className={styles.membrosList}>
                   {membrosDisponiveis.length === 0 ? (
@@ -1078,97 +1274,19 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
                       {membrosDisponiveis.map(membro => {
                         const participacao = operacaoSelecionada.participantes?.find(p => p.membro_id === membro.id);
                         const statusInfo = getStatusParticipacao(participacao);
-                        const temParticipacao = !!participacao;
-
-                        const obterClasseFundo = () => {
-                          // Background color definition logging removed for performance
-
-                          if (!participacao) {
-                            // No participation background logging removed for performance
-                            return '';
-                          }
-
-                          switch (participacao.estado_visual) {
-                            case 'CONFIRMADO':
-                            case 'ADICIONADO_SUP':
-                              // Confirmed/added background logging removed for performance
-                              return styles.membroConfirmado;
-                            case 'NA_FILA':
-                            case 'PENDENTE':
-                              // Queue/pending background logging removed for performance
-                              return styles.membroAguardando;
-                            default:
-                              // Unknown state background logging removed for performance
-                              return '';
-                          }
-                        };
 
                         return (
-                          <div key={membro.id} className={`${styles.membroCard} ${obterClasseFundo()}`}>
-                            <div className={styles.membroInfo}>
-                              <div className={styles.membroNomeContainer}>
-                                <h4>{membro.nome}</h4>
-                                {temParticipacao && participacao.estado_visual !== 'ADICIONADO_SUP' && (
-                                  <span className={styles.posicaoCronologica} title="Solicitou participação">
-                                    📋
-                                  </span>
-                                )}
-                              </div>
-                              <p>Mat: {membro.matricula} • {membro.perfil}</p>
-                            </div>
-
-                            <div className={styles.membroActions}>
-                              {statusInfo.label && (
-                                <span className={`${styles.statusBadge} ${statusInfo.className}`}>
-                                  {statusInfo.label}
-                                </span>
-                              )}
-
-                              <div className={styles.actionButtons}>
-                                {statusInfo.acoes.includes('adicionar') && (
-                                  <button
-                                    onClick={() => adicionarMembro(membro.id)}
-                                    disabled={loading}
-                                    className={styles.btnAdicionar}
-                                  >
-                                    <Plus size={16} />
-                                    Adicionar
-                                  </button>
-                                )}
-
-                                {statusInfo.acoes.includes('aprovar') && participacao && (
-                                  <button
-                                    onClick={() => aprovarSolicitacao(participacao.id)}
-                                    disabled={loading}
-                                    className={styles.btnAprovar}
-                                  >
-                                    ✓ Aprovar
-                                  </button>
-                                )}
-
-                                {statusInfo.acoes.includes('rejeitar') && participacao && (
-                                  <button
-                                    onClick={() => rejeitarSolicitacao(participacao.id)}
-                                    disabled={loading}
-                                    className={styles.btnRejeitar}
-                                  >
-                                    ✗ Rejeitar
-                                  </button>
-                                )}
-
-                                {statusInfo.acoes.includes('remover') && participacao && (
-                                  <button
-                                    onClick={() => removerMembro(participacao.id)}
-                                    disabled={loading}
-                                    className={styles.btnRemover}
-                                  >
-                                    <Trash2 size={16} />
-                                    Remover
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          </div>
+                          <MembroCard
+                            key={membro.id}
+                            membro={membro}
+                            participacao={participacao}
+                            statusInfo={statusInfo}
+                            loadingStates={loadingStates}
+                            onAdicionarMembro={adicionarMembro}
+                            onAprovarSolicitacao={aprovarSolicitacao}
+                            onRejeitarSolicitacao={rejeitarSolicitacao}
+                            onRemoverMembro={removerMembro}
+                          />
                         );
                       })}
                     </>
@@ -1195,4 +1313,7 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({ on
       />
     </div>
   );
-}; 
+};
+
+// ✅ EXPORTAÇÃO MEMOIZADA: Componente principal otimizado
+export const GerenciarMembrosModal = memo(GerenciarMembrosModalComponent);

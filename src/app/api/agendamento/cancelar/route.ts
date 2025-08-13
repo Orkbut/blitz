@@ -24,13 +24,27 @@ export async function POST(request: NextRequest) {
     console.log('📋 Dados recebidos:', { membroId, operacaoId });
     console.error('🎯🎯🎯 DADOS RECEBIDOS - membroId:', membroId, 'operacaoId:', operacaoId, '🎯🎯🎯');
 
-    // 🔍 Verificar se a participação existe no banco (usando configuração centralizada)
+    // 🔍 Verificar se a participação existe no banco e se operação está inativa
     const { data: participacao, error: checkError } = await supabase
       .from('participacao')
-      .select('*')
+      .select(`
+        *,
+        operacao!inner(inativa_pelo_supervisor)
+      `)
       .eq('membro_id', membroId)
       .eq('operacao_id', operacaoId)
       .eq('ativa', true);
+
+    // 🔒 VERIFICAR SE OPERAÇÃO ESTÁ INATIVA PELO SUPERVISOR
+    if (participacao && participacao.length > 0 && (participacao[0] as any).operacao.inativa_pelo_supervisor) {
+      console.log(`📁 [INATIVACAO] Tentativa de cancelar participação em operação inativa ${operacaoId}`);
+      return NextResponse.json({
+        success: false,
+        error: 'Esta operação está no histórico e não aceita mais alterações',
+        tipo: 'OPERACAO_INATIVA',
+        boundedContext: "agendamento"
+      }, { status: 403 });
+    }
     
     
 

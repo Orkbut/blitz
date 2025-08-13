@@ -37,6 +37,11 @@ interface Operacao {
   participantes_confirmados?: number;
   pessoas_na_fila?: number;
   total_solicitacoes?: number;
+  // Campos para inativação de operações
+  inativa_pelo_supervisor?: boolean;
+  data_inativacao?: string;
+  motivo_inativacao?: string;
+  supervisor_inativacao_id?: number;
   participantes_detalhes?: Array<{
     id: number;
     estado_visual?: string;
@@ -298,6 +303,13 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
 
 
   const handleEuVou = async (operacaoId: number) => {
+    // Verificar se a operação está inativa
+    const operacao = operacoes.find(op => op.id === operacaoId);
+    if (operacao?.inativa_pelo_supervisor) {
+      toast.error('Esta operação está arquivada e não aceita mais solicitações');
+      return;
+    }
+
     // ✅ USAR O ID DA AUTENTICAÇÃO (já extraído no componente)
     const membroIdLocal = membroId;
     setLoading(operacaoId);
@@ -331,6 +343,13 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
   };
 
   const handleCancelar = async (operacaoId: number) => {
+    // Verificar se a operação está inativa
+    const operacao = operacoes.find(op => op.id === operacaoId);
+    if (operacao?.inativa_pelo_supervisor) {
+      toast.error('Esta operação está arquivada e não aceita mais solicitações');
+      return;
+    }
+
     // ✅ USAR O ID DA AUTENTICAÇÃO (já extraído no componente)
     const membroIdLocal = membroId;
     
@@ -463,6 +482,23 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
   // 3. "LOTADO" (vermelho) - quando não há espaço nem na fila (mas mantém clicável para transparência)
   const getEstadoVisualInfo = (operacao: Operacao) => {
     // ✅ OTIMIZADO: Logs removidos (performance)
+    
+    // Verificar se a operação está inativa
+    if (operacao.inativa_pelo_supervisor) {
+      return {
+        text: 'Operação arquivada',
+        className: styles.historico,
+        icon: '📁',
+        showButton: false,
+        buttonText: '',
+        buttonAction: '',
+        showTooltipDetalhado: false,
+        operacaoId: operacao.id,
+        posicaoCronologica: null,
+        totalNaFila: null,
+        isInactive: true
+      };
+    }
     
     // Primeiro verificar se o usuário já tem participação
     const estado = operacao.minha_participacao?.estado_visual;
@@ -632,9 +668,17 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
     };
 
     // 🎨 FUNÇÃO: Formatar data da operação para o cabeçalho
+    // CORRIGIDO: Trata datas sem horário para evitar problemas de timezone
     const formatarDataOperacao = (dataOperacao: string) => {
-      const data = new Date(dataOperacao + 'T00:00:00');
+      let dataParaProcessar = dataOperacao;
+      // Se a data vem apenas como YYYY-MM-DD, adicionar horário meio-dia
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dataOperacao)) {
+        dataParaProcessar = `${dataOperacao}T12:00:00`;
+      }
+      
+      const data = new Date(dataParaProcessar);
       return data.toLocaleDateString('pt-BR', {
+        timeZone: 'America/Fortaleza',
         weekday: 'long',
         year: 'numeric',
         month: 'long',
@@ -664,7 +708,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
           {/* 🎯 CABEÇALHO COM INFORMAÇÕES PRINCIPAIS */}
           <div className={styles.historicoModalHeader}>
             <div className={styles.historicoModalTitle}>
-              <strong>📊 Histórico da Operação</strong>
+              <strong>📊 Arquivo da Operação</strong>
               {operacao && (
                 <span className={styles.historicoModalDataOperacao}>
                   📅 {formatarDataOperacao(operacao.data_operacao)} - {operacao.modalidade} ({operacao.turno})
@@ -680,7 +724,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
             <button 
               className={styles.historicoModalCloseButton}
               onClick={fecharHistoricoModal}
-              aria-label="Fechar histórico"
+              aria-label="Fechar arquivo"
             >
               <X size={20} />
             </button>
@@ -691,7 +735,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
             {isLoading ? (
               <div className={styles.historicoModalLoading}>
                 <div style={{ textAlign: 'center', padding: '20px' }}>
-                  ⏳ Carregando histórico...
+                  ⏳ Carregando arquivo...
                 </div>
               </div>
             ) : (historico && historico.eventos.length > 0) ? (
@@ -747,7 +791,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                 
                 {/* 💡 DICA DE TRANSPARÊNCIA */}
                 <div className={styles.dicaTransparencia}>
-                  💡 Histórico atualiza automaticamente com movimentações em tempo real
+                  💡 Arquivo atualiza automaticamente com movimentações em tempo real
                 </div>
               </div>
             ) : (
@@ -758,7 +802,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                     Clique no botão novamente para recarregar
                   </div>
                   <div style={{ fontSize: '0.6rem', marginTop: '8px', color: '#9ca3af' }}>
-                    [DEBUG] Histórico: {historico ? 'Sim' : 'Não'} | Eventos: {historico?.eventos?.length || 0}
+                    [DEBUG] Arquivo: {historico ? 'Sim' : 'Não'} | Eventos: {historico?.eventos?.length || 0}
                   </div>
                 </div>
               </div>
@@ -880,7 +924,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                         <button
                           onClick={() => abrirHistoricoModal(estadoInfo.operacaoId!)}
                           className={styles.historicoButton}
-                          title="Ver histórico completo da operação"
+                          title="Ver arquivo completo da operação"
                         >
                           📊
                         </button>
@@ -1115,4 +1159,4 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
       )}
     </div>
   );
-}; 
+};

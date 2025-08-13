@@ -1,0 +1,33 @@
+﻿{
+    "backup_info":  {
+                        "projeto":  "RADAR",
+                        "database_host":  "db.umcejyqkfhvxaiyvmqac.supabase.co",
+                        "data_backup":  "2025-08-10 16:18:09",
+                        "projeto_id":  "umcejyqkfhvxaiyvmqac",
+                        "organizacao_id":  "fzoxbrrpjufscgthqodq",
+                        "database_version":  "17.4.1.042",
+                        "status":  "ACTIVE_HEALTHY",
+                        "metodo":  "MCP Supabase Direto"
+                    },
+    "organizacao_info":  {
+                             "id":  "fzoxbrrpjufscgthqodq",
+                             "projetos_ativos":  [
+                                                     "RADAR"
+                                                 ]
+                         },
+    "projeto_detalhes":  {
+                             "id":  "umcejyqkfhvxaiyvmqac",
+                             "name":  "RADAR",
+                             "database":  {
+                                              "host":  "db.umcejyqkfhvxaiyvmqac.supabase.co",
+                                              "release_channel":  "ga",
+                                              "version":  "17.4.1.042",
+                                              "postgres_engine":  "17"
+                                          },
+                             "region":  "sa-east-1",
+                             "created_at":  "2025-06-12T03:01:27.994958Z",
+                             "status":  "ACTIVE_HEALTHY"
+                         },
+    "backup_method":  "MCP_SUPABASE_NATIVE",
+    "backup_status":  "COMPLETO"
+}

@@ -133,7 +133,7 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({
     );
     
     const confirmados = operacaoSelecionada.participantes.filter((p: any) => 
-      p.estado_visual === 'CONFIRMADO' && p.ativa
+      (p.estado_visual === 'CONFIRMADO' || p.estado_visual === 'ADICIONADO_SUP') && p.ativa
     ).length;
     
     const vagasDisponiveis = operacaoSelecionada.limite_participantes - confirmados;
@@ -143,6 +143,21 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({
       .sort((a, b) => new Date(a.data_participacao).getTime() - new Date(b.data_participacao).getTime())
       .slice(0, Math.max(0, vagasDisponiveis));
   }, [operacaoSelecionada]);
+
+  // 🚀 FUNÇÃO PARA FORMATAÇÃO DE DATA COM DIA DA SEMANA
+  const formatarDataComSemana = useCallback((data: string) => {
+    try {
+      const date = new Date(data);
+      const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+      const diaSemana = diasSemana[date.getDay()];
+      const dia = date.getDate().toString().padStart(2, '0');
+      const mes = (date.getMonth() + 1).toString().padStart(2, '0');
+      const ano = date.getFullYear();
+      return `${diaSemana}, ${dia}/${mes}/${ano}`;
+    } catch (error) {
+      return data;
+    }
+  }, []);
 
   // 🚀 FUNÇÃO NOVA: Aprovação em lote otimizada
   const aprovarVagasDirectas = async () => {
@@ -414,6 +429,20 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({
     }
   };
 
+  // Função para formatar data com dia da semana
+  const formatarDataComSemana = (data: string) => {
+    try {
+      const date = new Date(data);
+      const dia = date.getDate().toString().padStart(2, '0');
+      const mes = (date.getMonth() + 1).toString().padStart(2, '0');
+      const ano = date.getFullYear();
+      const diaSemana = date.toLocaleDateString('pt-BR', { weekday: 'short' });
+      return `${diaSemana}, ${dia}/${mes}/${ano}`;
+    } catch {
+      return data;
+    }
+  };
+
   const getStatusParticipacao = (participacao: any) => {
     if (!participacao) {
       return { tipo: 'DISPONIVEL', label: null, acoes: ['adicionar'] };
@@ -466,6 +495,36 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({
           <div className={styles.headerContent}>
             <h2>👥 Gerenciar Membros</h2>
             
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '12px',
+              color: '#10b981'
+            }}>
+              <div style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: '#10b981'
+              }}></div>
+              <span>Tempo real ativo</span>
+            </div>
+
+            {operacaoEspecifica && (
+              <div className={styles.operacaoDetails}>
+                <div className={styles.operacaoType}>
+                  <strong>{operacaoEspecifica.modalidade} {operacaoEspecifica.tipo}</strong>
+                </div>
+                <div className={styles.metaItem}>
+                  📅 <span>{formatarDataComSemana(operacaoEspecifica.data_operacao)}</span>
+                </div>
+                <div className={styles.metaItem}>
+                  🕐 <span>{operacaoEspecifica.turno}</span>
+                </div>
+              </div>
+            )}
+            
             {/* 🚀 NOVO: Botão de aprovação em lote */}
             {operacaoSelecionada && getVagasDirectas().length > 0 && (
               <button
@@ -487,11 +546,6 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({
                 )}
               </button>
             )}
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#10b981' }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981' }}></div>
-              <span>Tempo real ativo</span>
-            </div>
           </div>
           
           <button className={styles.closeButton} onClick={onClose}>
@@ -510,4 +564,4 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({
       </div>
     </div>
   );
-}; 
+};

@@ -46,55 +46,54 @@
   position: relative;
 }
 
-/* Header Compacto - Foco nos Membros */
+/* Header Otimizado - Design Elegante e Funcional */
 .header {
   display: flex;
-  align-items: center; /* Centralizado para economia de espaço */
+  align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.5rem; /* Padding reduzido */
-  background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
-  color: white;
-  min-height: 60px; /* Altura reduzida */
-  flex-shrink: 0; /* Impede que encolha */
+  padding: 0.8rem 1.5rem; /* Espaçamento equilibrado */
+  background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%); /* Gradiente suave e claro */
+  border-bottom: 1px solid #e2e8f0;
+  color: #334155; /* Cor de texto mais suave */
+  min-height: 60px;
+  flex-shrink: 0;
 }
 
 .headerContent {
   flex: 1;
-  margin-right: 1rem;
   display: flex;
   align-items: center;
-  gap: 2rem; /* Mais espaço entre título e detalhes */
+  gap: 1.5rem; /* Espaçamento harmonioso */
 }
 
 .header h2 {
-  font-size: 1.4rem;
+  font-size: 1.25rem; /* Tamanho de destaque */
   font-weight: 700;
+  color: #1e293b;
   margin: 0;
-  flex-shrink: 0;
 }
 
+/* Detalhes da Operação - Ponto focal do cabeçalho */
 .operacaoDetails {
   display: flex;
   align-items: center;
-  gap: 1.5rem; /* Mais espaço entre elementos */
-  flex-wrap: wrap;
+  gap: 1rem;
+  background-color: rgba(255, 255, 255, 0.7);
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(10px);
 }
 
-/* ✅ OPERAÇÃO TIPO - INFORMAÇÃO SECUNDÁRIA COM CONTRASTE */
+/* Tipo de Operação - Etiqueta clara e discreta */
 .operacaoType {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   font-size: 0.8rem;
-  font-weight: 600; /* Peso ligeiramente maior para legibilidade */
-  color: #ddd6fe; /* Cor com melhor contraste */
-  background: rgba(255, 255, 255, 0.15); /* Fundo mais visível */
-  padding: 0.25rem 0.7rem;
-  border-radius: 10px;
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(255, 255, 255, 0.1); /* Borda para definição */
-  order: 2;
-  transition: all 0.2s ease;
+  font-weight: 600;
+  color: #4f46e5;
+  background-color: #e0e7ff;
+  padding: 0.25rem 0.6rem;
+  border-radius: 8px;
 }
 
 /* ✅ HOVER PARA TIPO DE OPERAÇÃO */
@@ -111,67 +110,35 @@
   align-items: center;
 }
 
-/* ✅ ITEM DE DATA - DESTAQUE MÁXIMO */
-.metaItem:first-child {
-  /* Data em destaque especial */
-  font-size: 1.15rem !important; /* Ainda maior */
-  font-weight: 800 !important; /* Peso extra bold */
-  color: #ffffff !important; /* Branco puro */
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.2)) !important; /* Gradiente elegante */
-  padding: 0.5rem 1.2rem !important; /* Padding ainda mais generoso */
-  border-radius: 8px !important;
-  border: 1px solid rgba(255, 255, 255, 0.4) !important; /* Borda mais visível */
-  backdrop-filter: blur(12px) !important; /* Blur mais intenso */
-  box-shadow: 
-    0 4px 12px rgba(0, 0, 0, 0.2),
-    0 1px 3px rgba(255, 255, 255, 0.1) inset !important; /* Sombra dupla para destaque */
-  order: 1;
-  margin-right: 0.75rem;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important; /* Sombra no texto para legibilidade */
-  letter-spacing: 0.025em !important; /* Espaçamento de letras para elegância */
-  transition: all 0.2s ease !important;
-}
-
-/* ✅ OUTROS ITENS - INFORMAÇÕES SECUNDÁRIAS COM CONTRASTE ADEQUADO */
+/* Meta Item - Detalhes individuais da operação */
 .metaItem {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
-  font-size: 0.7rem; /* Menor para dar destaque à data */
-  font-weight: 500; /* Peso ligeiramente maior para legibilidade */
-  color: #e2e8f0; /* Cor com melhor contraste */
-  background: rgba(255, 255, 255, 0.12); /* Fundo mais visível para acessibilidade */
-  padding: 0.2rem 0.5rem; /* Padding otimizado */
-  border-radius: 8px;
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.08); /* Borda sutil para definição */
-  order: 3;
-  transition: all 0.2s ease;
+  gap: 0.5rem;
+  font-size: 0.85rem; /* Tamanho legível */
+  color: #475569; /* Contraste suave */
 }
 
-/* ✅ HOVER PARA MELHOR FEEDBACK VISUAL */
-.metaItem:hover {
-  background: rgba(255, 255, 255, 0.18);
-  color: #f1f5f9;
-  transform: translateY(-1px);
+.metaItem svg {
+  width: 16px;
+  height: 16px;
+  color: #64748b;
 }
 
-.metaItem strong {
-  font-weight: 600;
-}
-
+/* Botão de Fechar - Elegante e discreto */
 .closeButton {
-  background: rgba(255, 255, 255, 0.2);
+  background: transparent;
   border: none;
-  color: white;
+  color: #64748b;
   cursor: pointer;
   padding: 0.5rem;
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  border-radius: 50%;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .closeButton:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background-color: #e2e8f0;
+  color: #1e293b;
 }
 
 /* Seleção de Operação */
@@ -450,7 +417,7 @@
 .content {
   flex: 1;
   overflow-y: auto;
-  padding: 0.75rem 1.5rem; /* Padding reduzido drasticamente */
+  padding: 0.5rem 1rem; /* Padding ainda mais reduzido */
   display: flex;
   flex-direction: column;
 }
@@ -465,7 +432,7 @@
 /* Search Box Compacto */
 .searchBox {
   position: relative;
-  margin-bottom: 1rem; /* Margem reduzida */
+  margin-bottom: 0.5rem; /* Margem ainda mais reduzida */
   flex-shrink: 0; /* Impede que encolha */
 }
 
@@ -498,11 +465,11 @@
 .participantesList {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem; /* Gap otimizado para densidade */
+  gap: 0.25rem; /* Gap ainda mais reduzido para densidade máxima */
   max-height: none; /* Remove limitação - usa todo espaço */
-  min-height: calc(100vh - 220px); /* Altura dinâmica máxima */
+  min-height: calc(100vh - 180px); /* Altura dinâmica máxima otimizada */
   overflow-y: auto;
-  padding: 0.5rem; /* Padding mínimo */
+  padding: 0.25rem; /* Padding mínimo */
   background: #ffffff;
   border-radius: 6px;
   border: 1px solid #d1d5db;
@@ -541,12 +508,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem; /* Padding reduzido */
+  padding: 0.5rem; /* Padding ainda mais reduzido */
   background: #f9fafb;
   border: 1px solid #d1d5db;
   border-radius: 4px;
   transition: background-color 0.15s ease;
-  min-height: 52px; /* Altura reduzida drasticamente */
+  min-height: 45px; /* Altura ainda mais reduzida */
 }
 
 .membroCard:hover,
@@ -1185,4 +1152,4 @@
 }
 
 /* ⚪ BRANCO: Membros disponíveis (cor padrão, aparecem por último) */
-/* Não precisa de classe específica - usa o estilo padrão do .membroCard */ 
+/* Não precisa de classe específica - usa o estilo padrão do .membroCard */

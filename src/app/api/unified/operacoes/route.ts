@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
     const membroId = searchParams.get('membroId'); // ⭐ NOVO: ID do membro para participação
     const portal = searchParams.get('portal'); // ✅ NOVO: Detectar se é supervisor
     const includeParticipantes = searchParams.get('includeParticipantes'); // ✅ NOVO: Incluir participantes detalhados
+    const includeInactive = searchParams.get('includeInactive'); // 🆕 NOVO: Incluir operações inativas
     const mode = searchParams.get('mode'); // ✅ OTIMIZAÇÃO: Modo light para modal gerenciar
     const janelaId = searchParams.get('janela_id'); // 🆕 NOVO: Filtro por janela operacional
     const tipo = searchParams.get('tipo'); // 🆕 NOVO: Filtro por tipo de operação
@@ -102,8 +103,12 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from('operacao')
-      .select(selectQuery)
-      .eq('ativa', true);
+      .select(selectQuery);
+    
+    // ✅ FILTRO DE OPERAÇÕES ATIVAS: Incluir inativas apenas se solicitado
+    if (includeInactive !== 'true') {
+      query = query.eq('ativa', true);
+    }
 
     // ✅ SUPERVISOR: Incluir operações excluídas temporariamente para permitir reativação
     if (portal !== 'supervisor') {
@@ -185,111 +190,78 @@ export async function GET(request: NextRequest) {
     //   logInfo(`✅ ${operacoes?.length || 0} operações encontradas`);
     // }
 
-    // Retorna dados REAIS do banco
-    // ✅ CORRIGINDO CONTAGEM DE PARTICIPANTES
+    // ✅ OTIMIZAÇÃO CRÍTICA: Processamento eficiente de operações
     const operacoesProcessadas = operacoes?.map((op: any) => {
-
-      // ✅ OTIMIZADO: Log comentado para reduzir verbosidade
-      // logDebug(`🔍 Processando operação ${op.id}`, {
-      //   totalParticipacoes: op.participacao?.length || 0,
-      //   participacoesAtivas: op.participacao?.filter((p: any) => p.ativa === true).length || 0
-      // });
-
-      // Filtrar apenas participações ATIVAS primeiro
+      // ✅ OTIMIZADO: Filtrar e categorizar participações em uma única passada
       const participacoesAtivas = op.participacao?.filter((p: any) => p.ativa === true) || [];
-
-
-
-      // Contar participantes confirmados (incluindo adicionados pelo supervisor)
-      const participantesConfirmadosArray = participacoesAtivas.filter(
-        (p: any) => p.estado_visual === 'CONFIRMADO' || p.estado_visual === 'ADICIONADO_SUP'
-      );
-      const participantesConfirmados = participantesConfirmadosArray.length;
-
-
-
-      // ✅ NOVA LÓGICA: Contar solicitações pendentes (não mais "na fila")
-      const solicitacoesPendentes = participacoesAtivas.filter(
-        (p: any) => p.estado_visual === 'PENDENTE'
-      );
-
-      // ✅ CONTAR TAMBÉM NA_FILA para compatibilidade
-      const naFila = participacoesAtivas.filter(
-        (p: any) => p.estado_visual === 'NA_FILA'
-      );
-
-      // ✅ OTIMIZADO: Ordenar por data de participação para garantir ordem cronológica
-      const todasSolicitacoes = [...solicitacoesPendentes, ...naFila].sort((a: any, b: any) => {
-        const dataA = new Date(a.data_participacao || 0).getTime();
-        const dataB = new Date(b.data_participacao || 0).getTime();
-        return dataA - dataB; // Quem solicitou primeiro vem primeiro
-      });
-
-      // ✅ OTIMIZADO: Log comentado para reduzir verbosidade
-      // logDebug(`📊 Operação ${op.id}: ${participantesConfirmados.length} confirmados, ${solicitacoesPendentes.length} pendentes`);
-
-      // ✅ N-03: POSIÇÃO CRONOLÓGICA REAL (não mais baseada em posicao_fila)
-      let minhaParticipacao = null;
-      let posicaoCronologica = null;
-
-      if (membroId) {
-        // logDebug(`🔍 Buscando participação do membro ${membroId} na operação ${op.id}`);
-
-        // ✅ CORREÇÃO CRÍTICA: Buscar apenas em participações ATIVAS
-        minhaParticipacao = participacoesAtivas.find((p: any) => p.membro_id == membroId);
-
-        if (minhaParticipacao) {
-          // logDebug(`✅ Participação encontrada: ${minhaParticipacao.estado_visual}`);
-
-          // Calcular posição cronológica baseada na data de solicitação
-          const participacoesCronologicas = op.participacao
-            ?.filter((p: any) => p.data_solicitacao)
-            ?.sort((a: any, b: any) => new Date(a.data_solicitacao).getTime() - new Date(b.data_solicitacao).getTime());
-
-          posicaoCronologica = participacoesCronologicas?.findIndex((p: any) => p.id === minhaParticipacao.id) + 1;
-
-          // logDebug(`📊 Posição cronológica calculada: ${posicaoCronologica} de ${participacoesCronologicas?.length || 0}`);
-        } else {
-          // logDebug(`❌ Nenhuma participação encontrada para o membro ${membroId}`);
+      
+      // ✅ OTIMIZAÇÃO: Categorizar participações em uma única iteração
+      const categorias = {
+        confirmados: [] as any[],
+        pendentes: [] as any[],
+        naFila: [] as any[],
+        minhaParticipacao: null as any
+      };
+      
+      const membroIdNum = membroId ? parseInt(membroId) : null;
+      
+      for (const p of participacoesAtivas) {
+        // Categorizar por estado
+        if (p.estado_visual === 'CONFIRMADO' || p.estado_visual === 'ADICIONADO_SUP') {
+          categorias.confirmados.push(p);
+        } else if (p.estado_visual === 'PENDENTE') {
+          categorias.pendentes.push(p);
+        } else if (p.estado_visual === 'NA_FILA') {
+          categorias.naFila.push(p);
+        }
+        
+        // Identificar participação do membro atual
+        if (membroIdNum && p.membro_id === membroIdNum) {
+          categorias.minhaParticipacao = p;
         }
       }
+      
+      // ✅ OTIMIZADO: Ordenar solicitações apenas uma vez
+      const todasSolicitacoes = [...categorias.pendentes, ...categorias.naFila]
+        .sort((a, b) => new Date(a.data_participacao || 0).getTime() - new Date(b.data_participacao || 0).getTime());
+
+      // ✅ OTIMIZADO: Calcular posição cronológica apenas se necessário
+      let posicaoCronologica = null;
+      if (categorias.minhaParticipacao && op.participacao) {
+        const participacoesCronologicas = op.participacao
+          .filter((p: any) => p.data_solicitacao)
+          .sort((a, b) => new Date(a.data_solicitacao).getTime() - new Date(b.data_solicitacao).getTime());
+        
+        posicaoCronologica = participacoesCronologicas.findIndex((p: any) => p.id === categorias.minhaParticipacao.id) + 1;
+      }
+      
+      // ✅ OTIMIZADO: Usar valores das categorias
+      const participantesConfirmados = categorias.confirmados.length;
+      const participantesConfirmadosArray = categorias.confirmados;
 
       // ✅ FORMATO ESPECIAL PARA SUPERVISOR com includeParticipantes
       if (portal === 'supervisor' && includeParticipantes === 'true') {
-        // ✅ MODO LIGHT: Não incluir nome/matrícula quando otimizado
-        const todosParticipantes = mode === 'light'
-          ? participacoesAtivas.map((p: any) => ({
-            id: p.id,
-            membro_id: p.membro_id,
-            estado_visual: p.estado_visual,
-            status_interno: p.status_interno,
-            data_participacao: p.data_participacao // ✅ ADICIONAR DATA PARA ORDENAÇÃO
-          }))
-          : participacoesAtivas.map((p: any) => ({
-            id: p.id,
-            membro_id: p.membro_id,
-            nome: p.servidor?.nome || 'Nome não encontrado',
-            matricula: p.servidor?.matricula || 'N/A',
-            estado_visual: p.estado_visual,
-            status_interno: p.status_interno,
-            data_participacao: p.data_participacao // ✅ ADICIONAR DATA PARA ORDENAÇÃO
-          }));
-
-        // ✅ OTIMIZADO: Ordenar participantes por data de participação para o modal supervisor
-        const participantesOrdenados = [...todosParticipantes].sort((a: any, b: any) => {
-          const participacaoA = participacoesAtivas.find((p: any) => p.id === a.id);
-          const participacaoB = participacoesAtivas.find((p: any) => p.id === b.id);
-
-          if (participacaoA && participacaoB) {
-            const dataA = new Date(participacaoA.data_participacao || 0).getTime();
-            const dataB = new Date(participacaoB.data_participacao || 0).getTime();
-            return dataA - dataB;
-          }
-          return 0;
-        });
-
-        // ✅ OTIMIZADO: Log comentado para reduzir verbosidade
-        // logDebug(`🎯 Supervisor Modal - Operação ${op.id}: ${todosParticipantes.length} participantes formatados`);
+        // ✅ OTIMIZADO: Usar participações já ordenadas por data
+        const participantesOrdenados = participacoesAtivas
+          .sort((a, b) => new Date(a.data_participacao || 0).getTime() - new Date(b.data_participacao || 0).getTime())
+          .map((p: any) => mode === 'light' 
+            ? {
+                id: p.id,
+                membro_id: p.membro_id,
+                estado_visual: p.estado_visual,
+                status_interno: p.status_interno,
+                data_participacao: p.data_participacao
+              }
+            : {
+                id: p.id,
+                membro_id: p.membro_id,
+                nome: p.servidor?.nome || 'Nome não encontrado',
+                matricula: p.servidor?.matricula || 'N/A',
+                estado_visual: p.estado_visual,
+                status_interno: p.status_interno,
+                data_participacao: p.data_participacao
+              }
+          );
 
         const resultadoSupervisor = {
           id: op.id,
@@ -304,8 +276,8 @@ export async function GET(request: NextRequest) {
           participantes: participantesOrdenados, // ✅ FORMATO ESPERADO PELO MODAL COM ORDENAÇÃO CRONOLÓGICA
           // Campos extras para compatibilidade
           participantes_confirmados: participantesConfirmados,
-          pessoas_na_fila: naFila.length, // ✅ CORRIGIDO: apenas pessoas realmente na fila (estado_visual = 'NA_FILA')
-          total_solicitacoes: todasSolicitacoes.length, // ✅ NOVO: total de solicitações (PENDENTE + NA_FILA) para o calendário
+          pessoas_na_fila: categorias.naFila.length,
+          total_solicitacoes: todasSolicitacoes.length,
           // ✅ CORREÇÃO: Adicionar campos mapeados também para supervisor
           dataOperacao: op.data_operacao,
           limiteParticipantes: op.limite_participantes,
@@ -318,12 +290,15 @@ export async function GET(request: NextRequest) {
 
       // ✅ FORMATO ESPECÍFICO PARA DIRETORIA
       if (portal === 'diretoria') {
-        const participacoesComBloqueio = participacoesAtivas.map((p: any) => ({
+        // ✅ OTIMIZADO: Calcular bloqueios apenas para confirmados
+        const participantesComBloqueio = categorias.confirmados.map((p: any) => ({
           ...p,
           bloqueado: p.bloqueado_diretoria || false
         }));
+        
+        const membrosBloquados = participantesComBloqueio.filter(p => p.bloqueado).length;
 
-        const resultadoDiretoria = {
+        return {
           id: op.id,
           dataOperacao: op.data_operacao,
           turno: op.turno || 'N/A',
@@ -336,30 +311,28 @@ export async function GET(request: NextRequest) {
           retorno_diretoria_em: op.retorno_diretoria_em,
           decisao_diretoria: op.decisao_diretoria,
           motivo_diretoria: op.motivo_diretoria,
-          // Contadores
-          participantesConfirmados: participantesConfirmados,
+          // Contadores otimizados
+          participantesConfirmados,
           totalParticipantes: participacoesAtivas.length,
-          membrosBloquados: participacoesComBloqueio.filter(p => p.bloqueado).length,
+          membrosBloquados,
           // Participantes com informações de bloqueio
-          participantes: participacoesComBloqueio.filter(p => p.estado_visual === 'CONFIRMADO' || p.estado_visual === 'ADICIONADO_SUP'),
+          participantes: participantesComBloqueio,
           // Compatibilidade
           statusReal: op.status || 'Disponível',
           regional: op.janela?.regional?.nome || 'Sem Regional'
         };
-
-        return resultadoDiretoria;
       }
 
-      // ✅ FORMATO PADRÃO PARA OUTROS CASOS
-      const resultadoPadrao = {
+      // ✅ FORMATO PADRÃO OTIMIZADO
+      return {
         ...op,
         ativa: op.ativa,
         excluida_temporariamente: op.excluida_temporariamente,
-        horario: op.horario, // ✅ NOVO: Horário específico da operação
+        horario: op.horario,
         participantes_confirmados: participantesConfirmados,
-        pessoas_na_fila: naFila.length, // ✅ CORRIGIDO: apenas pessoas realmente na fila (estado_visual = 'NA_FILA')
-        total_solicitacoes: todasSolicitacoes.length, // ✅ NOVO: total de solicitações (PENDENTE + NA_FILA) para o calendário
-        // 🔍 ADICIONAR participacoes no formato esperado pelo tooltip
+        pessoas_na_fila: categorias.naFila.length,
+        total_solicitacoes: todasSolicitacoes.length,
+        // ✅ OTIMIZADO: Mapear participações uma única vez
         participacoes: participacoesAtivas.map((p: any) => ({
           id: p.id,
           servidor_id: p.membro_id,
@@ -372,25 +345,24 @@ export async function GET(request: NextRequest) {
             matricula: p.servidor?.matricula || 'N/A'
           }
         })),
+        // ✅ OTIMIZADO: Usar array já filtrado
         participantes_detalhes: participantesConfirmadosArray.map((p: any) => ({
           id: p.id,
-          estado_visual: p.estado_visual, // ✅ INCLUIR ESTADO VISUAL
+          estado_visual: p.estado_visual,
           servidor: {
             id: p.servidor?.id,
             nome: p.servidor?.nome || 'Nome não encontrado',
             matricula: p.servidor?.matricula || 'N/A'
           }
         })),
-        fila_detalhes: todasSolicitacoes, // ✅ CORRIGIDO: agora são solicitações organizadas cronologicamente
-        minha_participacao: minhaParticipacao, // ⭐ CAMPO ESSENCIAL PARA O MODAL
-        // Adicionar campos mapeados para a interface do supervisor
+        fila_detalhes: todasSolicitacoes,
+        minha_participacao: categorias.minhaParticipacao,
+        // Campos mapeados
         dataOperacao: op.data_operacao,
         limiteParticipantes: op.limite_participantes,
         statusReal: op.status || 'Disponível',
         regional: op.janela?.regional?.nome || 'Sem Regional'
       };
-
-      return resultadoPadrao;
     }) || [];
 
     // ✅ OTIMIZADO: Log final comentado para reduzir verbosidade

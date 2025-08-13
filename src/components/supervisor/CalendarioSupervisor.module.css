@@ -1,0 +1,51 @@
+/* Estilos específicos para o Calendário do Supervisor */
+
+/* Estilo para operações inativas */
+.operacao-inativa {
+  opacity: 0.7;
+  filter: grayscale(50%);
+  position: relative;
+}
+
+.operacao-inativa::after {
+  content: "ARQUIVO";
+  position: absolute;
+  top: 2px;
+  right: -8px;
+  background: linear-gradient(45deg, #6b7280, #4b5563);
+  color: white;
+  font-size: 0.5rem;
+  font-weight: bold;
+  padding: 1px 4px;
+  border-radius: 2px;
+  transform: rotate(12deg);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  z-index: 10;
+}
+
+/* Ajustes para operações inativas em diferentes contextos */
+.operacao-inativa .modalidadeName {
+  color: #6b7280 !important;
+}
+
+.operacao-inativa .participantStats {
+  color: #9ca3af !important;
+}
+
+/* Transições suaves para mudanças de estado */
+.operacao-item {
+  transition: all 0.3s ease;
+}
+
+.operacao-item.operacao-inativa {
+  transition: all 0.3s ease;
+}
+
+/* Responsividade para mobile */
+@media (max-width: 768px) {
+  .operacao-inativa::after {
+    font-size: 0.4rem;
+    padding: 1px 3px;
+    right: -6px;
+  }
+}
