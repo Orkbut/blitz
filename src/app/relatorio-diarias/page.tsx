@@ -177,42 +177,42 @@ export default function RelatorioDiariasPage() {
   }, [filtroAtivo, dataInicio, dataFim]);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden w-full">
+      <div className="w-full max-w-full px-2 sm:px-4 lg:px-8 mx-auto">
         
         {/* Cabeçalho */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+        <div className="bg-white rounded-lg shadow-sm p-3 sm:p-6 mb-4 sm:mb-6 max-w-full">
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 break-words">
                 📊 Contabilização de Diárias
               </h1>
-              <p className="text-gray-600 mt-2">
+              <p className="text-sm sm:text-base text-gray-600 mt-2 break-words">
                 Baseado na mesma lógica da tabela da Diretoria • Apenas participações confirmadas e ativas
                 {filtroAtivo && (
-                  <span className="ml-2 text-blue-600 font-medium">
+                  <span className="block sm:inline ml-0 sm:ml-2 text-blue-600 font-medium mt-1 sm:mt-0">
                     • Filtrado: {formatarPeriodoSelecionado()}
                   </span>
                 )}
               </p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-2 sm:gap-3 flex-shrink-0">
               <button
                 onClick={carregarRelatorio}
                 disabled={loading}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
+                className="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors text-sm sm:text-base whitespace-nowrap"
               >
                 {loading ? '⏳ Carregando...' : '🔄 Atualizar'}
               </button>
               <button
                 onClick={baixarRelatorioTexto}
-                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                className="bg-green-600 text-white px-3 sm:px-4 py-2 rounded-md hover:bg-green-700 transition-colors text-sm sm:text-base whitespace-nowrap"
               >
                 📄 Baixar TXT
               </button>
               <Link 
                 href="/supervisor"
-                className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors inline-flex items-center"
+                className="bg-gray-600 text-white px-3 sm:px-4 py-2 rounded-md hover:bg-gray-700 transition-colors inline-flex items-center text-sm sm:text-base whitespace-nowrap"
               >
                 ← Voltar
               </Link>
@@ -221,7 +221,7 @@ export default function RelatorioDiariasPage() {
         </div>
 
         {/* ✅ NOVO: Seção de Filtros - Design mais discreto e integrado */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-4">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-4 max-w-full overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 rounded-t-lg">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -241,9 +241,9 @@ export default function RelatorioDiariasPage() {
             </div>
           </div>
           
-          <div className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex-1">
+          <div className="p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <div className="flex-1 min-w-0">
                 <div className="relative">
                   <input
                     type="text"
@@ -264,7 +264,7 @@ export default function RelatorioDiariasPage() {
               {!filtroAtivo && (
                 <button
                   onClick={() => setShowDatePicker(true)}
-                  className="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap flex-shrink-0"
                 >
                   Filtrar
                 </button>
@@ -366,22 +366,22 @@ export default function RelatorioDiariasPage() {
 
         {/* Resumo */}
         {relatorio && !loading && (
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">📈 Totais Gerais</h3>
+          <div className="bg-white rounded-lg shadow-sm p-3 sm:p-6 mb-4 sm:mb-6 max-w-full overflow-hidden">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">📈 Totais Gerais</h3>
             
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
+              <div className="text-center p-2 sm:p-4 bg-blue-50 rounded-lg">
+                <div className="text-lg sm:text-2xl font-bold text-blue-600">
                   {relatorio.data.resumo.total_servidores}
                 </div>
-                <div className="text-sm text-gray-600">Servidores</div>
+                <div className="text-xs sm:text-sm text-gray-600">Servidores</div>
               </div>
               
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">
+              <div className="text-center p-2 sm:p-4 bg-green-50 rounded-lg">
+                <div className="text-lg sm:text-2xl font-bold text-green-600">
                   {relatorio.data.resumo.total_operacoes}
                 </div>
-                <div className="text-sm text-gray-600">Operações</div>
+                <div className="text-xs sm:text-sm text-gray-600">Operações</div>
               </div>
               
               <div className="text-center p-4 bg-purple-50 rounded-lg">
@@ -391,25 +391,25 @@ export default function RelatorioDiariasPage() {
                 <div className="text-sm text-gray-600">Participações</div>
               </div>
               
-              <div className="text-center p-4 bg-orange-50 rounded-lg">
-                <div className="text-2xl font-bold text-orange-600">
+              <div className="text-center p-2 sm:p-4 bg-orange-50 rounded-lg">
+                <div className="text-lg sm:text-2xl font-bold text-orange-600">
                   {relatorio.data.resumo.total_diarias_completas}
                 </div>
-                <div className="text-sm text-gray-600">Diárias Completas</div>
+                <div className="text-xs sm:text-sm text-gray-600">Diárias Completas</div>
               </div>
               
-              <div className="text-center p-4 bg-indigo-50 rounded-lg">
-                <div className="text-2xl font-bold text-indigo-600">
+              <div className="text-center p-2 sm:p-4 bg-indigo-50 rounded-lg">
+                <div className="text-lg sm:text-2xl font-bold text-indigo-600">
                   {relatorio.data.resumo.total_meias_diarias}
                 </div>
-                <div className="text-sm text-gray-600">Meias Diárias</div>
+                <div className="text-xs sm:text-sm text-gray-600">Meias Diárias</div>
               </div>
               
-              <div className="text-center p-4 bg-red-50 rounded-lg">
-                <div className="text-2xl font-bold text-red-600">
+              <div className="text-center p-2 sm:p-4 bg-red-50 rounded-lg">
+                <div className="text-lg sm:text-2xl font-bold text-red-600">
                   {relatorio.data.resumo.total_diarias_equivalentes.toFixed(1)}
                 </div>
-                <div className="text-sm text-gray-600">Total de Diárias</div>
+                <div className="text-xs sm:text-sm text-gray-600">Total de Diárias</div>
               </div>
             </div>
           </div>
@@ -417,15 +417,16 @@ export default function RelatorioDiariasPage() {
 
         {/* Tabela Simplificada */}
         {relatorio && !loading && relatorio.data.servidores.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden max-w-full">
+            <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900">
                 👥 Contabilização por Servidor ({relatorio.data.servidores.length} servidores)
               </h3>
             </div>
             
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            {/* Layout Desktop - Tabela */}
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="w-full min-w-full">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -451,7 +452,7 @@ export default function RelatorioDiariasPage() {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="bg-white divide-y divide-gray-200">
                   {relatorio.data.servidores.map((servidor, index) => (
                     <tr key={servidor.servidorId} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -459,8 +460,10 @@ export default function RelatorioDiariasPage() {
                           {servidor.nome}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
-                        {servidor.matricula}
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <div className="text-sm text-gray-600">
+                          {servidor.matricula}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -477,8 +480,10 @@ export default function RelatorioDiariasPage() {
                           {servidor.totalDiariasEquivalentes.toFixed(1)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
-                        {servidor.participacoesConfirmadas}
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <div className="text-sm text-gray-600">
+                          {servidor.participacoesConfirmadas}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <span className="text-sm text-gray-600">
@@ -499,17 +504,103 @@ export default function RelatorioDiariasPage() {
                 </tbody>
               </table>
             </div>
+            
+            {/* Layout Mobile - Cards Verticais */}
+            <div className="lg:hidden space-y-4">
+              {relatorio.data.servidores.map((servidor, index) => (
+                <div key={servidor.servidorId} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                  {/* Cabeçalho do Card */}
+                  <div className="border-b border-gray-100 pb-3 mb-3">
+                    <h4 className="text-base font-semibold text-gray-900 break-words">
+                      {servidor.nome}
+                    </h4>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Matrícula: <span className="font-medium">{servidor.matricula}</span>
+                    </p>
+                  </div>
+                  
+                  {/* Grid de Informações */}
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Diárias Completas */}
+                    <div className="bg-green-50 rounded-lg p-3 text-center">
+                      <div className="text-lg font-bold text-green-700">
+                        {servidor.totalDiariasCompletas}
+                      </div>
+                      <div className="text-xs text-green-600 font-medium">
+                        Diárias Completas
+                      </div>
+                    </div>
+                    
+                    {/* Meias Diárias */}
+                    <div className="bg-blue-50 rounded-lg p-3 text-center">
+                      <div className="text-lg font-bold text-blue-700">
+                        {servidor.totalMeiasDiarias}
+                      </div>
+                      <div className="text-xs text-blue-600 font-medium">
+                        Meias Diárias
+                      </div>
+                    </div>
+                    
+                    {/* Total de Diárias */}
+                    <div className="bg-purple-50 rounded-lg p-3 text-center col-span-2">
+                      <div className="text-xl font-bold text-purple-700">
+                        {servidor.totalDiariasEquivalentes.toFixed(1)}
+                      </div>
+                      <div className="text-sm text-purple-600 font-medium">
+                        Total de Diárias
+                      </div>
+                    </div>
+                    
+                    {/* Participações */}
+                    <div className="bg-gray-50 rounded-lg p-3 text-center">
+                      <div className="text-lg font-bold text-gray-700">
+                        {servidor.participacoesConfirmadas}
+                      </div>
+                      <div className="text-xs text-gray-600 font-medium">
+                        Participações
+                      </div>
+                    </div>
+                    
+                    {/* Portarias */}
+                    <div className="bg-yellow-50 rounded-lg p-3 text-center">
+                      <div className="text-lg font-bold text-yellow-700">
+                        {servidor.sequenciasPortaria.length}
+                      </div>
+                      <div className="text-xs text-yellow-600 font-medium">
+                        Portarias (D+1)
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Detalhes das Portarias */}
+                  {servidor.sequenciasPortaria.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-gray-100">
+                      <div className="text-xs font-medium text-gray-700 mb-2">
+                        Sequências de Portaria:
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {servidor.sequenciasPortaria.map((seq, seqIndex) => (
+                          <span key={seqIndex} className="inline-block text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                            {seq.sequencia}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
         {/* Estado vazio */}
         {relatorio && !loading && relatorio.data.servidores.length === 0 && (
-          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-            <div className="text-gray-400 text-6xl mb-4">📊</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <div className="bg-white rounded-lg shadow-sm p-6 sm:p-12 text-center max-w-full">
+            <div className="text-gray-400 text-4xl sm:text-6xl mb-4">📊</div>
+            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
               Nenhum servidor encontrado
             </h3>
-            <p className="text-gray-600">
+            <p className="text-sm sm:text-base text-gray-600">
               Não há participações confirmadas no sistema para contabilizar.
             </p>
           </div>
@@ -517,9 +608,9 @@ export default function RelatorioDiariasPage() {
 
         {/* Rodapé informativo */}
         {relatorio && !loading && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
-            <h4 className="font-medium text-blue-900 mb-2">ℹ️ Como funciona a contabilização:</h4>
-            <ul className="text-sm text-blue-800 space-y-1">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mt-4 sm:mt-6 max-w-full overflow-hidden">
+            <h4 className="text-sm sm:text-base font-medium text-blue-900 mb-2">ℹ️ Como funciona a contabilização:</h4>
+            <ul className="text-xs sm:text-sm text-blue-800 space-y-1 break-words">
               <li>• <strong>Diária Completa:</strong> Vale 1.0 diária</li>
               <li>• <strong>Meia Diária:</strong> Vale 0.5 diária (padrão quando não especificado)</li>
               <li>• <strong>Total de Diárias:</strong> Soma considerando 2 meias = 1 completa</li>
@@ -532,4 +623,4 @@ export default function RelatorioDiariasPage() {
       </div>
     </div>
   );
-} 
+}

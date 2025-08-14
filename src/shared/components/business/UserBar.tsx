@@ -88,7 +88,7 @@ export const UserBar: React.FC = () => {
 
               {/* Dropdown Menu */}
               {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-56 sm:w-64 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 border border-slate-100">
+                <div className="absolute right-0 mt-2 w-56 sm:w-64 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-[70] border border-slate-100">
                   <div className="py-2">
                     <div className="px-4 py-3 text-sm text-slate-700 border-b border-slate-100 bg-slate-50/50">
                       <div className="font-bold text-slate-800 truncate">{userData.nome}</div>

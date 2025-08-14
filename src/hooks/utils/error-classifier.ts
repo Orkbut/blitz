@@ -305,8 +305,16 @@ export class ErrorClassifier {
       enumerable: true
     });
     
+    // Validar e garantir timestamp válido
+    let validTimestamp: number;
+    if (context.timestamp && typeof context.timestamp === 'number' && !isNaN(context.timestamp)) {
+      validTimestamp = context.timestamp;
+    } else {
+      validTimestamp = Date.now(); // Usar timestamp atual como fallback
+    }
+    
     Object.defineProperty(realtimeError, 'timestamp', {
-      value: context.timestamp,
+      value: validTimestamp,
       writable: false,
       enumerable: true
     });
@@ -372,6 +380,19 @@ export class ErrorClassifier {
    * Cria um resumo do erro para logging
    */
   static createErrorSummary(error: RealtimeError): Record<string, any> {
+    // Validar timestamp antes de converter para ISO string
+    let timestampISO: string;
+    try {
+      const date = new Date(error.timestamp);
+      if (isNaN(date.getTime())) {
+        timestampISO = new Date().toISOString(); // Usar timestamp atual se inválido
+      } else {
+        timestampISO = date.toISOString();
+      }
+    } catch {
+      timestampISO = new Date().toISOString(); // Fallback para timestamp atual
+    }
+
     return {
       type: error.type,
       severity: error.severity,
@@ -380,7 +401,7 @@ export class ErrorClassifier {
       message: error.message,
       code: error.code,
       channelId: error.channelId,
-      timestamp: new Date(error.timestamp).toISOString(),
+      timestamp: timestampISO,
       context: error.context
     };
   }

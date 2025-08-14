@@ -11,6 +11,7 @@ import { CriarJanelaModal } from '@/components/supervisor/CriarJanelaModal';
 import { CriarOperacaoModal } from '@/components/supervisor/CriarOperacaoModal';
 import { CalendarioSupervisor } from '@/components/supervisor/CalendarioSupervisor';
 import { ModalOperacaoSupervisor } from '@/components/supervisor/ModalOperacaoSupervisor';
+import TimelineOperacoes from '@/components/supervisor/TimelineOperacoes';
 
 import { ElegantPageLoader } from '@/shared/components/ui/LoadingSpinner';
 import { formatarDataBR, formatarDataHoraCompleta, obterDataAtualIguatu, getSupervisorContext, getSupervisorHeaders } from '@/lib/auth-utils';
@@ -114,6 +115,7 @@ export default function SupervisorPage() {
   const [showCriarJanelaModal, setShowCriarJanelaModal] = useState(false);
   const [showCriarOperacaoModal, setShowCriarOperacaoModal] = useState(false);
   const [operacaoSelecionadaModal, setOperacaoSelecionadaModal] = useState<any>(null);
+  const [operacoesSelecionadasTimeline, setOperacoesSelecionadasTimeline] = useState<Operacao[]>([]);
   
   // ✅ NOVO: STATE PARA MENU DROPDOWN (compatível com mobile)
   const [showDropdownMenu, setShowDropdownMenu] = useState(false);
@@ -663,15 +665,24 @@ export default function SupervisorPage() {
 
   // ✅ FUNÇÃO PARA LIDAR COM MÚLTIPLAS OPERAÇÕES
   const handleOperacaoClick = (operacoes: Operacao[]) => {
-    if (operacoes.length === 0) return;
+    console.log('🎯 [handleOperacaoClick] Função chamada com:', {
+      quantidadeOperacoes: operacoes.length,
+      operacoes
+    });
     
-    // Se há apenas uma operação, seleciona direto
+    if (operacoes.length === 0) {
+      console.log('❌ [handleOperacaoClick] Array vazio, retornando');
+      return;
+    }
+    
+    // Se há apenas uma operação, abre o modal individual
     if (operacoes.length === 1) {
+      console.log('📱 [handleOperacaoClick] Uma operação - abrindo modal individual');
       setOperacaoSelecionadaModal(operacoes[0]);
     } else {
-      // Se há múltiplas operações, seleciona a primeira por agora
-      // TODO: Futuramente pode abrir um modal de seleção
-      setOperacaoSelecionadaModal(operacoes[0]);
+      console.log('📋 [handleOperacaoClick] Múltiplas operações - abrindo TimelineOperacoes');
+      // Se há múltiplas operações, abre o TimelineOperacoes
+      setOperacoesSelecionadasTimeline(operacoes);
     }
   };
 
@@ -872,7 +883,7 @@ export default function SupervisorPage() {
                 
                 {/* Menu dropdown - agora funciona com clique/toque */}
                 {showDropdownMenu && (
-                  <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border py-2 z-50 animate-fade-in">
+                  <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border py-2 z-[110] animate-fade-in" style={{ position: 'relative' }}>
                     <a 
                       href="/supervisor/diretoria" 
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
@@ -1307,6 +1318,18 @@ export default function SupervisorPage() {
           onGerenciarMembros={setOperacaoParaGerenciar}
           onDefinirHorario={abrirHorarioPopover}
           onExcluirOperacao={excluirOperacaoTemporariamente}
+        />
+      )}
+
+      {/* Timeline de Múltiplas Operações */}
+      {operacoesSelecionadasTimeline.length > 0 && (
+        <TimelineOperacoes
+          operacoes={operacoesSelecionadasTimeline}
+          onClose={() => setOperacoesSelecionadasTimeline([])}
+          onGerenciarMembros={setOperacaoParaGerenciar}
+          onDefinirHorario={abrirHorarioPopover}
+          onExcluirOperacao={excluirOperacaoTemporariamente}
+          onReativarOperacao={reativarOperacao}
         />
       )}
       

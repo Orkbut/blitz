@@ -36,6 +36,11 @@ interface Operacao {
   status?: string;
   excluida_temporariamente?: boolean;
   janela_id?: number;
+  // Campos para inativação de operações
+  inativa_pelo_supervisor?: boolean;
+  data_inativacao?: string;
+  motivo_inativacao?: string;
+  supervisor_inativacao_id?: number;
 }
 
 import styles from '../calendario/Calendario.module.css';
@@ -272,13 +277,14 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
         }}>
           {/* Cabeçalho Responsivo Profissional - LAYOUT ADAPTATIVO */}
           <div 
-            className="bg-gradient-to-r from-blue-500 to-blue-600 text-white sticky top-0 z-50 transition-all duration-300 ease-in-out"
+            className="bg-gradient-to-r from-blue-500 to-blue-600 text-white sticky top-0 z-[100] transition-all duration-300 ease-in-out"
             style={{
               padding: 'clamp(6px, 1vw, 10px) clamp(8px, 1.5vw, 16px)',
               boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
               boxSizing: 'border-box',
               transform: 'translateY(0)',
-              opacity: 1
+              opacity: 1,
+              position: 'relative'
             }}
             id="header-interativo"
           >
@@ -554,7 +560,21 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
                       ${isFimSemana ? 'border-r-2 border-r-slate-300' : ''}
                       ${cellPadding} ${cellHeight} ${cellBorder} ${cellBg} ${cellOpacity}
                     `}
-                        onClick={() => temOperacoes && onOperacaoClick && onOperacaoClick(operacoesDia)}
+                        onClick={() => {
+                          console.log('🔍 [CalendarioSupervisor] Clique detectado:', {
+                            dataFormatada,
+                            temOperacoes,
+                            quantidadeOperacoes: operacoesDia.length,
+                            operacoesDia,
+                            onOperacaoClickExists: !!onOperacaoClick
+                          });
+                          if (temOperacoes && onOperacaoClick) {
+                            console.log('✅ [CalendarioSupervisor] Chamando onOperacaoClick com:', operacoesDia);
+                            onOperacaoClick(operacoesDia);
+                          } else {
+                            console.log('❌ [CalendarioSupervisor] Clique bloqueado - temOperacoes:', temOperacoes, 'onOperacaoClick:', !!onOperacaoClick);
+                          }
+                        }}
                       >
                         {/* Data do dia - COMPACTO COMO CALENDÁRIO SIMPLES */}
                         <div 
@@ -610,10 +630,9 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
                             {operacoesDia.slice(0, 3).map((operacao) => (
                               <div
                                 key={operacao.id}
-                                onClick={() => onOperacaoClick([operacao])}
                                 className={`
                               relative overflow-hidden transition-all duration-200 
-                              hover:shadow-lg hover:scale-[1.02] cursor-pointer
+                              hover:shadow-lg hover:scale-[1.02]
                               ${operacao.modalidade === 'BLITZ'
                                     ? 'bg-gradient-to-br from-red-50 via-red-50 to-red-100 border border-red-200 hover:border-red-300'
                                     : 'bg-gradient-to-br from-amber-50 via-amber-50 to-amber-100 border border-amber-200 hover:border-amber-300'
@@ -625,7 +644,8 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
                                   padding: 'clamp(2px, 0.5vw, 4px) clamp(3px, 0.7vw, 6px)',
                                   width: '100%',
                                   minHeight: 'clamp(30px, 6vw, 50px)',
-                                  boxSizing: 'border-box'
+                                  boxSizing: 'border-box',
+                                  pointerEvents: 'none'
                                 }}
                               >
                                 {/* Header da operação - TÉCNICA DO CALENDÁRIO DOS MEMBROS */}

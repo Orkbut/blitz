@@ -381,23 +381,23 @@ export default function DiretoriaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 w-full" style={{ margin: 0, padding: 0 }}>
+    <div className="min-h-screen bg-gray-50 w-full overflow-x-hidden" style={{ margin: 0, padding: 0 }}>
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
+            <div className="flex items-center min-w-0 flex-1">
               <Link 
                 href="/supervisor" 
-                className="flex items-center text-gray-600 hover:text-gray-900"
+                className="flex items-center text-gray-600 hover:text-gray-900 flex-shrink-0"
               >
                 ← Voltar
               </Link>
-              <div className="ml-6">
-                <h1 className="text-2xl font-bold text-gray-900">
+              <div className="ml-4 sm:ml-6 min-w-0 flex-1">
+                <h1 className="text-lg sm:text-2xl font-bold text-gray-900 truncate">
                   🏛️ Gestão de Diretoria
                 </h1>
-                <p className="text-sm text-gray-600">
+                <p className="text-xs sm:text-sm text-gray-600 truncate">
                   Encaminhar operações e planilhas de diárias
                 </p>
               </div>
@@ -408,8 +408,8 @@ export default function DiretoriaPage() {
 
       {/* Aviso Elegante */}
       {avisoElegante && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-          <div className={`p-4 rounded-md ${
+        <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-8 pt-4">
+          <div className={`p-3 sm:p-4 rounded-md ${
             avisoElegante.tipo === 'sucesso' ? 'bg-green-50 border border-green-200' :
             avisoElegante.tipo === 'erro' ? 'bg-red-50 border border-red-200' :
             'bg-blue-50 border border-blue-200'
@@ -424,7 +424,7 @@ export default function DiretoriaPage() {
                   <span className="text-blue-400">⏰</span>
                 )}
               </div>
-              <div className="ml-3">
+              <div className="ml-3 min-w-0 flex-1">
                 <h3 className={`text-sm font-medium ${
                   avisoElegante.tipo === 'sucesso' ? 'text-green-800' :
                   avisoElegante.tipo === 'erro' ? 'text-red-800' :
@@ -432,7 +432,7 @@ export default function DiretoriaPage() {
                 }`}>
                   {avisoElegante.titulo}
                 </h3>
-                <p className={`mt-1 text-sm ${
+                <p className={`mt-1 text-sm break-words ${
                   avisoElegante.tipo === 'sucesso' ? 'text-green-600' :
                   avisoElegante.tipo === 'erro' ? 'text-red-600' :
                   'text-blue-600'
@@ -446,12 +446,12 @@ export default function DiretoriaPage() {
       )}
 
       {/* Sistema de Abas */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
+      <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-8 pt-4">
+        <div className="border-b border-gray-200 overflow-x-auto">
+          <nav className="-mb-px flex space-x-4 sm:space-x-8 min-w-max">
             <button
               onClick={() => setAbaAtiva('operacoes')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`py-2 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
                 abaAtiva === 'operacoes'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -461,7 +461,7 @@ export default function DiretoriaPage() {
             </button>
             <button
               onClick={() => setAbaAtiva('planilha')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`py-2 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
                 abaAtiva === 'planilha'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -475,7 +475,7 @@ export default function DiretoriaPage() {
 
       {/* Conteúdo da Aba Planilha */}
       {abaAtiva === 'planilha' && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-8 py-6 overflow-x-hidden">
           <ExcelViewer 
             filePath="/Pedido+Diária+Padrao+(3)+(8)+(1).xlsx"
             fileName="Pedido de Diária Padrão"
@@ -487,21 +487,21 @@ export default function DiretoriaPage() {
       {abaAtiva === 'operacoes' && (
         <>
           {/* Seção: Operações Planejadas */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900">📋 Operações Planejadas</h2>
-                  <p className="text-sm text-gray-600 mt-1">
+          <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-8 pt-6 overflow-x-hidden">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-6 mb-8">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4">
+                <div className="min-w-0">
+                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900 truncate">📋 Operações Planejadas</h2>
+                  <p className="text-xs sm:text-sm text-gray-600 mt-1 break-words">
                     Visualize as operações planejadas por janela operacional
                   </p>
                 </div>
                 
                 {/* Seletor de Janela e Botões de Ação */}
-                <div className="flex items-center space-x-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 min-w-0">
                   <button
                     onClick={forcarAtualizacao}
-                    className="bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full text-xs font-medium hover:bg-gray-200 hover:text-gray-800 transition-colors duration-200 flex items-center space-x-1.5 border border-gray-300"
+                    className="bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full text-xs font-medium hover:bg-gray-200 hover:text-gray-800 transition-colors duration-200 flex items-center justify-center space-x-1.5 border border-gray-300 whitespace-nowrap flex-shrink-0"
                     title="Atualizar dados da PORTARIA MOR"
                   >
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -513,7 +513,7 @@ export default function DiretoriaPage() {
                   {janelaSelecionada && (
                     <button
                       onClick={() => baixarRelatorioTabela()}
-                      className="bg-green-600 text-white px-3 py-1.5 rounded-full text-xs font-medium hover:bg-green-700 transition-colors duration-200 flex items-center space-x-1.5"
+                      className="bg-green-600 text-white px-3 py-1.5 rounded-full text-xs font-medium hover:bg-green-700 transition-colors duration-200 flex items-center justify-center space-x-1.5 whitespace-nowrap flex-shrink-0"
                       title="Baixar relatório da tabela em formato texto"
                     >
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -523,53 +523,58 @@ export default function DiretoriaPage() {
                     </button>
                   )}
                   
-                  <label className="text-sm font-medium text-gray-700">
-                    Janela Operacional:
-                  </label>
-                  
-                  {loadingJanelas ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                      <span className="text-sm text-gray-500">Carregando janelas...</span>
-                    </div>
-                  ) : janelasDisponiveis.length > 0 ? (
-                    <select
-                      value={janelaSelecionada || ''}
-                      onChange={(e) => setJanelaSelecionada(Number(e.target.value))}
-                      className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="">Selecione uma janela</option>
-                      {janelasDisponiveis.map((janela) => (
-                        <option key={janela.id} value={janela.id}>
-                          #{janela.id} - {janela.titulo} ({janela.totalOperacoesPlanejadas} operações)
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <span className="text-sm text-gray-500 italic">
-                      Nenhuma janela operacional ativa encontrada
-                    </span>
-                  )}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 min-w-0">
+                    <label className="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap flex-shrink-0">
+                      Janela Operacional:
+                    </label>
+                    
+                    {loadingJanelas ? (
+                      <div className="flex items-center space-x-2 min-w-0">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 flex-shrink-0"></div>
+                        <span className="text-xs sm:text-sm text-gray-500 truncate">Carregando janelas...</span>
+                      </div>
+                    ) : janelasDisponiveis.length > 0 ? (
+                      <select
+                        value={janelaSelecionada || ''}
+                        onChange={(e) => setJanelaSelecionada(Number(e.target.value))}
+                        className="border border-gray-300 rounded-md px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-0 max-w-full"
+                      >
+                        <option value="">Selecione uma janela</option>
+                        {janelasDisponiveis.map((janela) => (
+                          <option key={janela.id} value={janela.id}>
+                            #{janela.id} - {janela.titulo} ({janela.totalOperacoesPlanejadas} operações)
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="text-xs sm:text-sm text-gray-500 italic truncate">
+                        Nenhuma janela operacional ativa encontrada
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
               {/* Tabela de Operações Planejadas */}
               {janelaSelecionada ? (
-                <TabelaOperacoesDiretoria 
-                  key={`${janelaSelecionada}-${participacoesPlanejadas.length}-${Date.now()}`}
-                  operacoes={operacoesPlanejadas}
-                  participacoes={participacoesPlanejadas}
-                />
+                <div className="overflow-x-auto">
+                  <TabelaOperacoesDiretoria 
+                    key={`${janelaSelecionada}-${participacoesPlanejadas.length}-${Date.now()}`}
+                    operacoes={operacoesPlanejadas}
+                    participacoes={participacoesPlanejadas}
+                  />
+                </div>
               ) : (
                 <div className="text-center py-8 text-gray-500">
-                  <p>Selecione uma janela operacional para visualizar as operações planejadas</p>
+                  <p className="text-sm break-words">Selecione uma janela operacional para visualizar as operações planejadas</p>
                 </div>
               )}
             </div>
           </div>
 
           {/* Conteúdo Principal */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-8 py-8 overflow-x-hidden">
+
             {operacoes.length === 0 ? (
               <div className="text-center py-12">
                 <span className="text-4xl">📄</span>
