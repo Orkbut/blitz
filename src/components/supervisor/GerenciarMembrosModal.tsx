@@ -24,7 +24,7 @@ import { useModal } from '@/hooks/useModal';
 import { UniversalModal } from '@/shared/components/ui';
 import styles from './GerenciarMembrosModal.module.css';
 import { format, parseISO } from 'date-fns';
-import { getSupervisorHeaders } from '@/lib/auth-utils';
+import { getSupervisorHeaders, formatarDataBR } from '@/lib/auth-utils';
 
 interface Membro {
   id: number;
@@ -1132,29 +1132,9 @@ const GerenciarMembrosModalComponent: React.FC<GerenciarMembrosModalProps> = ({ 
     return result;
   }, [statusCache, styles]);
 
-  const formatarData = (data: string) => {
-    try {
-      // Handle both YYYY-MM-DD and YYYY-MM-DDTHH:mm:ss formats
-      const dateOnly = data.split('T')[0];
-      const [ano, mes, dia] = dateOnly.split('-');
-      return `${dia}/${mes}/${ano}`;
-    } catch {
-      return data; // Return original if formatting fails
-    }
-  };
 
-  const formatarDataComSemana = (data: string) => {
-    try {
-      const date = new Date(data);
-      const dia = date.getDate().toString().padStart(2, '0');
-      const mes = (date.getMonth() + 1).toString().padStart(2, '0');
-      const ano = date.getFullYear();
-      const diaSemana = date.toLocaleDateString('pt-BR', { weekday: 'short' });
-      return `${diaSemana}, ${dia}/${mes}/${ano}`;
-    } catch {
-      return data;
-    }
-  };
+
+
 
 
 
@@ -1199,7 +1179,7 @@ const GerenciarMembrosModalComponent: React.FC<GerenciarMembrosModalProps> = ({ 
                   <strong>{operacaoEspecifica.modalidade} {operacaoEspecifica.tipo}</strong>
                 </div>
                 <div className={styles.metaItem}>
-                  <Calendar size={16} /> <span>{formatarDataComSemana(operacaoEspecifica.data_operacao)}</span>
+                  <Calendar size={16} /> <span>{formatarDataBR(operacaoEspecifica.data_operacao)}</span>
                 </div>
                 <div className={styles.metaItem}>
                   <Clock size={16} /> <span>{operacaoEspecifica.turno}</span>

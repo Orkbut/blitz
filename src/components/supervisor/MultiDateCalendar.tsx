@@ -128,15 +128,18 @@ export const MultiDateCalendar: React.FC<MultiDateCalendarProps> = ({
         const realStartString = startDateString <= endDateString ? startDateString : endDateString;
         const realEndString = startDateString <= endDateString ? endDateString : startDateString;
         
-        // Verifica limite de dias (padrão 40, mas pode ser configurado)
+        // ✅ REMOVIDO: Limite de dias - permitir períodos longos
+        // Comentado para permitir janelas de longo prazo (até 2 anos)
+        /*
         const startDate = new Date(realStartString + 'T00:00:00');
         const endDate = new Date(realEndString + 'T00:00:00');
         const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-        const maxDays = 40; // TODO: Pegar do parâmetro quando disponível
+        const maxDays = 40;
         if (daysDiff > maxDays) {
           alert(`O período máximo é de ${maxDays} dias. Selecione um intervalo menor.`);
           return;
         }
+        */
         
         // Cria intervalo completo sempre em ordem cronológica
         const interval = [];

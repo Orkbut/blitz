@@ -18,7 +18,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Operacao } from '@/shared/types';
 import { useRealtimeUnified } from '@/hooks/useRealtimeUnified';
-import { getSupervisorHeaders } from '@/lib/auth-utils';
+import { getSupervisorHeaders, formatarDataBR } from '@/lib/auth-utils';
 import styles from './TimelineOperacoes.module.css';
 
 interface ModalOperacaoSupervisorProps {
@@ -131,17 +131,14 @@ export const ModalOperacaoSupervisor: React.FC<ModalOperacaoSupervisorProps> = (
     });
   };
 
-  const formatarDataSimples = (dataString: string) => {
-    const data = new Date(dataString.split('T')[0] + 'T00:00:00');
-    return data.toLocaleDateString('pt-BR');
-  };
+
 
   return (
     <div className={styles.modalOverlay} onClick={onClose} data-modal="true">
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <div className={styles.modalTitle}>
-            <h3>📅 {formatarDataSimples(operacao.data_operacao)}</h3>
+            <h3>📅 {formatarDataBR(operacao.data_operacao)}</h3>
             <p>Operação #{operacao.id}</p>
           </div>
           <button
@@ -241,4 +238,4 @@ export const ModalOperacaoSupervisor: React.FC<ModalOperacaoSupervisorProps> = (
       </div>
     </div>
   );
-}; 
+};

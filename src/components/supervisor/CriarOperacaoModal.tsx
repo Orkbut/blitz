@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { MultiDateCalendar } from './MultiDateCalendar';
-import { getSupervisorHeaders } from '@/lib/auth-utils';
+import { getSupervisorHeaders, formatarDataBR } from '@/lib/auth-utils';
 
 interface JanelaOperacional {
   id: string;
@@ -76,16 +76,7 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
     carregarJanelas();
   }, []);
 
-  // ✅ FUNÇÃO PARA FORMATAR DATA NO PADRÃO BRASILEIRO
-  const formatarDataBR = (dataISO: string): string => {
-    if (!dataISO) return '';
-    try {
-      const [ano, mes, dia] = dataISO.split('T')[0].split('-');
-      return `${dia}/${mes}/${ano}`;
-    } catch {
-      return dataISO;
-    }
-  };
+
 
   const carregarJanelas = async () => {
     setLoadingJanelas(true);

@@ -8,6 +8,7 @@ import { GerenciarMembrosModal } from '@/components/supervisor/GerenciarMembrosM
 import { HorarioPopover } from '@/components/supervisor/HorarioPopover';
 import { MultiDateCalendar } from '@/components/supervisor/MultiDateCalendar';
 import { CriarJanelaModal } from '@/components/supervisor/CriarJanelaModal';
+import { EditarJanelaModal } from '@/components/supervisor/EditarJanelaModal';
 import { CriarOperacaoModal } from '@/components/supervisor/CriarOperacaoModal';
 import { CalendarioSupervisor } from '@/components/supervisor/CalendarioSupervisor';
 import { ModalOperacaoSupervisor } from '@/components/supervisor/ModalOperacaoSupervisor';
@@ -114,6 +115,7 @@ export default function SupervisorPage() {
   const [operacaoParaGerenciar, setOperacaoParaGerenciar] = useState<any>(null);
   const [showCriarJanelaModal, setShowCriarJanelaModal] = useState(false);
   const [showCriarOperacaoModal, setShowCriarOperacaoModal] = useState(false);
+  const [janelaParaEditar, setJanelaParaEditar] = useState<any>(null);
   const [operacaoSelecionadaModal, setOperacaoSelecionadaModal] = useState<any>(null);
   const [operacoesSelecionadasTimeline, setOperacoesSelecionadasTimeline] = useState<Operacao[]>([]);
   
@@ -1141,23 +1143,40 @@ export default function SupervisorPage() {
                       </div>
                     </div>
                     
-                    {/* Botão de excluir - aparece no hover */}
-                    <button
-                      onClick={() => excluirJanela(janela.id, `${formatarDataBR(janela.dataInicio)} - ${formatarDataBR(janela.dataFim)}`)}
-                      disabled={loading}
-                      className="opacity-0 group-hover:opacity-100 transition-all duration-200 w-8 h-8 rounded-lg flex items-center justify-center text-white hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
-                      style={{
-                        background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
-                        boxShadow: '0 2px 8px rgba(220, 38, 38, 0.3)'
-                      }}
-                      title="Excluir janela operacional"
-                    >
-                      {loading ? (
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      ) : (
-                        <span className="text-sm">🗑️</span>
-                      )}
-                    </button>
+                    {/* Botões de ação - aparecem no hover */}
+                    <div className="opacity-0 group-hover:opacity-100 transition-all duration-200 flex gap-2">
+                      {/* Botão de editar */}
+                      <button
+                        onClick={() => setJanelaParaEditar(janela)}
+                        disabled={loading}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                        style={{
+                          background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                          boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+                        }}
+                        title="Editar período da janela"
+                      >
+                        <span className="text-sm">✏️</span>
+                      </button>
+                      
+                      {/* Botão de excluir */}
+                      <button
+                        onClick={() => excluirJanela(janela.id, `${formatarDataBR(janela.dataInicio)} - ${formatarDataBR(janela.dataFim)}`)}
+                        disabled={loading}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                        style={{
+                          background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
+                          boxShadow: '0 2px 8px rgba(220, 38, 38, 0.3)'
+                        }}
+                        title="Excluir janela operacional"
+                      >
+                        {loading ? (
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        ) : (
+                          <span className="text-sm">🗑️</span>
+                        )}
+                      </button>
+                    </div>
                   </div>
                   
                   {/* Status badge elegante */}
@@ -1360,6 +1379,18 @@ export default function SupervisorPage() {
           onClose={() => setShowCriarJanelaModal(false)}
           onSuccess={() => {
             carregarJanelas();
+          }}
+        />
+      )}
+
+      {/* Modal Editar Janela */}
+      {janelaParaEditar && (
+        <EditarJanelaModal
+          janela={janelaParaEditar}
+          onClose={() => setJanelaParaEditar(null)}
+          onSuccess={() => {
+            carregarJanelas();
+            setJanelaParaEditar(null);
           }}
         />
       )}

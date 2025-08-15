@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { X } from 'lucide-react';
 import { Operacao } from '@/shared/types';
-import { getSupervisorHeaders } from '@/lib/auth-utils';
+import { getSupervisorHeaders, formatarDataBR } from '@/lib/auth-utils';
 
 interface ModalInativacaoOperacoesProps {
   isOpen: boolean;
@@ -95,16 +95,7 @@ export const ModalInativacaoOperacoes: React.FC<ModalInativacaoOperacoesProps> =
     }
   }, [isOpen, carregarOperacoes]);
 
-  // Formatar data no padrão brasileiro
-  const formatarDataBR = (dataISO: string): string => {
-    if (!dataISO) return '';
-    try {
-      const [ano, mes, dia] = dataISO.split('T')[0].split('-');
-      return `${dia}/${mes}/${ano}`;
-    } catch {
-      return dataISO;
-    }
-  };
+
 
   // Toggle seleção de operação
   const toggleOperacao = (operacaoId: number) => {

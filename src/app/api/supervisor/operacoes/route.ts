@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
         data_operacao: data,
         modalidade: modalidade,
         tipo: tipo || 'PLANEJADA',
-        turno: turno || 'MANHA',
+        turno: turno || 'NAO_ESPECIFICADO', // ✅ CORRIGIDO: Valor específico para turno não especificado
         limite_participantes: limiteParticipantes,
         status: 'AGUARDANDO_SOLICITACOES', // ✅ STATUS CORRETO
         ativa: true,

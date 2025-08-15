@@ -201,8 +201,9 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
       };
     }
 
-    const dataInicio = new Date(janelaAtual.dataInicio);
-    const dataFim = new Date(janelaAtual.dataFim);
+    // ✅ CORREÇÃO: Adicionar horário para evitar problemas de timezone
+    const dataInicio = new Date(`${janelaAtual.dataInicio}T12:00:00`);
+    const dataFim = new Date(`${janelaAtual.dataFim}T12:00:00`);
 
     return {
       start: dataInicio,

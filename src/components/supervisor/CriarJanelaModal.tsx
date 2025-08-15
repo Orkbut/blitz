@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { MultiDateCalendar } from './MultiDateCalendar';
-import { getSupervisorContext, getSupervisorHeaders, getSupervisorData } from '@/lib/auth-utils';
+import { getSupervisorContext, getSupervisorHeaders, getSupervisorData, formatarDataBR } from '@/lib/auth-utils';
 
 interface CriarJanelaModalProps {
   onClose: () => void;
@@ -19,8 +19,8 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
     limiteMaximo: 30
   });
   const [parametros, setParametros] = useState({
-    prazoMinAgendamento: 10, // Valor padrão, será carregado do banco
-    prazoMaxPeriodo: 40
+    prazoMinAgendamento: 10 // Valor padrão, será carregado do banco
+    // ✅ REMOVIDO: prazoMaxPeriodo - permitir período ilimitado
   });
 
   // ✅ NOVO: Carregar parâmetros do banco de dados
@@ -36,8 +36,8 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
         }, {});
         
         setParametros({
-          prazoMinAgendamento: parseInt(parametrosMap.PRAZO_MIN_AGENDAMENTO_JANELAS) || 10,
-          prazoMaxPeriodo: parseInt(parametrosMap.PRAZO_MAX_PERIODO_JANELA) || 40
+          prazoMinAgendamento: parseInt(parametrosMap.PRAZO_MIN_AGENDAMENTO_JANELAS) || 10
+          // ✅ REMOVIDO: prazoMaxPeriodo - permitir período ilimitado
         });
       }
     } catch (error) {
@@ -68,11 +68,12 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
     return dataMinima.toISOString().split('T')[0];
   };
 
-  // ✅ NOVO: Calcular data máxima permitida (minDate + parâmetro para permitir navegação)
+  // ✅ MODIFICADO: Permitir período muito maior (2 anos no futuro)
   const getMaxDate = () => {
     const hoje = new Date();
     const dataMaxima = new Date(hoje);
-    dataMaxima.setDate(hoje.getDate() + parametros.prazoMinAgendamento + parametros.prazoMaxPeriodo);
+    // ✅ NOVO: Permitir até 2 anos no futuro (730 dias)
+    dataMaxima.setDate(hoje.getDate() + 730);
     return dataMaxima.toISOString().split('T')[0];
   };
 
@@ -177,16 +178,7 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
     }));
   };
 
-  // ✅ FUNÇÃO PARA FORMATAR DATA NO PADRÃO BRASILEIRO
-  const formatarDataBR = (dataISO: string): string => {
-    if (!dataISO) return '';
-    try {
-      const [ano, mes, dia] = dataISO.split('T')[0].split('-');
-      return `${dia}/${mes}/${ano}`;
-    } catch {
-      return dataISO;
-    }
-  };
+
 
   // ✅ FUNÇÃO PARA FORMATAR PERÍODO SELECIONADO
   const formatarPeriodo = (): string => {
