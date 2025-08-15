@@ -168,7 +168,7 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
                             operacao.modalidade === 'BLITZ' ? styles.blitz : styles.balanca
                           }`}
                         >
-                          {operacao.modalidade === 'BLITZ' ? '🚨' : '⚖️'} {operacao.modalidade}
+                          {operacao.modalidade === 'BLITZ' ? '🚨' : '⚖️'} {operacao.modalidade === 'BLITZ' ? 'RADAR' : operacao.modalidade}
                         </span>
                         <span className={styles.tipoBadge}>{operacao.tipo}</span>
                         <span className={styles.turnoInfo}>🕐 {operacao.turno}</span>

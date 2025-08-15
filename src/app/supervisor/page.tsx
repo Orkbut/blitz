@@ -1209,7 +1209,7 @@ export default function SupervisorPage() {
                                 ? 'bg-red-100 text-red-800 border border-red-200' 
                                 : 'bg-amber-100 text-amber-800 border border-amber-200'
                             }`}>
-                              {modalidade === 'BLITZ' ? '🚨' : '⚖️'} {modalidade}
+                              {modalidade === 'BLITZ' ? '🚨 RADAR' : modalidade}
                             </span>
                           ))}
                         </dd>

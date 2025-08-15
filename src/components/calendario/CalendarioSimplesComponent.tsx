@@ -512,7 +512,7 @@ export const CalendarioSimplesComponent: React.FC = () => {
       <div className={`${styles.singleOperationInfo} ${styles.responsive} ${isInativa ? styles.operacaoInativa : ''}`}>
         <div className={`${styles.operationHeader} ${styles[operacao.modalidade.toLowerCase()]}`}>
           <div className={`${styles.modalidadeName} ${styles[operacao.modalidade.toLowerCase()]}`}>
-            {operacao.modalidade}
+            {operacao.modalidade === 'BLITZ' ? 'RADAR' : operacao.modalidade}
           </div>
           <div className={styles.participantStats}>
             {confirmados}/{limite}
@@ -559,7 +559,7 @@ export const CalendarioSimplesComponent: React.FC = () => {
           const isInativa = op.inativa_pelo_supervisor;
           
           // Informação compacta mas clara
-          const modalidadeAbrev = op.modalidade === 'BLITZ' ? 'BLZ' : 'BAL';
+          const modalidadeAbrev = op.modalidade === 'BLITZ' ? 'RDR' : 'BAL';
           const infoParticipantes = `${confirmados}/${limite}`;
           const infoFila = pendentes > 0 ? `+${pendentes}` : '';
           

@@ -417,7 +417,7 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
                       textOverflow: 'ellipsis',
                       textShadow: '0 1px 2px rgba(0,0,0,0.1)'
                     }}>
-                      Inativar Operações
+                      Arquivar
                     </span>
                   </button>
                 )}
@@ -672,10 +672,10 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
                                       flexShrink: '0'
                                     }}
                                   >
-                                    {operacao.modalidade === 'BLITZ' ? '🚨' : '⚖️'}
+                                    {operacao.modalidade === 'BLITZ' ? '🚨' : ''}
                                   </span>
                                   <span className={`${operacao.modalidade === 'BLITZ' ? 'text-red-700' : 'text-amber-700'} ${operacao.inativa_pelo_supervisor ? 'opacity-60' : ''}`}>
-                                    {operacao.modalidade}
+                                    {operacao.modalidade === 'BLITZ' ? 'RADAR' : operacao.modalidade}
                                   </span>
                                 </div>
 

@@ -8,7 +8,7 @@ Esta API permite que supervisores inativem ou reativem múltiplas operações de
 
 ## Payload
 
-### Inativar Operações
+### Arquivar Operações
 ```json
 {
   "operacaoIds": [1, 2, 3, 4],
@@ -100,7 +100,7 @@ Esta API permite que supervisores inativem ou reativem múltiplas operações de
 ## Exemplo de Uso com JavaScript
 
 ```javascript
-// Inativar operações
+// Arquivar operações
 const inativarOperacoes = async (operacaoIds, motivo, supervisorId) => {
   try {
     const response = await fetch('/api/supervisor/operacoes/inativar-multiplas', {
@@ -125,7 +125,7 @@ const inativarOperacoes = async (operacaoIds, motivo, supervisorId) => {
       throw new Error(data.error);
     }
   } catch (error) {
-    console.error('Erro ao inativar operações:', error);
+    console.error('Erro ao arquivar operações:', error);
     throw error;
   }
 };

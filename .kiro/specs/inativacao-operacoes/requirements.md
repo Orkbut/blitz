@@ -8,11 +8,11 @@ Esta funcionalidade permite que supervisores marquem operações específicas co
 
 ### Requirement 1
 
-**User Story:** Como supervisor, eu quero inativar operações específicas através de um calendário modal, para que membros não possam mais interagir com operações canceladas ou problemáticas.
+**User Story:** Como supervisor, eu quero arquivar/inativar operações específicas através de um calendário modal, para que membros não possam mais interagir com operações canceladas ou problemáticas.
 
 #### Acceptance Criteria
 
-1. WHEN supervisor clica no botão "Inativar Operações" no cabeçalho do calendário THEN sistema SHALL abrir um modal com calendário pequeno mostrando operações ativas
+1. WHEN supervisor clica no botão "Arquivar" no cabeçalho do calendário THEN sistema SHALL abrir um modal com calendário pequeno mostrando operações ativas
 2. WHEN supervisor seleciona operações no calendário modal THEN sistema SHALL destacar visualmente as operações selecionadas
 3. WHEN supervisor clica em "Confirmar" no modal THEN sistema SHALL inativar as operações selecionadas sem solicitar motivo obrigatório
 4. WHEN operação é inativada THEN sistema SHALL adicionar campos `inativa_pelo_supervisor=true`, `data_inativacao`, `supervisor_inativacao_id` no banco
@@ -23,7 +23,7 @@ Esta funcionalidade permite que supervisores marquem operações específicas co
 
 #### Acceptance Criteria
 
-1. WHEN supervisor clica no botão "Inativar Operações" THEN sistema SHALL mostrar operações inativas no calendário modal com estilo diferenciado
+1. WHEN supervisor clica no botão "Arquivar" THEN sistema SHALL mostrar operações inativas no calendário modal com estilo diferenciado
 2. WHEN supervisor seleciona operações inativas e clica "Confirmar" THEN sistema SHALL reativar as operações (definir `inativa_pelo_supervisor=false`)
 3. WHEN operação é reativada THEN sistema SHALL limpar campos de inativação no banco
 

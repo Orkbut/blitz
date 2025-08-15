@@ -56,7 +56,8 @@ export class CalculadorDiariasServidor {
    */
   static calcularEstatisticasServidores(
     operacoes: OperacaoData[],
-    participacoes: ParticipacaoServidor[]
+    participacoes: ParticipacaoServidor[],
+    options?: { filtroDataInicio?: string; filtroDataFim?: string }
   ): EstatisticasServidor[] {
     
     if (!operacoes || operacoes.length === 0 || !participacoes || participacoes.length === 0) {
@@ -117,18 +118,26 @@ export class CalculadorDiariasServidor {
         new Date(a.data_operacao).getTime() - new Date(b.data_operacao).getTime()
       );
 
-      // Calcular sequências consecutivas para PORTARIA MOR
-      const sequenciasPortaria = this.calcularSequenciasPortaria(operacoesDoServidor);
+      // Calcular sequências consecutivas para PORTARIA MOR (sequência completa)
+      const sequenciasPortariaCompleta = this.calcularSequenciasPortaria(operacoesDoServidor);
 
-      // ✅ LÓGICA CORRETA: Calcular totais baseado nas sequências, não participações individuais
+      // Aplicar filtro de período APENAS para exibição e totais, preservando contexto da sequência
+      const filtroInicio = options?.filtroDataInicio ? new Date(options.filtroDataInicio + 'T00:00:00-03:00') : null;
+      const filtroFim = options?.filtroDataFim ? new Date(options.filtroDataFim + 'T23:59:59-03:00') : null;
+
+      const sequenciasPortaria = (filtroInicio || filtroFim)
+        ? aplicarFiltroSequencias(sequenciasPortariaCompleta, filtroInicio, filtroFim)
+        : sequenciasPortariaCompleta;
+
+      // ✅ LÓGICA CORRETA: Calcular totais baseado nas sequências filtradas (quando houver filtro)
       let totalDiariasCompletas = 0;
       let totalMeiasDiarias = 0;
       
       sequenciasPortaria.forEach(sequencia => {
-        // Diárias completas = quantidade de dias na sequência (DD=2, DDD=3, etc.)
+        // Diárias completas = quantidade de dias NA JANELA (após filtro) na sequência
         totalDiariasCompletas += sequencia.diasOperacao.length;
         
-        // Meia diária = 1 por sequência que termina com +1 (0.5 diária)
+        // Meia diária = 1 por sequência somente quando a data de retorno REAL está dentro do filtro
         if (sequencia.sequencia.includes('+1')) {
           totalMeiasDiarias += 1; // Cada +1 conta como 1 meia diária (0.5)
         }
@@ -137,7 +146,16 @@ export class CalculadorDiariasServidor {
       // Total de diárias = diárias completas + (meias diárias / 2)
       const totalDiariasEquivalentes = totalDiariasCompletas + (totalMeiasDiarias * 0.5);
 
-
+      // Participações no período: contar apenas participações cujas datas caem dentro do filtro quando ativo
+      let participacoesNoPeriodo = operacoesDoServidor.length;
+      if (filtroInicio || filtroFim) {
+        participacoesNoPeriodo = operacoesDoServidor.filter(p => {
+          const d = new Date(p.data_operacao + 'T00:00:00-03:00');
+          const afterStart = filtroInicio ? d.getTime() >= filtroInicio.getTime() : true;
+          const beforeEnd = filtroFim ? d.getTime() <= filtroFim.getTime() : true;
+          return afterStart && beforeEnd;
+        }).length;
+      }
 
       estatisticas.push({
         servidorId,
@@ -146,7 +164,7 @@ export class CalculadorDiariasServidor {
         totalDiariasCompletas,
         totalMeiasDiarias,
         totalDiariasEquivalentes,
-        participacoesConfirmadas: operacoesDoServidor.length,
+        participacoesConfirmadas: participacoesNoPeriodo,
         sequenciasPortaria
       });
     });
@@ -278,3 +296,55 @@ export class CalculadorDiariasServidor {
     return estatisticas.find(e => e.servidorId === servidorId) || null;
   }
 } 
+
+
+/**
+ * Aplica recorte de período às sequências completas preservando o contexto do +1
+ */
+function aplicarFiltroSequencias(
+  sequencias: SequenciaPortaria[],
+  filtroInicio: Date | null,
+  filtroFim: Date | null
+): SequenciaPortaria[] {
+  const dentro = (dStr: string) => {
+    const d = new Date(dStr + 'T00:00:00-03:00');
+    const afterStart = filtroInicio ? d.getTime() >= filtroInicio.getTime() : true;
+    const beforeEnd = filtroFim ? d.getTime() <= filtroFim.getTime() : true;
+    return afterStart && beforeEnd;
+  };
+
+  const resultado: SequenciaPortaria[] = [];
+
+  for (const seq of sequencias) {
+    const diasTrim = seq.diasOperacao.filter(dentro);
+
+    // Incluir meia diária (+1) somente se a dataRetorno REAL estiver dentro do período
+    const retornoDentro = seq.dataRetorno && dentro(seq.dataRetorno);
+
+    // Se nada do período toca a sequência e o retorno não está dentro, pular
+    if (diasTrim.length === 0 && !retornoDentro) continue;
+
+    const qtdDias = diasTrim.length;
+    const seqStr = 'D'.repeat(qtdDias) + (retornoDentro ? '+1' : '');
+
+    // Determinar datas para exibição
+    const inicioExib = diasTrim.length > 0 ? diasTrim[0] : seq.dataInicio; // fallback
+    const fimExib = retornoDentro ? seq.dataRetorno : (diasTrim.length > 0 ? diasTrim[diasTrim.length - 1] : seq.dataRetorno);
+
+    // Período formatado
+    const di = new Date(inicioExib + 'T00:00:00-03:00');
+    const df = new Date(fimExib + 'T00:00:00-03:00');
+    const periodo = `${di.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} a ${df.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
+
+    resultado.push({
+      diasOperacao: diasTrim,
+      dataInicio: inicioExib,
+      dataRetorno: fimExib,
+      sequencia: seqStr,
+      periodo,
+      valorDiarias: qtdDias + (retornoDentro ? 0.5 : 0)
+    });
+  }
+
+  return resultado;
+}

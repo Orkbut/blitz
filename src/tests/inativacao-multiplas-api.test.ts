@@ -75,8 +75,8 @@ describe('API Inativação Múltipla de Operações - Validações', () => {
     expect(mockResponse.boundedContext).toBe('supervisor');
   });
 
-  // ✅ TESTE 6: Payload para inativar operações
-  it('deve ter payload correto para inativar operações', () => {
+  // ✅ TESTE 6: Payload para arquivar operações
+  it('deve ter payload correto para arquivar operações', () => {
     const payloadInativar = {
       operacaoIds: [1, 2, 3],
       inativar: true,

@@ -736,7 +736,8 @@
 }
 
 /* BLITZ - Responsividade baseada no projeto de referência */
-.lightBLITZ .compactHeader {
+.lightBLITZ .compactHeader,
+.lightRADAR .compactHeader {
   background: linear-gradient(145deg, rgba(255, 248, 245, 0.98) 0%, rgba(254, 242, 242, 0.98) 100%) !important;
   border: none !important;
   z-index: 10 !important;

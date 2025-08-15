@@ -538,7 +538,7 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
                   >
                     <option value="">{isJanelaSelecionada ? "Selecione a modalidade" : "Selecione uma janela primeiro"}</option>
                     {(!limitesJanela.modalidadesPermitidas || limitesJanela.modalidadesPermitidas.includes('BLITZ')) && (
-                      <option value="BLITZ">BLITZ</option>
+                      <option value="BLITZ">RADAR</option>
                     )}
                     {(!limitesJanela.modalidadesPermitidas || limitesJanela.modalidadesPermitidas.includes('BALANCA')) && (
                       <option value="BALANCA">BALANÇA</option>

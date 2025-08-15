@@ -67,7 +67,7 @@
 
 
 
-  - Inserir botão "📁 Inativar Operações" no cabeçalho do CalendarioSupervisor
+  - Inserir botão "📁 Arquivar" no cabeçalho do CalendarioSupervisor
   - Implementar abertura do modal de inativação
   - Adicionar estado para controlar abertura/fechamento do modal
   - _Requirements: 1.1_

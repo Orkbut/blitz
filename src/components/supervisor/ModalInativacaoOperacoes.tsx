@@ -127,7 +127,7 @@ export const ModalInativacaoOperacoes: React.FC<ModalInativacaoOperacoesProps> =
     setOperacoesSelecionadas(new Set());
   };
 
-  // Inativar operações selecionadas
+  // Arquivar operações selecionadas
   const inativarOperacoes = async () => {
     if (operacoesSelecionadas.size === 0) {
       alert('Selecione pelo menos uma operação para inativar.');
@@ -158,11 +158,11 @@ export const ModalInativacaoOperacoes: React.FC<ModalInativacaoOperacoesProps> =
         onOperacoesAlteradas(); // Notificar componente pai
         alert(`${operacoesSelecionadas.size} operação(ões) inativada(s) com sucesso.`);
       } else {
-        alert(`Erro ao inativar operações: ${result.error}`);
+        alert(`Erro ao arquivar operações: ${result.error}`);
       }
     } catch (error) {
-      console.error('Erro ao inativar operações:', error);
-      alert('Erro de conexão. Não foi possível inativar as operações.');
+      console.error('Erro ao arquivar operações:', error);
+      alert('Erro de conexão. Não foi possível arquivar as operações.');
     } finally {
       setLoading(false);
     }
@@ -278,7 +278,7 @@ export const ModalInativacaoOperacoes: React.FC<ModalInativacaoOperacoesProps> =
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
             lineHeight: 1.2
           }}>
-            📁 Inativar Operações
+            📁 Arquivar
           </h2>
           <button
             onClick={onClose}

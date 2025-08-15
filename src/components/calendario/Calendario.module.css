@@ -507,7 +507,8 @@
 }
 
 /* Cores leves para tipos de operação */
-.lightBLITZ {
+.lightBLITZ,
+.lightRADAR {
   background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%);
   border-color: #fca5a5;
 }
@@ -1120,7 +1121,8 @@
   background: var(--text-disabled);
 }
 
-.operacaoIndicator.modalidadeBLITZ {
+.operacaoIndicator.modalidadeBLITZ,
+.operacaoIndicador.modalidadeRADAR {
   background: var(--danger);
 }
 
@@ -1133,7 +1135,8 @@
 }
 
 /* ✅ MODALIDADES ESPECÍFICAS */
-.blitz {
+.blitz,
+.radar {
   border-left: 3px solid #ef4444;
 }
 
@@ -1142,7 +1145,8 @@
 }
 
 /* Tema escuro para modalidades */
-[data-theme='dark'] .blitz {
+[data-theme='dark'] .blitz,
+[data-theme='dark'] .radar {
   border-left-color: #f87171;
 }
 

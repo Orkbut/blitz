@@ -467,7 +467,7 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
                       fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
                       color: 'inherit'
                     }}>
-                      {modalidade === 'BLITZ' ? 'BLITZ' : 'BALANÇA'}
+                      {modalidade === 'BLITZ' ? 'RADAR' : 'BALANÇA'}
                     </span>
                     <span style={{
                       fontSize: 'clamp(0.7rem, 1.5vw, 0.8rem)',

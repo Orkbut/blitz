@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     console.log('🔍 Calculando relatório de diárias...');
     console.log('📊 Parâmetros:', { formato, janela_id, data_inicio, data_fim, servidor_id, supervisorRegionalId });
 
-    // 1. BUSCAR OPERAÇÕES (FILTRADAS POR REGIONAL)
+    // 1. BUSCAR OPERAÇÕES (FILTRADAS POR REGIONAL) - SEM FILTRO DE DATA PARA PRESERVAR CONTEXTO
     let queryOperacoes = supabase
       .from('operacao')
       .select(`
@@ -49,16 +49,12 @@ export async function GET(request: NextRequest) {
       queryOperacoes = queryOperacoes.eq('janela.regional_id', parseInt(supervisorRegionalId));
     }
 
-    // Filtros opcionais
+    // Filtros opcionais (exceto data - será aplicado na calculadora)
     if (janela_id) {
       queryOperacoes = queryOperacoes.eq('janela_id', parseInt(janela_id));
     }
 
-    if (data_inicio && data_fim) {
-      queryOperacoes = queryOperacoes
-        .gte('data_operacao', data_inicio)
-        .lte('data_operacao', data_fim);
-    }
+    // ⚠️ REMOVIDO FILTRO DE DATA AQUI - será aplicado na calculadora para preservar contexto das sequências
 
     const { data: operacoes, error: errorOperacoes } = await queryOperacoes
       .order('data_operacao', { ascending: true });
@@ -150,9 +146,14 @@ export async function GET(request: NextRequest) {
     console.log('🔄 Dados mapeados - Operações:', operacoesMapeadas.length, 'Participações:', participacoesMapeadas.length);
 
     // 4. CALCULAR ESTATÍSTICAS USANDO A LÓGICA DA TABELA DA DIRETORIA
+    // 🔧 PASSANDO FILTROS DE DATA PARA APLICAR NA CALCULADORA (preservando contexto das sequências)
     const estatisticas = CalculadorDiariasServidor.calcularEstatisticasServidores(
       operacoesMapeadas,
-      participacoesMapeadas
+      participacoesMapeadas,
+      {
+        filtroDataInicio: data_inicio || undefined,
+        filtroDataFim: data_fim || undefined
+      }
     );
 
     console.log('📈 Estatísticas calculadas para', estatisticas.length, 'servidores');
@@ -201,4 +202,4 @@ export async function GET(request: NextRequest) {
       details: error instanceof Error ? error.message : 'Erro desconhecido'
     }, { status: 500 });
   }
-} 
+}

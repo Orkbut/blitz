@@ -45,7 +45,7 @@ WHERE inativa_pelo_supervisor = true;
 ```tsx
 // Botão no cabeçalho do calendário
 <button onClick={() => setModalInativacaoAberto(true)}>
-  📁 Inativar Operações
+  📁 Arquivar
 </button>
 ```
 
@@ -156,7 +156,7 @@ interface ModalInativacaoState {
 const ERRORS = {
   OPERACAO_INATIVA: 'Esta operação está no histórico e não aceita mais solicitações',
   JANELA_COM_OPERACOES_INATIVAS: 'Não é possível excluir janela com operações inativas: {operacoes}',
-  SEM_PERMISSAO: 'Apenas supervisores podem inativar operações'
+  SEM_PERMISSAO: 'Apenas supervisores podem arquivar operações'
 };
 ```
 
@@ -193,7 +193,7 @@ describe('Inativação de Operações', () => {
 - Modificar API de exclusão de janela
 
 ### 2. Frontend Supervisor
-- Botão "Inativar Operações" no cabeçalho
+- Botão "Arquivar" no cabeçalho
 - Modal com calendário para seleção de operações
 - Integração com realtime para atualização automática
 

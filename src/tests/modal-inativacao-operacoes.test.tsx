@@ -82,12 +82,12 @@ describe('ModalInativacaoOperacoes', () => {
 
     it('deve renderizar o modal quando isOpen é true', () => {
         render(<ModalInativacaoOperacoes {...mockProps} />);
-        expect(screen.getByText('📁 Inativar Operações')).toBeInTheDocument();
+        expect(screen.getByText('📁 Arquivar')).toBeInTheDocument();
     });
 
     it('não deve renderizar quando isOpen é false', () => {
         render(<ModalInativacaoOperacoes {...mockProps} isOpen={false} />);
-        expect(screen.queryByText('📁 Inativar Operações')).not.toBeInTheDocument();
+        expect(screen.queryByText('📁 Arquivar')).not.toBeInTheDocument();
     });
 
     it('deve chamar onClose quando clicar no botão fechar', () => {
@@ -120,7 +120,7 @@ describe('ModalInativacaoOperacoes', () => {
         render(<ModalInativacaoOperacoes {...mockProps} />);
 
         // Verifica se o modal tem os elementos básicos
-        expect(screen.getByText('📁 Inativar Operações')).toBeInTheDocument();
+        expect(screen.getByText('📁 Arquivar')).toBeInTheDocument();
         expect(screen.getByLabelText('Fechar modal')).toBeInTheDocument();
         expect(screen.getByText('Carregando operações...')).toBeInTheDocument();
     });

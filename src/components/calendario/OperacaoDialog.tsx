@@ -870,7 +870,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                   <div key={operacao.id} className={`${styles.operacaoCard} ${operacoes.length > 1 ? styles.operacaoCardMultiple : ''}`}>
                     <div className={styles.operacaoHeader}>
                       <div className={styles.modalidadeBadge}>
-                        {operacao.modalidade === 'BLITZ' ? '🚨' : '⚖️'} {operacao.modalidade}
+                        {operacao.modalidade === 'BLITZ' ? '🚨' : '⚖️'} {operacao.modalidade === 'BLITZ' ? 'RADAR' : operacao.modalidade}
                       </div>
                       <div className={`${styles.tipoBadge} ${styles[operacao.tipo.toLowerCase()]}`}>
                         {operacao.tipo}
