@@ -5,7 +5,7 @@ import { useCallback, useRef, useMemo } from 'react';
 // 🎯 EVENT BATCHING UTILITY
 export class EventBatcher<T> {
   private events: T[] = [];
-  private batchTimeout: NodeJS.Timeout | null = null;
+  private batchTimeout: number | null = null;
   private readonly batchDelay: number;
   private readonly maxBatchSize: number;
   private readonly onBatch: (events: T[]) => void;
@@ -33,7 +33,7 @@ export class EventBatcher<T> {
     if (!this.batchTimeout) {
       this.batchTimeout = setTimeout(() => {
         this.flush();
-      }, this.batchDelay);
+      }, this.batchDelay) as unknown as number;
     }
   }
 
@@ -69,7 +69,7 @@ export class EventBatcher<T> {
 // 🎯 DEBOUNCED STATE UPDATER
 export class DebouncedStateUpdater<T> {
   private pendingUpdate: T | null = null;
-  private debounceTimeout: NodeJS.Timeout | null = null;
+  private debounceTimeout: number | null = null;
   private readonly debounceDelay: number;
   private readonly onUpdate: (value: T) => void;
 
@@ -91,7 +91,7 @@ export class DebouncedStateUpdater<T> {
         this.pendingUpdate = null;
       }
       this.debounceTimeout = null;
-    }, this.debounceDelay);
+    }, this.debounceDelay) as unknown as number;
   }
 
   flush(): void {
@@ -142,11 +142,11 @@ export class MemoizationCache<K, V> {
 
   private evictExpired(): void {
     const now = Date.now();
-    for (const [key, entry] of this.cache.entries()) {
+    Array.from(this.cache.entries()).forEach(([key, entry]) => {
       if (now - entry.timestamp > this.ttl) {
         this.cache.delete(key);
       }
-    }
+    });
   }
 
   private evictLRU(): void {
@@ -156,12 +156,12 @@ export class MemoizationCache<K, V> {
     let lruKey: string | null = null;
     let minAccessCount = Infinity;
 
-    for (const [key, entry] of this.cache.entries()) {
+    Array.from(this.cache.entries()).forEach(([key, entry]) => {
       if (entry.accessCount < minAccessCount) {
         minAccessCount = entry.accessCount;
         lruKey = key;
       }
-    }
+    });
 
     if (lruKey) {
       this.cache.delete(lruKey);
@@ -238,19 +238,19 @@ export class MemoizationCache<K, V> {
 // 🎯 CLEANUP MANAGER
 export class CleanupManager {
   private cleanupFunctions: (() => void)[] = [];
-  private timers: Set<NodeJS.Timeout> = new Set();
-  private intervals: Set<NodeJS.Timeout> = new Set();
+  private timers: Set<number> = new Set();
+  private intervals: Set<number> = new Set();
   private listeners: Map<EventTarget, { event: string; listener: EventListener }[]> = new Map();
 
   addCleanup(cleanup: () => void): void {
     this.cleanupFunctions.push(cleanup);
   }
 
-  addTimer(timer: NodeJS.Timeout): void {
+  addTimer(timer: number): void {
     this.timers.add(timer);
   }
 
-  addInterval(interval: NodeJS.Timeout): void {
+  addInterval(interval: number): void {
     this.intervals.add(interval);
   }
 
@@ -263,35 +263,35 @@ export class CleanupManager {
     this.listeners.get(target)!.push({ event, listener });
   }
 
-  removeTimer(timer: NodeJS.Timeout): void {
+  removeTimer(timer: number): void {
     clearTimeout(timer);
     this.timers.delete(timer);
   }
 
-  removeInterval(interval: NodeJS.Timeout): void {
+  removeInterval(interval: number): void {
     clearInterval(interval);
     this.intervals.delete(interval);
   }
 
   cleanup(): void {
     // Clear all timers
-    for (const timer of this.timers) {
+    Array.from(this.timers).forEach(timer => {
       clearTimeout(timer);
-    }
+    });
     this.timers.clear();
 
     // Clear all intervals
-    for (const interval of this.intervals) {
+    Array.from(this.intervals).forEach(interval => {
       clearInterval(interval);
-    }
+    });
     this.intervals.clear();
 
     // Remove all event listeners
-    for (const [target, listeners] of this.listeners.entries()) {
-      for (const { event, listener } of listeners) {
+    Array.from(this.listeners.entries()).forEach(([target, listeners]) => {
+      listeners.forEach(({ event, listener }) => {
         target.removeEventListener(event, listener);
-      }
-    }
+      });
+    });
     this.listeners.clear();
 
     // Execute custom cleanup functions
@@ -491,11 +491,11 @@ export function useCleanupManager() {
     managerRef.current?.addCleanup(cleanup);
   }, []);
 
-  const addTimer = useCallback((timer: NodeJS.Timeout) => {
+  const addTimer = useCallback((timer: number) => {
     managerRef.current?.addTimer(timer);
   }, []);
 
-  const addInterval = useCallback((interval: NodeJS.Timeout) => {
+  const addInterval = useCallback((interval: number) => {
     managerRef.current?.addInterval(interval);
   }, []);
 
@@ -508,11 +508,11 @@ export function useCleanupManager() {
     managerRef.current?.addEventListener(target, event, listener, options);
   }, []);
 
-  const removeTimer = useCallback((timer: NodeJS.Timeout) => {
+  const removeTimer = useCallback((timer: number) => {
     managerRef.current?.removeTimer(timer);
   }, []);
 
-  const removeInterval = useCallback((interval: NodeJS.Timeout) => {
+  const removeInterval = useCallback((interval: number) => {
     managerRef.current?.removeInterval(interval);
   }, []);
 
@@ -546,7 +546,7 @@ export function throttle<T extends (...args: any[]) => any>(
   func: T,
   delay: number
 ): T & { cancel: () => void } {
-  let timeoutId: NodeJS.Timeout | null = null;
+  let timeoutId: number | null = null;
   let lastExecTime = 0;
   let lastArgs: Parameters<T> | null = null;
 
@@ -566,7 +566,7 @@ export function throttle<T extends (...args: any[]) => any>(
         if (lastArgs) {
           func(...lastArgs);
         }
-      }, delay - (now - lastExecTime));
+      }, delay - (now - lastExecTime)) as unknown as number;
     }
   }) as T & { cancel: () => void };
 
@@ -588,7 +588,7 @@ export function debounce<T extends (...args: any[]) => any>(
   func: T,
   delay: number
 ): T & { cancel: () => void; flush: () => void } {
-  let timeoutId: NodeJS.Timeout | null = null;
+  let timeoutId: number | null = null;
   let lastArgs: Parameters<T> | null = null;
 
   const debouncedFunc = ((...args: Parameters<T>) => {
@@ -604,7 +604,7 @@ export function debounce<T extends (...args: any[]) => any>(
         func(...lastArgs);
         lastArgs = null;
       }
-    }, delay);
+    }, delay) as unknown as number;
   }) as T & { cancel: () => void; flush: () => void };
 
   debouncedFunc.cancel = () => {

@@ -30,8 +30,8 @@
 
 /* Estilo para operações inativas */
 .operacao-inativa {
-  opacity: 0.7;
-  filter: grayscale(50%);
+  opacity: 0.85;
+  filter: grayscale(30%);
   position: relative;
 }
 

@@ -897,18 +897,20 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                         </span>
                       </div>
 
-                      {seraConfirmado ? (
-                        <div className={styles.vagasRestantes}>
-                          ✅ {vagasDisponiveis} {vagasDisponiveis === 1 ? 'vaga disponível' : 'vagas disponíveis'}
-                        </div>
-                      ) : entraNaFila ? (
-                        <div className={styles.vagasRestantes} style={{color: '#f59e0b'}}>
-                          ⏳ Operação lotada - Você entrará na fila (posição {naFila + 1})
-                        </div>
-                      ) : (
-                        <div className={styles.vagasRestantes} style={{color: '#ef4444'}}>
-                          🚫 Operação completamente lotada (fila também cheia)
-                        </div>
+                      {!operacao.inativa_pelo_supervisor && (
+                        seraConfirmado ? (
+                          <div className={styles.vagasRestantes}>
+                            ✅ {vagasDisponiveis} {vagasDisponiveis === 1 ? 'vaga disponível' : 'vagas disponíveis'}
+                          </div>
+                        ) : entraNaFila ? (
+                          <div className={styles.vagasRestantes} style={{color: '#f59e0b'}}>
+                            ⏳ Operação lotada - Você entrará na fila (posição {naFila + 1})
+                          </div>
+                        ) : (
+                          <div className={styles.vagasRestantes} style={{color: '#ef4444'}}>
+                            🚫 Operação completamente lotada (fila também cheia)
+                          </div>
+                        )
                       )}
                     </div>
 

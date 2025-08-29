@@ -342,12 +342,12 @@ class DataFetcher {
     let oldestKey = '';
     let oldestTime = Date.now();
     
-    for (const [key, accessTime] of this.cacheAccessOrder) {
+    Array.from(this.cacheAccessOrder.entries()).forEach(([key, accessTime]) => {
       if (accessTime < oldestTime) {
         oldestTime = accessTime;
         oldestKey = key;
       }
-    }
+    });
     
     if (oldestKey) {
       this.cache.delete(oldestKey);
@@ -545,7 +545,7 @@ class DataFetcher {
   invalidateCacheForTables(tables: string[]): void {
     const keysToDelete: string[] = [];
     
-    for (const [key, _] of this.cache) {
+    Array.from(this.cache.keys()).forEach(key => {
       try {
         const parsedKey = JSON.parse(key);
         const keyTables = parsedKey.tables || [];
@@ -558,7 +558,7 @@ class DataFetcher {
         // Se não conseguir parsear a chave, remove por segurança
         keysToDelete.push(key);
       }
-    }
+    });
     
     keysToDelete.forEach(key => {
       this.cache.delete(key);
@@ -570,7 +570,7 @@ class DataFetcher {
   invalidateCacheForEndpoint(endpoint: string): void {
     const keysToDelete: string[] = [];
     
-    for (const [key, _] of this.cache) {
+    Array.from(this.cache.keys()).forEach(key => {
       try {
         const parsedKey = JSON.parse(key);
         if (parsedKey.endpoint === endpoint) {
@@ -579,7 +579,7 @@ class DataFetcher {
       } catch (error) {
         keysToDelete.push(key);
       }
-    }
+    });
     
     keysToDelete.forEach(key => {
       this.cache.delete(key);
@@ -608,10 +608,10 @@ class DataFetcher {
 
   private estimateMemoryUsage(): number {
     let totalSize = 0;
-    for (const [key, value] of this.cache) {
+    Array.from(this.cache.entries()).forEach(([key, value]) => {
       totalSize += key.length * 2; // Aproximação para string UTF-16
       totalSize += JSON.stringify(value.data).length * 2;
-    }
+    });
     return totalSize;
   }
 }

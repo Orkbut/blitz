@@ -1,0 +1,291 @@
+/* Design simples e intuitivo - Cards limpos */
+.limitesContainer {
+  padding: 8px;
+}
+
+@media (min-width: 768px) {
+  .limitesContainer {
+    /* Centraliza qualquer filho (cardsGrid/circularIndicators) */
+    display: grid;
+    justify-items: center;
+  }
+}
+.cardsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.limiteCard {
+  background: white;
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f1f5f9;
+  transition: all 0.2s ease;
+}
+
+.limiteCard:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.cardIcon {
+  font-size: 16px;
+  font-weight: bold;
+  width: 20px;
+  text-align: center;
+  color: #64748b;
+}
+
+.cardStatus {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cardPeriodo {
+  font-size: 11px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+
+.cardValue {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 8px;
+  line-height: 1;
+}
+
+.limite {
+  font-size: 16px;
+  font-weight: 500;
+  color: #9ca3af;
+}
+
+.progressBar {
+  height: 4px;
+  background: #f1f5f9;
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progressBar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: var(--progress);
+  background: var(--color);
+  border-radius: 2px;
+  transition: width 0.6s ease;
+}
+
+/* Variações por tipo */
+.limiteCard.anterior .cardIcon {
+  color: #6b7280;
+}
+
+.limiteCard.corrente {
+  border-color: #3b82f6;
+  background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);
+}
+
+.limiteCard.corrente .cardIcon {
+  color: #3b82f6;
+}
+
+.limiteCard.diarias .cardIcon {
+  color: #059669;
+}
+
+.loadingState {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 32px;
+}
+
+.loadingSpinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #f3f4f6;
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.errorState {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  opacity: 0.6;
+}
+
+/* Layout dos indicadores circulares - SEMPRE horizontal com responsividade inteligente */
+.circularIndicators {
+  display: flex;
+  flex-direction: row;
+  gap: clamp(6px, 2vw, 20px);
+  align-items: flex-start;
+  justify-content: center; /* Centralizado em todas as resoluções */
+  width: 100%;
+  padding: clamp(8px, 2vw, 16px);
+  flex-wrap: nowrap;
+  overflow-x: auto; /* Mantém rolagem segura quando necessário */
+  overflow-y: visible;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  min-height: clamp(140px, 30vw, 180px); /* altura suficiente para círculo + período */
+  /* Esconder scrollbar mas manter funcionalidade */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.circularIndicators::-webkit-scrollbar {
+  display: none;
+}
+
+/* Garantir que cada círculo tenha espaço fixo e adequado */
+.circularIndicators > * {
+  flex: 0 0 auto;
+  min-width: clamp(90px, 22vw, 130px);
+  max-width: clamp(130px, 28vw, 170px);
+  margin-right: clamp(4px, 1.5vw, 12px);
+  height: auto;
+  overflow: visible;
+}
+
+.circularIndicators > *:last-child {
+  margin-right: 0;
+}
+
+/* Layout responsivo otimizado - sempre horizontal */
+@media (min-width: 360px) {
+  .circularIndicators {
+    gap: clamp(8px, 2.5vw, 24px);
+    min-height: clamp(150px, 32vw, 190px);
+  }
+  
+  .circularIndicators > * {
+    min-width: clamp(100px, 24vw, 140px);
+    max-width: clamp(140px, 30vw, 180px);
+  }
+}
+
+@media (min-width: 480px) {
+  .circularIndicators {
+    gap: clamp(10px, 3vw, 28px);
+    justify-content: center; /* Mantém centralizado no desktop */
+    overflow-x: auto; /* Evita corte quando não couber */
+    min-height: clamp(160px, 34vw, 200px);
+  }
+  
+  .circularIndicators > * {
+    flex: 0 0 auto; /* Evita expansão desigual dos itens */
+    min-width: clamp(110px, 26vw, 150px);
+    max-width: clamp(150px, 32vw, 190px);
+    margin-right: 0;
+  }
+}
+
+@media (min-width: 768px) {
+  .circularIndicators {
+    gap: clamp(16px, 4vw, 36px);
+    padding: clamp(12px, 3vw, 20px);
+    min-height: clamp(170px, 36vw, 210px);
+    /* Centraliza relativo à viewport mesmo quando o container pai é mais largo que a tela */
+    width: fit-content;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    overflow-x: visible; /* evita que o conteúdo "fuja" para a direita no desktop */
+  }
+  
+  .circularIndicators > * {
+    min-width: clamp(130px, 28vw, 170px);
+    max-width: clamp(170px, 34vw, 210px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .circularIndicators {
+    gap: clamp(20px, 5vw, 44px);
+    padding: clamp(16px, 3.5vw, 24px);
+    min-height: clamp(180px, 38vw, 220px);
+    /* Centraliza relativo à viewport mesmo quando o container pai é mais largo que a tela */
+    width: fit-content;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    overflow-x: visible; /* evita que o conteúdo "fuja" para a direita no desktop */
+  }
+  
+  .circularIndicators > * {
+    min-width: clamp(150px, 30vw, 190px);
+    max-width: clamp(190px, 36vw, 230px);
+  }
+}
+
+@media (min-width: 1200px) {
+  .circularIndicators {
+    gap: clamp(24px, 6vw, 52px);
+    min-height: clamp(190px, 40vw, 240px);
+    /* Centraliza relativo à viewport mesmo quando o container pai é mais largo que a tela */
+    width: fit-content;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    overflow-x: visible; /* evita que o conteúdo "fuja" para a direita no desktop */
+  }
+  
+  .circularIndicators > * {
+    min-width: clamp(160px, 32vw, 200px);
+    max-width: clamp(200px, 38vw, 240px);
+  }
+}
+
+/* Desktop: layout horizontal */
+@media (min-width: 768px) {
+  .cardsGrid {
+    flex-direction: row;
+    gap: 12px;
+  }
+  
+  .limiteCard {
+    flex: 1;
+    min-height: 90px;
+  }
+  
+  .cardValue {
+    font-size: 28px;
+  }
+  
+  .limite {
+    font-size: 18px;
+  }
+  
+  .progressBar {
+    height: 5px;
+  }
+}

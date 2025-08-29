@@ -69,13 +69,13 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
     let lastScroll = 0;
     const handleScroll = () => {
       const currentScroll = window.scrollY;
-      
+
       if (currentScroll <= 0) {
         header.style.transform = 'translateY(0)';
         header.style.opacity = '1';
         return;
       }
-      
+
       if (currentScroll > lastScroll) {
         // Scroll para baixo - esconde header
         header.style.transform = 'translateY(-100%)';
@@ -85,7 +85,7 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
         header.style.transform = 'translateY(0)';
         header.style.opacity = '1';
       }
-      
+
       lastScroll = currentScroll;
     };
 
@@ -230,8 +230,8 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
   const dias = useMemo(() => {
     if (!janelaSelecionada) return [];
 
-    const weekStart = startOfWeek(calendarStart, { weekStartsOn: 1 });
-    const weekEnd = endOfWeek(calendarEnd, { weekStartsOn: 1 });
+    const weekStart = startOfWeek(calendarStart, { weekStartsOn: 0 });
+    const weekEnd = endOfWeek(calendarEnd, { weekStartsOn: 0 });
 
     return eachDayOfInterval({ start: weekStart, end: weekEnd });
   }, [calendarStart, calendarEnd, janelaSelecionada]);
@@ -277,7 +277,7 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
           padding: 'clamp(8px, 2vw, 16px)'
         }}>
           {/* Cabeçalho Responsivo Profissional - LAYOUT ADAPTATIVO */}
-          <div 
+          <div
             className="bg-gradient-to-r from-blue-500 to-blue-600 text-white sticky top-0 z-[100] transition-all duration-300 ease-in-out"
             style={{
               padding: 'clamp(6px, 1vw, 10px) clamp(8px, 1.5vw, 16px)',
@@ -291,42 +291,51 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
           >
             {/* Container Principal - Layout Inteligente Mobile/Desktop */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-4 transition-all duration-300 ease-in-out">
-              
+            
               {/* SEÇÃO PRINCIPAL: Seletor + Período (Mobile: Stack, Desktop: Horizontal) */}
-              <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 flex-1 min-w-0">
-                
-                {/* Seletor de Janela - ULTRA COMPACTO */}
-                <div className="relative mx-auto" style={{ minWidth: 'clamp(140px, 18vw, 200px)', maxWidth: 'clamp(200px, 25vw, 260px)', order: '2' }}>
+              <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 flex-1 min-w-0"
+                   style={{
+                     rowGap: 'clamp(4px, 1vw, 8px)'
+                   }}>
+
+                {/* Seletor de Janela - ULTRA COMPACTO AJUSTADO */}
+                <div className="relative mx-auto" style={{ minWidth: 'clamp(120px, 16vw, 180px)', maxWidth: 'clamp(180px, 22vw, 220px)', order: '2', zIndex: 1, overflow: 'hidden', borderRadius: 'clamp(4px, 0.8vw, 6px)' }}>
                   <select
                     value={janelaSelecionada || ''}
                     onChange={(e) => setJanelaSelecionada(Number(e.target.value) || null)}
-                    className="w-full bg-white/25 border border-white/50 text-white focus:outline-none focus:ring-2 focus:ring-white/70 transition-all hover:bg-white/30 appearance-none cursor-pointer backdrop-blur-sm"
+                    className="w-full bg-white/90 border border-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all hover:bg-white appearance-none cursor-pointer shadow-sm"
                     aria-label="Selecionar janela operacional"
                     style={{
-                      padding: 'clamp(6px, 1vw, 8px) clamp(24px, 4vw, 32px) clamp(6px, 1vw, 8px) clamp(10px, 1.8vw, 14px)',
+                      padding: 'clamp(5px, 0.9vw, 7px) clamp(22px, 3.5vw, 28px) clamp(5px, 0.9vw, 7px) clamp(8px, 1.5vw, 12px)',
                       borderRadius: 'clamp(4px, 0.8vw, 6px)',
-                      fontSize: 'clamp(0.65rem, 1.1vw, 0.75rem)',
+                      fontSize: 'clamp(0.6rem, 1vw, 0.7rem)',
                       boxSizing: 'border-box',
                       boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
                       fontWeight: '500',
-                      lineHeight: '1.3'
+                      lineHeight: '1.2',
+                      maxWidth: '100%',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
                     }}
                   >
                     <option value="" className="text-gray-900 bg-white">
-                      📋 Selecione janela...
+                      📋 Janela...
                     </option>
                     {janelas.map((janela) => {
-                      const periodoFormatado = formatarPeriodoJanela(janela.dataInicio, janela.dataFim);
+                      // Formato resumido para economizar espaço: apenas DD/MM
+                      const dataInicioResumo = formatarDataBR(janela.dataInicio).substring(0, 5); // DD/MM
+                      const dataFimResumo = formatarDataBR(janela.dataFim).substring(0, 5); // DD/MM
                       return (
                         <option key={janela.id} value={janela.id} className="text-gray-900 bg-white py-1">
-                          📅 #{janela.id} • {periodoFormatado}
+                          #{janela.id} • {dataInicioResumo} - {dataFimResumo}
                         </option>
                       );
                     })}
                   </select>
                   <div
                     className="absolute top-1/2 transform -translate-y-1/2 pointer-events-none"
-                    style={{ right: 'clamp(4px, 0.8vw, 8px)' }}
+                    style={{ right: 'clamp(3px, 0.6vw, 6px)' }}
                   >
                     <svg
                       className="text-white/80"
@@ -334,8 +343,8 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
                       stroke="currentColor"
                       viewBox="0 0 24 24"
                       style={{
-                        width: 'clamp(10px, 1.5vw, 14px)',
-                        height: 'clamp(10px, 1.5vw, 14px)'
+                        width: 'clamp(8px, 1.2vw, 12px)',
+                        height: 'clamp(8px, 1.2vw, 12px)'
                       }}
                     >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -493,23 +502,23 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
             </div>
           </div>
 
-          {/* Grid do Calendário */}
+          {/* Grid do Calendário - NOVO DESIGN COM TILES */}
           {janelaSelecionada ? (
-            <div className="p-1 sm:p-2 md:p-4 lg:p-6">
+            <div className="p-2 sm:p-4 md:p-6">
               {/* Cabeçalho da semana - Ordem brasileira */}
-              <div className="bg-gradient-to-r from-slate-100 to-slate-200 border-b-2 border-slate-300">
-                <div className="grid grid-cols-7 gap-0">
-                  {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map((dia) => (
-                    <div key={dia} className="p-1 sm:p-1.5 md:p-3 text-center">
-                      <span className="text-[9px] xs:text-[10px] sm:text-xs md:text-sm font-bold text-slate-600 uppercase tracking-wider">{dia}</span>
+              <div className="bg-gradient-to-r from-slate-100 to-slate-200 rounded-t-lg border-b border-slate-300">
+                <div className="grid grid-cols-7 gap-2 p-3">
+                  {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((dia) => (
+                    <div key={dia} className="text-center">
+                      <span className="text-xs sm:text-sm font-bold text-slate-600 uppercase tracking-wider">{dia}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Grid do calendário profissional */}
-              <div className="bg-gradient-to-br from-white to-slate-50 overflow-x-auto">
-                <div className="grid grid-cols-7 gap-0 border-l-0 md:border-l border-slate-300 min-w-[280px] xs:min-w-[320px]">
+              {/* Grid do calendário com tiles */}
+              <div className={`bg-gradient-to-br from-slate-50 to-white rounded-b-lg ${supervisorStyles['calendar-container']}`}>
+                <div className={`grid grid-cols-7 ${supervisorStyles['calendar-grid']}`}>
                   {dias.map((dia, index) => {
                     const dataFormatada = format(dia, 'yyyy-MM-dd');
                     const operacoesDia = operacoesPorDia[dataFormatada] || [];
@@ -529,17 +538,19 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
 
                     const isComplementoSemana = !isDentroDoPeríodo && !temOperacoes;
 
-                    const diaDaSemana = (dia.getDay() + 6) % 7;
-                    const isInicioSemana = diaDaSemana === 0;
-                    
-                    // Ajustes de responsividade para mobile
-                    const cellPadding = 'p-1 xs:p-1.5 sm:p-2 md:p-3';
-                    const cellTextSize = 'text-[10px] xs:text-xs sm:text-sm';
-                    const cellHeight = 'h-12 xs:h-14 sm:h-16 md:h-20';
-                    const cellBorder = 'border-r border-b border-slate-300';
-                    const cellBg = isToday_ ? 'bg-blue-50' : isDentroDoPeríodo ? 'bg-white' : 'bg-slate-50';
-                    const cellOpacity = isComplementoSemana ? 'opacity-60' : '';
-                    const isFimSemana = diaDaSemana === 6;
+                    // Calcular dados para o anel de progresso
+                    const confirmados = operacoesDia.reduce((acc, op) => acc + (op.participantes_confirmados || 0), 0);
+                    const capacidadeTotal = operacoesDia.reduce((acc, op) => acc + op.limite_participantes, 0);
+                    const pendencias = operacoesDia.reduce((acc, op) => acc + ((op as any).total_solicitacoes || 0), 0);
+                    const percentualOcupacao = capacidadeTotal > 0 ? Math.min(confirmados / capacidadeTotal, 1) : 0;
+
+                    // Função para cor do anel
+                    const getCorAnel = () => {
+                      if (percentualOcupacao >= 0.9) return '#ef4444'; // red
+                      if (percentualOcupacao >= 0.7) return '#f59e0b'; // amber
+                      if (percentualOcupacao > 0) return '#22c55e'; // green
+                      return '#e5e7eb'; // gray
+                    };
 
                     return (
                       <div
@@ -547,20 +558,25 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
                         data-calendar-day={format(dia, 'yyyy-MM-dd')}
                         data-has-operations={operacoesDia.length > 0}
                         className={`
-                      min-h-[80px] xs:min-h-[100px] sm:min-h-[120px] md:min-h-[150px] border-r border-b md:border-r-2 md:border-b-2 border-slate-300 relative group transition-all duration-300
-                      ${temOperacoes ? 'cursor-pointer' : ''}
-                      ${isComplementoSemana
-                            ? 'bg-gradient-to-br from-slate-100 to-slate-200'
+                          relative rounded-2xl border transition-all duration-300 group
+                          ${supervisorStyles['tile-safe']}
+                          ${temOperacoes ? 'cursor-pointer hover:shadow-lg hover:scale-[1.02]' : ''}
+                          ${isComplementoSemana ? 'opacity-40' : ''}
+                          ${isToday_ ? 'ring-2 ring-blue-500 ring-offset-1' : ''}
+                        `}
+                        style={{
+                          background: isComplementoSemana
+                            ? 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)'
                             : isDentroDoPeríodo
-                              ? 'bg-gradient-to-br from-white via-slate-50 to-blue-50 shadow-inner'
-                              : 'bg-gradient-to-br from-slate-50 to-slate-100'
-                          }
-                      ${isToday_ ? 'ring-2 ring-blue-500 ring-inset bg-gradient-to-br from-blue-50 to-blue-100' : ''}
-                      ${temOperacoes ? 'hover:shadow-lg hover:bg-gradient-to-br hover:from-blue-100 hover:to-blue-200' : ''}
-                      ${isInicioSemana ? 'border-l-2 border-l-slate-300' : ''}
-                      ${isFimSemana ? 'border-r-2 border-r-slate-300' : ''}
-                      ${cellPadding} ${cellHeight} ${cellBorder} ${cellBg} ${cellOpacity}
-                    `}
+                              ? 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)'
+                              : 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                          borderColor: isToday_ ? '#3b82f6' : '#e2e8f0',
+                          boxShadow: isToday_
+                            ? '0 4px 12px rgba(59, 130, 246, 0.15)'
+                            : temOperacoes
+                              ? '0 2px 8px rgba(0, 0, 0, 0.1)'
+                              : '0 1px 3px rgba(0, 0, 0, 0.05)'
+                        }}
                         onClick={() => {
                           console.log('🔍 [CalendarioSupervisor] Clique detectado:', {
                             dataFormatada,
@@ -577,328 +593,231 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
                           }
                         }}
                       >
-                        {/* Data do dia - COMPACTO COMO CALENDÁRIO SIMPLES */}
-                        <div 
-                          className={`font-bold ${isToday_
-                            ? 'text-blue-700 bg-blue-200'
+                        {/* Badge de pendências - POSICIONAMENTO SEGURO */}
+                        {pendencias > 0 && !isComplementoSemana && (
+                          <div
+                            className="absolute bg-amber-500 text-white rounded-full flex items-center justify-center font-bold z-20"
+                            style={{
+                              top: 'clamp(-6px, -1vw, -4px)',
+                              right: 'clamp(-6px, -1vw, -4px)',
+                              minWidth: 'clamp(16px, 2.2vw, 20px)',
+                              height: 'clamp(16px, 2.2vw, 20px)',
+                              fontSize: 'clamp(0.45rem, 0.9vw, 0.6rem)',
+                              boxShadow: '0 2px 6px rgba(245, 158, 11, 0.4)',
+                              // Garantir que o badge não seja cortado
+                              transform: 'translate(0, 0)'
+                            }}
+                          >
+                            {pendencias > 99 ? '99+' : pendencias}
+                          </div>
+                        )}
+
+                        {/* Múltiplos anéis para operações individuais */}
+                        {temOperacoes && (
+                          <div className="absolute inset-0 flex items-center justify-center" style={{ padding: 'clamp(4px, 1vw, 8px)' }}>
+                            <div className="relative flex items-center justify-center">
+                              <svg
+                                viewBox="0 0 62 62"
+                                className="transform -rotate-90"
+                                style={{
+                                  width: 'clamp(45px, 8vw, 65px)',
+                                  height: 'clamp(45px, 8vw, 65px)',
+                                  maxWidth: '85%',
+                                  maxHeight: '85%'
+                                }}
+                              >
+                                {operacoesDia.map((operacao, index) => {
+                                  const raio = 24 - (index * 6); // Anéis concêntricos com raios decrescentes
+                                  const strokeWidth = operacoesDia.length === 1 ? 5 : 4;
+                                  const participantesConfirmados = operacao.participantes_confirmados || 0;
+                                  const totalSolicitacoes = operacao.total_solicitacoes || 0;
+                                  const limiteParticipantes = operacao.limite_participantes || 1;
+                                  
+                                  // Calcular proporções
+                                  const percentualConfirmados = Math.min(participantesConfirmados / limiteParticipantes, 1);
+                                  const percentualSolicitacoes = Math.min(totalSolicitacoes / limiteParticipantes, 1);
+                                  
+                                  // Cores
+                                  const corConfirmados = '#22c55e'; // Verde para confirmados
+                                  const corPendentes = '#f59e0b'; // Amarelo/laranja para pendentes (cor de notificação)
+                                  
+                                  const circumferencia = 2 * Math.PI * raio;
+                                  
+                                  return (
+                                    <g key={operacao.id}>
+                                      {/* Trilha do anel (fundo) */}
+                                      <circle
+                                        cx="31"
+                                        cy="31"
+                                        r={raio}
+                                        fill="none"
+                                        stroke="#e5e7eb"
+                                        strokeWidth={strokeWidth}
+                                        opacity={0.3}
+                                      />
+                                      
+                                      {/* Anel para solicitações pendentes (base) */}
+                                      {totalSolicitacoes > 0 && (
+                                        <circle
+                                          cx="31"
+                                          cy="31"
+                                          r={raio}
+                                          fill="none"
+                                          stroke={corPendentes}
+                                          strokeWidth={strokeWidth}
+                                          strokeLinecap="round"
+                                          strokeDasharray={circumferencia}
+                                          strokeDashoffset={circumferencia * (1 - percentualSolicitacoes)}
+                                          style={{
+                                            transition: 'stroke-dashoffset 0.3s ease'
+                                          }}
+                                        />
+                                      )}
+                                      
+                                      {/* Anel para confirmados (sobrepõe as pendentes) */}
+                                      {participantesConfirmados > 0 && (
+                                        <circle
+                                          cx="31"
+                                          cy="31"
+                                          r={raio}
+                                          fill="none"
+                                          stroke={corConfirmados}
+                                          strokeWidth={strokeWidth}
+                                          strokeLinecap="round"
+                                          strokeDasharray={circumferencia}
+                                          strokeDashoffset={circumferencia * (1 - percentualConfirmados)}
+                                          style={{
+                                            transition: 'stroke-dashoffset 0.3s ease'
+                                          }}
+                                        />
+                                      )}
+                                    </g>
+                                  );
+                                })}
+                              </svg>
+                              
+                              {/* Informação central */}
+                              <div 
+                                className="absolute inset-0 flex flex-col items-center justify-center text-center"
+                                style={{
+                                  pointerEvents: 'none'
+                                }}
+                              >
+                                {operacoesDia.length === 1 ? (
+                                  /* Uma operação: mostrar confirmados/total */
+                                  <div 
+                                    className="font-bold text-slate-700"
+                                    style={{
+                                      fontSize: 'clamp(0.7rem, 1.4vw, 1rem)',
+                                      lineHeight: '1',
+                                      textShadow: '0 1px 3px rgba(255,255,255,0.9)',
+                                      fontWeight: '700'
+                                    }}
+                                  >
+                                    {confirmados}/{capacidadeTotal}
+                                  </div>
+                                ) : (
+                                  /* Múltiplas operações: mostrar contador */
+                                  <>
+                                    <div 
+                                      className="text-slate-800"
+                                      style={{
+                                        fontSize: 'clamp(0.9rem, 1.8vw, 1.2rem)',
+                                        lineHeight: '1',
+                                        fontWeight: '500',
+                                        letterSpacing: '-0.025em',
+                                        textShadow: '0 1px 2px rgba(255,255,255,0.7)',
+                                        color: '#1e293b'
+                                      }}
+                                    >
+                                      {operacoesDia.length}
+                                    </div>
+                                    <div 
+                                      className="text-slate-600"
+                                      style={{
+                                        fontSize: 'clamp(0.5rem, 1.0vw, 0.7rem)',
+                                        lineHeight: '1',
+                                        fontWeight: '400',
+                                        letterSpacing: '0.025em',
+                                        textShadow: '0 1px 1px rgba(255,255,255,0.6)',
+                                        marginTop: '1px',
+                                        color: '#64748b',
+                                        textTransform: 'uppercase'
+                                      }}
+                                    >
+                                      ops
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Modalidade da operação - Parte inferior do ciclo */}
+                        {operacoesDia.length === 1 && (
+                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
+                            <div 
+                              className="bg-white/95 border border-slate-200 rounded-full px-2.5 py-1 shadow-sm"
+                              style={{
+                                fontSize: 'clamp(0.55rem, 1.2vw, 0.8rem)',
+                                fontWeight: 600,
+                                color: '#334155',
+                                letterSpacing: '0.03em',
+                                textTransform: 'uppercase',
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+                                border: '1px solid #e2e8f0',
+                                minWidth: 'clamp(34px, 6vw, 56px)',
+                                textAlign: 'center' as const,
+                                backdropFilter: 'blur(2px)'
+                              }}
+                            >
+                              {String(operacoesDia[0].modalidade || '').toUpperCase() === 'BLITZ' 
+                                ? 'RADAR' 
+                                : String(operacoesDia[0].modalidade || '').toUpperCase()}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Número do dia - POSICIONAMENTO SEGURO */}
+                        <div
+                          className={`absolute font-bold rounded-full flex items-center justify-center z-10 ${isToday_
+                            ? 'text-blue-700 bg-blue-100'
                             : isComplementoSemana
-                              ? 'text-slate-400 bg-white/90'
+                              ? 'text-slate-400 bg-white/80'
                               : isDentroDoPeríodo
-                                ? 'text-slate-800 bg-white/90'
-                                : 'text-slate-500 bg-white/90'
+                                ? 'text-slate-800 bg-white/80'
+                                : 'text-slate-500 bg-white/80'
                             }`}
                           style={{
-                            fontSize: 'clamp(0.7rem, 2vw, 0.9rem)',
-                            position: 'absolute',
-                            top: 'clamp(2px, 0.5vw, 4px)',
-                            left: 'clamp(2px, 0.5vw, 4px)',
-                            minWidth: 'clamp(14px, 3vw, 18px)',
-                            height: 'clamp(14px, 3vw, 18px)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            borderRadius: '50%',
-                            transition: 'all 0.2s ease',
-                            flexShrink: '0',
-                            zIndex: '10',
+                            top: 'clamp(2px, 0.5vw, 6px)',
+                            left: 'clamp(2px, 0.5vw, 6px)',
+                            width: 'clamp(16px, 2.8vw, 24px)',
+                            height: 'clamp(16px, 2.8vw, 24px)',
+                            fontSize: 'clamp(0.6rem, 1.2vw, 0.8rem)',
                             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                           }}
                         >
                           {format(dia, 'd')}
-                          {isToday_ && <span style={{ marginLeft: '2px', fontSize: '0.6rem' }}>📍</span>}
                         </div>
 
-                        {/* Operações do dia - TÉCNICA DO CALENDÁRIO DOS MEMBROS */}
-                        {temOperacoes && (
-                          <div
-                            style={{
-                              flex: '1',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: 'clamp(1px, 0.3vw, 2px)',
-                              textAlign: 'center',
-                              padding: 'clamp(3px, 0.6vw, 6px)',
-                              marginTop: 'clamp(8px, 1.5vw, 12px)',
-                              height: 'calc(100% - clamp(8px, 1.5vw, 12px))',
-                              boxSizing: 'border-box',
-                              position: 'relative',
-                              overflow: 'visible',
-                              width: '100%'
-                            }}
-                          >
-                            {operacoesDia.slice(0, 3).map((operacao) => (
-                              <div
-                                key={operacao.id}
-                                className={`
-                              relative overflow-hidden transition-all duration-200 
-                              hover:shadow-lg hover:scale-[1.02]
-                              ${operacao.modalidade === 'BLITZ'
-                                    ? 'bg-gradient-to-br from-red-50 via-red-50 to-red-100 border border-red-200 hover:border-red-300'
-                                    : 'bg-gradient-to-br from-amber-50 via-amber-50 to-amber-100 border border-amber-200 hover:border-amber-300'
-                                  }
-                              ${operacao.inativa_pelo_supervisor ? supervisorStyles['operacao-inativa'] : ''}
-                            `}
-                                style={{
-                                  borderRadius: 'clamp(3px, 0.8vw, 6px)',
-                                  padding: 'clamp(2px, 0.5vw, 4px) clamp(3px, 0.7vw, 6px)',
-                                  width: '100%',
-                                  minHeight: 'clamp(30px, 6vw, 50px)',
-                                  boxSizing: 'border-box',
-                                  pointerEvents: 'none'
-                                }}
-                              >
-                                {/* Header da operação - TÉCNICA DO CALENDÁRIO DOS MEMBROS */}
-                                <div
-                                  className="flex items-center justify-center w-full text-center"
-                                  style={{
-                                    gap: 'clamp(1px, 0.3vw, 2px)',
-                                    marginBottom: 'clamp(1px, 0.2vw, 2px)',
-                                    padding: 'clamp(1px, 0.2vw, 2px)',
-                                    fontSize: 'clamp(0.45rem, 1.2vw, 0.65rem)',
-                                    fontWeight: '700',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: 'clamp(0.1px, 0.2vw, 0.3px)',
-                                    lineHeight: '1.1',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap'
-                                  }}
-                                >
-                                  <span
-                                    style={{
-                                      fontSize: 'clamp(0.4rem, 1.2vw, 0.6rem)',
-                                      flexShrink: '0'
-                                    }}
-                                  >
-                                    {operacao.modalidade === 'BLITZ' ? '🚨' : ''}
-                                  </span>
-                                  <span className={`${operacao.modalidade === 'BLITZ' ? 'text-red-700' : 'text-amber-700'} ${operacao.inativa_pelo_supervisor ? 'opacity-60' : ''}`}>
-                                    {operacao.modalidade === 'BLITZ' ? 'RADAR' : operacao.modalidade}
-                                  </span>
-                                </div>
 
-                                {/* Barras de status - TÉCNICA DO CALENDÁRIO DOS MEMBROS */}
-                                <div style={{
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  gap: 'clamp(1px, 0.2vw, 2px)',
-                                  width: '100%'
-                                }}>
-                                  {(() => {
-                                    const confirmados = operacao.participantes_confirmados || 0;
-                                    const solicitacoes = (operacao as any).total_solicitacoes || 0;
-                                    const limite = operacao.limite_participantes;
 
-                                    return (
-                                      <>
-                                        {/* Barra Confirmados - TÉCNICA DO CALENDÁRIO DOS MEMBROS */}
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(0.5px, 0.1vw, 1px)' }}>
-                                          <div style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'space-between',
-                                            width: '100%'
-                                          }}>
-                                            <span
-                                              className={`text-green-700 flex items-center ${operacao.inativa_pelo_supervisor ? 'opacity-60' : ''}`}
-                                              style={{
-                                                fontSize: 'clamp(0.4rem, 1.2vw, 0.6rem)',
-                                                fontWeight: '600',
-                                                gap: 'clamp(0.5px, 0.2vw, 1px)',
-                                                flexShrink: '1',
-                                                minWidth: '0',
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                whiteSpace: 'nowrap'
-                                              }}
-                                            >
-                                              <span style={{ fontSize: 'clamp(0.35rem, 1vw, 0.5rem)', flexShrink: '0' }}>✅</span>
-                                              <span style={{ minWidth: '0', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                Conf.
-                                              </span>
-                                            </span>
-                                            <span
-                                              className={`text-green-800 ${operacao.inativa_pelo_supervisor ? 'opacity-60' : ''}`}
-                                              style={{
-                                                fontSize: 'clamp(0.4rem, 1.2vw, 0.6rem)',
-                                                fontWeight: '700',
-                                                flexShrink: '0',
-                                                marginLeft: 'clamp(2px, 0.5vw, 4px)'
-                                              }}
-                                            >
-                                              {confirmados}/{limite}
-                                            </span>
-                                          </div>
-                                          <div
-                                            className={`bg-gray-200 rounded-full overflow-hidden ${operacao.inativa_pelo_supervisor ? 'opacity-60' : ''}`}
-                                            style={{
-                                              width: '100%',
-                                              height: 'clamp(2px, 0.5vw, 4px)'
-                                            }}
-                                          >
-                                            <div
-                                              className={`bg-gradient-to-r from-green-500 to-green-600 rounded-full transition-all duration-300 ${operacao.inativa_pelo_supervisor ? 'opacity-50' : ''}`}
-                                              style={{
-                                                height: '100%',
-                                                width: `${limite > 0 ? Math.min(100, (confirmados / limite) * 100) : 0}%`
-                                              }}
-                                            />
-                                          </div>
-                                        </div>
 
-                                        {/* Barra Solicitações - TÉCNICA DO CALENDÁRIO DOS MEMBROS */}
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(0.5px, 0.1vw, 1px)' }}>
-                                          <div style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'space-between',
-                                            width: '100%'
-                                          }}>
-                                            <span
-                                              className={`text-amber-700 flex items-center ${operacao.inativa_pelo_supervisor ? 'opacity-60' : ''}`}
-                                              style={{
-                                                fontSize: 'clamp(0.4rem, 1.2vw, 0.6rem)',
-                                                fontWeight: '600',
-                                                gap: 'clamp(0.5px, 0.2vw, 1px)',
-                                                flexShrink: '1',
-                                                minWidth: '0',
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                whiteSpace: 'nowrap'
-                                              }}
-                                            >
-                                              <span style={{ fontSize: 'clamp(0.35rem, 1vw, 0.5rem)', flexShrink: '0' }}>⏳</span>
-                                              <span style={{ minWidth: '0', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                Solic.
-                                              </span>
-                                            </span>
-                                            <span
-                                              className={`text-amber-800 ${operacao.inativa_pelo_supervisor ? 'opacity-60' : ''}`}
-                                              style={{
-                                                fontSize: 'clamp(0.4rem, 1.2vw, 0.6rem)',
-                                                fontWeight: '700',
-                                                flexShrink: '0',
-                                                marginLeft: 'clamp(2px, 0.5vw, 4px)'
-                                              }}
-                                            >
-                                              {solicitacoes}
-                                            </span>
-                                          </div>
-                                          <div
-                                            className={`bg-gray-200 rounded-full overflow-hidden ${operacao.inativa_pelo_supervisor ? 'opacity-60' : ''}`}
-                                            style={{
-                                              width: '100%',
-                                              height: 'clamp(2px, 0.5vw, 4px)'
-                                            }}
-                                          >
-                                            <div
-                                              className={`bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-300 ${operacao.inativa_pelo_supervisor ? 'opacity-50' : ''}`}
-                                              style={{
-                                                height: '100%',
-                                                width: `${solicitacoes > 0 ? Math.min(100, (solicitacoes / limite) * 100) : 0}%`
-                                              }}
-                                            />
-                                          </div>
-                                        </div>
-                                      </>
-                                    );
-                                  })()}
-                                </div>
 
-                                {/* Efeito hover sutil */}
-                                <div className="absolute inset-0 bg-white opacity-0 hover:opacity-5 transition-opacity duration-200 pointer-events-none rounded-md"></div>
-                              </div>
-                            ))}
-
-                            {/* Indicador de mais operações - TÉCNICA DO CALENDÁRIO DOS MEMBROS */}
-                            {operacoesDia.length > 3 && (
-                              <div
-                                className="bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 text-center transition-all duration-200 hover:shadow-sm cursor-pointer text-slate-600"
-                                style={{
-                                  borderRadius: 'clamp(2px, 0.6vw, 4px)',
-                                  padding: 'clamp(2px, 0.6vw, 4px) clamp(3px, 0.8vw, 6px)',
-                                  fontSize: 'clamp(0.4rem, 1.2vw, 0.6rem)',
-                                  fontWeight: '700',
-                                  textTransform: 'uppercase',
-                                  letterSpacing: 'clamp(0.1px, 0.2vw, 0.3px)',
-                                  minHeight: 'clamp(14px, 3.5vw, 20px)',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  lineHeight: '1',
-                                  whiteSpace: 'nowrap',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  width: '100%',
-                                  boxSizing: 'border-box'
-                                }}
-                              >
-                                +{operacoesDia.length - 3} mais
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Indicador para dias sem operações - CONTIDO DENTRO DO QUADRADINHO */}
-                        {!temOperacoes && isDentroDoPeríodo && (
-                          <div
-                            style={{
-                              position: 'absolute',
-                              bottom: 'clamp(2px, 0.5vw, 4px)',
-                              left: 'clamp(2px, 0.5vw, 4px)',
-                              right: 'clamp(2px, 0.5vw, 4px)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center'
-                            }}
-                          >
+                        {/* Indicador de operações inativas */}
+                        {operacoesDia.some(op => op.inativa_pelo_supervisor) && (
+                          <div className="absolute top-1 right-1">
                             <div
-                              className="bg-gradient-to-r from-emerald-50 to-green-100 border border-emerald-200 text-center shadow-sm"
+                              className="bg-gray-500 text-xs font-bold px-1 py-0.5 rounded transform rotate-12"
                               style={{
-                                borderRadius: 'clamp(2px, 0.5vw, 4px)',
-                                padding: 'clamp(1px, 0.3vw, 2px) clamp(2px, 0.5vw, 4px)',
-                                width: '100%',
-                                minHeight: 'clamp(12px, 3vw, 18px)',
-                                maxHeight: 'clamp(16px, 4vw, 22px)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                boxSizing: 'border-box'
+                                fontSize: 'clamp(0.5rem, 1vw, 0.6rem)',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                                color: 'white !important',
+                                backgroundColor: '#6b7280'
                               }}
                             >
-                              <div
-                                className="flex items-center justify-center text-emerald-700"
-                                style={{
-                                  gap: 'clamp(0.5px, 0.2vw, 1px)',
-                                  fontSize: 'clamp(0.35rem, 1vw, 0.5rem)',
-                                  fontWeight: '600',
-                                  lineHeight: '1',
-                                  whiteSpace: 'nowrap',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  width: '100%'
-                                }}
-                              >
-                                <span
-                                  className="text-emerald-600"
-                                  style={{
-                                    fontSize: 'clamp(0.3rem, 0.8vw, 0.4rem)',
-                                    flexShrink: '0'
-                                  }}
-                                >
-                                  📅
-                                </span>
-                                <span style={{
-                                  minWidth: '0',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  fontSize: 'clamp(0.35rem, 1vw, 0.5rem)'
-                                }}>
-                                  Disp.
-                                </span>
-                              </div>
+                              ARQUIVO
                             </div>
                           </div>
                         )}

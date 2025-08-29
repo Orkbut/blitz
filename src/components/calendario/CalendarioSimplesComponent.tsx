@@ -6,6 +6,7 @@ import { ptBR } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Calendar, Loader2 } from 'lucide-react';
 import { useRealtimeUnified } from '@/hooks/useRealtimeUnified';
 import { OperacaoDialog } from './OperacaoDialog';
+import { LimitesBarras } from './LimitesBarras';
 
 // @ts-ignore - react-hot-toast será instalado
 import { toast } from 'react-hot-toast';
@@ -82,10 +83,10 @@ export const CalendarioSimplesComponent: React.FC = () => {
 
   // Fetch das operações
   const fetchOperacoes = useCallback(async () => {
-    console.log(`[CalendarioSimples] 📡 Iniciando fetch operações...`);
 
-    const startDate = startOfMonth(currentDate);
-    const endDate = endOfMonth(currentDate);
+    // Expandir período para incluir dias visíveis de meses adjacentes
+    const startDate = startOfWeek(startOfMonth(currentDate));
+    const endDate = endOfWeek(endOfMonth(currentDate));
     const membroId = membroAtual;
 
 
@@ -123,22 +124,10 @@ export const CalendarioSimplesComponent: React.FC = () => {
       const data = await response.json();
 
       if (data.success) {
-        console.log(`[CalendarioSimples] ✅ Operações carregadas: ${data.data?.length || 0}`);
-        console.log('[CalendarioSimples] 🔍 Primeira operação:', data.data?.[0]);
 
         const operacoesData = data.data || [];
         
-        // 🔍 DEBUG: Log detalhado das operações recebidas
-        console.log('[CalendarioSimples] 🔍 OPERAÇÕES RECEBIDAS:', operacoesData.length);
-        operacoesData.forEach((op: Operacao, index: number) => {
-          console.log(`[CalendarioSimples] 📋 Operação ${index + 1}:`, {
-            id: op.id,
-            data_operacao: op.data_operacao,
-            modalidade: op.modalidade,
-            status: op.status,
-            ativa: op.ativa
-          });
-        });
+
         
         setOperacoes(operacoesData);
 
@@ -147,7 +136,6 @@ export const CalendarioSimplesComponent: React.FC = () => {
         operacoesData.forEach((op: Operacao) => {
           // ✅ CORREÇÃO TIMEZONE: Usar substring para evitar problemas de fuso horário
       const dataKey = op.data_operacao.substring(0, 10); // Extrai apenas YYYY-MM-DD
-          console.log(`[CalendarioSimples] 🗓️ Processando operação ${op.id}: ${op.data_operacao} -> ${dataKey}`);
           if (!operacoesPorDiaMap[dataKey]) {
             operacoesPorDiaMap[dataKey] = [];
           }
@@ -193,7 +181,6 @@ export const CalendarioSimplesComponent: React.FC = () => {
       const { table, eventType } = event;
       
       // SIMPLES: Qualquer mudança = recarrega os dados
-      console.log(`[CalendarioSimples] 📡 ${table} ${eventType} - Recarregando dados...`);
       fetchOperacoes();
     }, [fetchOperacoes])
   });
@@ -390,27 +377,14 @@ export const CalendarioSimplesComponent: React.FC = () => {
   const getOperacoesDia = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     
-    // 🔍 DEBUG: Log detalhado para dias específicos
-    if (dateStr === '2025-08-22' || dateStr === '2025-08-23') {
-      console.log(`[CalendarioSimples] 🔍 ANALISANDO DIA ${dateStr}:`);
-      console.log(`[CalendarioSimples] 📊 Total de operações disponíveis: ${operacoes.length}`);
-      operacoes.forEach((op, index) => {
-        const opDate = op.data_operacao.substring(0, 10); // ✅ CORREÇÃO TIMEZONE
-        console.log(`[CalendarioSimples] 📋 Op ${index + 1} (ID ${op.id}): ${op.data_operacao} -> ${opDate} | Match: ${opDate === dateStr}`);
-      });
-    }
+
     
     const operacoesDia = operacoes.filter(op => {
       const opDate = op.data_operacao.substring(0, 10); // ✅ CORREÇÃO TIMEZONE
       return opDate === dateStr;
     });
 
-    if (operacoesDia.length > 0) {
-      console.log(`[CalendarioSimples] 📅 ${dateStr}: ${operacoesDia.length} operações`);
-      if (dateStr === '2025-08-22' || dateStr === '2025-08-23') {
-        console.log(`[CalendarioSimples] 🎯 Operações encontradas para ${dateStr}:`, operacoesDia.map(op => ({ id: op.id, modalidade: op.modalidade })));
-      }
-    }
+
 
     return operacoesDia;
   };
@@ -499,14 +473,7 @@ export const CalendarioSimplesComponent: React.FC = () => {
     const estadoInfo = getEstadoVisualInfo(operacao);
     const isInativa = operacao.inativa_pelo_supervisor;
 
-    console.log(`[CalendarioSimples] 🔍 Operação ${operacao.id}:`, {
-      estadoVisual: operacao.minha_participacao?.estado_visual,
-      confirmados,
-      limite,
-      pendentes,
-      estadoInfo,
-      isInativa
-    });
+    // Debug removido para performance
 
     return (
       <div className={`${styles.singleOperationInfo} ${styles.responsive} ${isInativa ? styles.operacaoInativa : ''}`}>
@@ -536,11 +503,7 @@ export const CalendarioSimplesComponent: React.FC = () => {
               estadoInfo.buttonText
             )}
           </button>
-        ) : (
-          <div className={styles.historicoText}>
-            📁 Arquivo
-          </div>
-        )}
+        ) : null}
       </div>
     );
   };
@@ -617,6 +580,14 @@ export const CalendarioSimplesComponent: React.FC = () => {
         </div>
       </div>
 
+      {/* Barras de Limites Informativos */}
+      <LimitesBarras 
+        membroId={membroAtual}
+        currentDate={currentDate}
+        compact={false}
+        debug={process.env.NODE_ENV === 'development'}
+      />
+
       {/* Dias da Semana */}
       <div className={styles.weekdays}>
         <div>DOM</div>
@@ -650,7 +621,7 @@ export const CalendarioSimplesComponent: React.FC = () => {
                 {format(day, 'd')}
               </div>
 
-              {isCurrentMonth && operacoesDia.length > 0 && (
+              {operacoesDia.length > 0 && (
                 <div className={styles.operacaoInfo}>
                   {hasUniqueOperation
                     ? renderSingleOperation(operacoesDia[0])

@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Período — profissional (hierarquia legível + elegância tipográfica)</title>
+  <style>
+    /*
+      Refatorado p/ legibilidade (inclui público sênior) e acabamento mais elegante.
+      Diretrizes:
+      - DIA primeiro (grande, números tabulares)
+      - MÊS muito legível (caps, badge âmbar com alto contraste)
+      - Sugerir período via trilho discreto entre âncoras
+      - Tipografia com suavização e ajustes óticos
+    */
+
+    :root{
+      --surface: #ffffff;
+      --text: #0f172a;          /* quase preto */
+      --muted: #64748b;         /* cinza secundário */
+      --border: #e5e7eb;        /* cinza claro */
+      --amber: #f59e0b;         /* âmbar principal */
+      --amber-50: #fffbeb;      /* fundo muito claro */
+      --amber-200: #fde68a;     /* badge */
+      --amber-600: #b45309;     /* texto do mês */
+      --green: #10b981;         /* opcional: ponto inicial */
+      --shadow: 0 1px 0 rgba(255,255,255,.75) inset, 0 2px 6px rgba(16,24,40,.06);
+    }
+
+    /* ===== componente ===== */
+    .period-pro{
+      position:relative; display:grid; grid-template-columns:auto 1fr auto; align-items:center; column-gap:18px;
+      padding:12px 16px; background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow);
+      color:var(--text); line-height:1; isolation:isolate;
+      -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; font-optical-sizing:auto;
+      font: 500 16px/1.35 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+
+    /* Trilho que sugere tempo entre início e fim */
+    .period-pro::before{
+      content:""; position:absolute; left:86px; right:86px; top:50%; height:2px; transform:translateY(-50%);
+      background: linear-gradient(90deg, rgba(245,158,11,.65), rgba(245,158,11,.45));
+      border-radius:999px;
+    }
+
+    .anchor{ position:relative; z-index:1 }
+
+    .chip{
+      display:grid; grid-template-rows:1fr auto; place-items:center; width:66px; height:54px;
+      border:1px solid var(--border); border-radius:14px; background:var(--surface); box-shadow:var(--shadow);
+    }
+    .day{
+      font-weight:900; font-size:22px; letter-spacing:.2px; font-variant-numeric: tabular-nums; /* números alinhados e robustos */
+    }
+    .mon{
+      display:inline-grid; place-items:center; padding:3px 8px; margin-top:2px; border-radius:8px;
+      background: linear-gradient(180deg, var(--amber-200), var(--amber-200));
+      border:1px solid rgba(245,158,11,.25);
+      color:#1f2937; /* mais contraste que âmbar escuro */
+      font-weight:800; font-size:13.5px; letter-spacing:.8px; text-transform:uppercase; font-variant-caps: all-small-caps;
+    }
+
+    /* Pontos preatentivos — opcionais; comente se não quiser */
+    .anchor.start::before, .anchor.end::after{
+      content:""; position:absolute; top:50%; width:6px; height:6px; border-radius:999px; transform:translateY(-50%); box-shadow:0 0 0 2px #fff
+    }
+    .anchor.start::before{ left:-10px; background: var(--green) }
+    .anchor.end::after{ right:-10px; background: #cbd5e1 }
+
+    /* Tamanho compacto */
+    .period-pro.sm{ padding:10px 14px }
+    .period-pro.sm::before{ left:80px; right:80px }
+    .period-pro.sm .chip{ width:60px; height:50px }
+    .period-pro.sm .day{ font-size:20px }
+    .period-pro.sm .mon{ font-size:12.5px; padding:2px 7px }
+
+    /* --- demo apenas para este arquivo --- */
+    body{margin:0; padding:24px; background:#f8fafc; font:500 16px/1.35 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial}
+    .demo{display:grid; place-items:center; min-height:100dvh}
+    .note{margin-top:12px; color:var(--muted); font-size:12px; text-align:center}
+  </style>
+</head>
+<body>
+  <div class="demo">
+    <!-- Cole apenas ESTE bloco na sua página -->
+    <div class="period-pro" aria-label="Período: 10 de agosto a 09 de setembro">
+      <div class="anchor start">
+        <div class="chip" role="group" aria-label="Início">
+          <div class="day">10</div>
+          <div class="mon">AGO</div>
+        </div>
+      </div>
+      <div aria-hidden="true"></div>
+      <div class="anchor end">
+        <div class="chip" role="group" aria-label="Fim">
+          <div class="day">09</div>
+          <div class="mon">SET</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="note">Meses **maiores** em badge âmbar (alto contraste) + números tabulares maiores para leitura sênior. Mantém a leitura "Dia → Mês" e a sugestão de período com o trilho discreto. Há a variante <code>.sm</code> se precisar compactar.</div>
+  </div>
+</body>
+</html>

@@ -195,13 +195,6 @@ export const ModalOperacaoSupervisor: React.FC<ModalOperacaoSupervisorProps> = (
                 </span>
                 <span className={styles.estatLabel}>Solicitações</span>
               </div>
-              
-              <div className={styles.estatItem}>
-                <span className={styles.estatValor}>
-                  {operacao.regional || 'Centro'}
-                </span>
-                <span className={styles.estatLabel}>Regional</span>
-              </div>
             </div>
 
             <div className={styles.modalAcoes}>

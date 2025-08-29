@@ -701,7 +701,7 @@ export default function SupervisorPage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
       {/* 🎯 HEADER MELHORADO - RESPONSIVO COM CLAMP */}
-      <header className={`sticky top-0 z-40 bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg transition-transform duration-300 ease-in-out ${headerVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}
+      <header className={`sticky top-0 z-[1000] bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg transition-transform duration-300 ease-in-out ${headerVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}
         style={{ willChange: 'transform, opacity' }}>
         <div 
           className="max-w-7xl mx-auto"
@@ -885,31 +885,26 @@ export default function SupervisorPage() {
                 
                 {/* Menu dropdown - agora funciona com clique/toque */}
                 {showDropdownMenu && (
-                  <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border py-2 z-[110] animate-fade-in" style={{ position: 'relative' }}>
-                    <a 
-                      href="/supervisor/diretoria" 
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
-                      onClick={() => setShowDropdownMenu(false)}
-                    >
-                      🏛️ Diretoria
-                    </a>
-                    <a 
-                      href="/relatorio-diarias" 
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
-                      onClick={() => setShowDropdownMenu(false)}
-                    >
-                      📊 Relatório de Diárias
-                    </a>
-                    <button 
-                      onClick={() => {
-                        carregarDados();
-                        setShowDropdownMenu(false);
-                      }} 
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
-                    >
-                      🔄 Atualizar Dados
-                    </button>
-                  </div>
+                  <>
+                    {/* Camada fixa para garantir sobreposição em qualquer contexto */}
+                    <div className="fixed inset-0 z-[10000] pointer-events-none" aria-hidden="true"></div>
+                    <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border py-2 z-[10010] animate-fade-in pointer-events-auto">
+                      <a 
+                        href="/supervisor/diretoria" 
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                        onClick={() => setShowDropdownMenu(false)}
+                      >
+                        🏛️ Diretoria
+                      </a>
+                      <a 
+                        href="/relatorio-diarias" 
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                        onClick={() => setShowDropdownMenu(false)}
+                      >
+                        📊 Relatório de Diárias
+                      </a>
+                    </div>
+                  </>
                 )}
               </div>
 

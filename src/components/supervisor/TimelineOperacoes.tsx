@@ -209,11 +209,6 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
                           <span className={styles.estatLabel}>Na fila</span>
                         </div>
                       )}
-
-                      <div className={styles.estatItem}>
-                        <span className={styles.estatValor}>{operacao.regional || 'Centro'}</span>
-                        <span className={styles.estatLabel}>Regional</span>
-                      </div>
                     </div>
 
                     {/* Ações */}

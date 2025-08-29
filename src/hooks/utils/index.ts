@@ -12,7 +12,7 @@ export * from './polling-manager';
 export * from './error-classifier';
 export * from './error-recovery';
 export * from './error-handler';
-export * from './error-boundary';
+// export * from './error-boundary'; // Comentado devido a erro de JSX
 export * from './rate-limiter';
 
 // 🐛 SISTEMA DE DEBUG E MONITORAMENTO

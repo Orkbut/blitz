@@ -479,8 +479,8 @@
 /* Número do Dia - Compacto e Posicionado no Canto */
 .dayNumber {
   font-size: clamp(0.7rem, 2vw, 0.9rem);
-  font-weight: 700;
-  color: #2c3e50;
+  font-weight: 600;
+  color: #374151;
   position: absolute;
   top: clamp(2px, 0.5vw, 4px);
   left: clamp(2px, 0.5vw, 4px);
@@ -493,8 +493,16 @@
   transition: all 0.2s ease;
   flex-shrink: 0;
   z-index: 10;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.dayNumber:hover {
+  color: #1f2937;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 /* Container Queries para Número do Dia */
@@ -519,8 +527,15 @@
 }
 
 .otherMonth .dayNumber {
-  color: #bbb;
-  opacity: 0.5;
+  color: #9ca3af;
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.otherMonth .dayNumber:hover {
+  color: #6b7280;
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .otherMonth {
@@ -532,10 +547,16 @@
 }
 
 .currentDay .dayNumber {
-  background: #ffc107;
-  color: #1a1a1a;
+  background: #3b82f6;
+  color: #ffffff;
   font-weight: 700;
-  box-shadow: 0 2px 4px rgba(255, 193, 7, 0.3);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.25);
+}
+
+.currentDay .dayNumber:hover {
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 3px 6px rgba(59, 130, 246, 0.3);
 }
 
 /* Container de Operações - RESPONSIVIDADE INTELIGENTE BASEADA NO REACT-HOOK-CALENDAR */
@@ -1769,8 +1790,8 @@
 /* ✅
  ESTILOS PARA OPERAÇÕES INATIVAS */
 .operacaoInativa {
-  opacity: 0.7 !important;
-  filter: grayscale(50%) !important;
+  opacity: 0.85 !important;
+  filter: grayscale(30%) !important;
   position: relative !important;
 }
 
@@ -1828,6 +1849,55 @@
 
 .operacaoInativa .participantesCompact {
   color: #9ca3af !important;
+}
+
+/* Ajustes de posicionamento para operações inativas */
+.operacaoInativa .operationHeader {
+  margin-top: 8px !important;
+  transform: translateY(4px) !important;
+}
+
+.operacaoInativa .singleOperationInfo {
+  justify-content: center !important;
+  padding-top: 12px !important;
+}
+
+.operacaoInativa .operationItem {
+  margin-top: 6px !important;
+  transform: translateY(3px) !important;
+}
+
+/* Ajustes responsivos para operações inativas */
+@media (max-width: 768px) {
+  .operacaoInativa .operationHeader {
+    margin-top: 6px !important;
+    transform: translateY(3px) !important;
+  }
+  
+  .operacaoInativa .singleOperationInfo {
+    padding-top: 10px !important;
+  }
+  
+  .operacaoInativa .operationItem {
+    margin-top: 4px !important;
+    transform: translateY(2px) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .operacaoInativa .operationHeader {
+    margin-top: 4px !important;
+    transform: translateY(2px) !important;
+  }
+  
+  .operacaoInativa .singleOperationInfo {
+    padding-top: 8px !important;
+  }
+  
+  .operacaoInativa .operationItem {
+    margin-top: 3px !important;
+    transform: translateY(1px) !important;
+  }
 }
 
 /* Responsividade para mobile */

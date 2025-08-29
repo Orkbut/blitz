@@ -9,6 +9,11 @@ interface UserData {
   matricula: string;
   perfil: string;
   regionalId: number;
+  regional?: {
+    id: number;
+    nome: string;
+    codigo: string;
+  };
   autenticado: boolean;
 }
 
@@ -60,7 +65,7 @@ export const UserBar: React.FC = () => {
             {/* Regional info - Oculta em telas muito pequenas */}
             <div className="hidden xs:flex text-xs sm:text-sm text-slate-600 bg-white/60 px-2 sm:px-3 py-1 rounded-full">
               <span className="font-semibold text-slate-700">Regional:</span> 
-              <span className="ml-1 font-bold text-blue-600">{userData.regionalId}</span>
+              <span className="ml-1 font-bold text-blue-600">{userData.regional?.nome || userData.regionalId}</span>
             </div>
             
             <div className="relative">
@@ -95,7 +100,7 @@ export const UserBar: React.FC = () => {
                       <div className="text-xs text-slate-500 mt-1">
                         <div>Matrícula: <span className="font-semibold">{userData.matricula}</span></div>
                         <div>Perfil: <span className="font-semibold">{userData.perfil}</span></div>
-                        <div>Regional: <span className="font-semibold">{userData.regionalId}</span></div>
+                        <div>Regional: <span className="font-semibold">{userData.regional?.nome || userData.regionalId}</span></div>
                       </div>
                     </div>
                     

@@ -392,7 +392,7 @@ export class RateLimiter {
     const now = Date.now();
     const maxAge = 24 * 60 * 60 * 1000; // 24 horas
 
-    for (const [key, state] of this.states.entries()) {
+    Array.from(this.states.entries()).forEach(([key, state]) => {
       // Remover requisições antigas
       state.requests = state.requests.filter(timestamp => now - timestamp < maxAge);
       
@@ -402,7 +402,7 @@ export class RateLimiter {
           now - state.lastRefill > maxAge) {
         this.states.delete(key);
       }
-    }
+    });
   }
 
   /**

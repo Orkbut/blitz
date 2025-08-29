@@ -16,6 +16,15 @@ export const FeatureFlags = {
   },
 
   /**
+   * Controla se deve usar indicadores circulares no lugar das barras lineares
+   * 
+   * @returns true se deve usar indicadores circulares
+   */
+  useCircularIndicators: (): boolean => {
+    return process.env.NEXT_PUBLIC_USE_CIRCULAR_INDICATORS === 'true';
+  },
+
+  /**
    * Controla se deve mostrar logs de debug em desenvolvimento
    * 
    * @returns true se deve mostrar logs de debug
@@ -42,6 +51,7 @@ export const FeatureFlags = {
 export const useFeatureFlags = () => {
   return {
     useOptimizedGerenciarMembros: FeatureFlags.useOptimizedGerenciarMembros(),
+    useCircularIndicators: FeatureFlags.useCircularIndicators(),
     enableDebugLogs: FeatureFlags.enableDebugLogs(),
     enablePerformanceMetrics: FeatureFlags.enablePerformanceMetrics()
   };

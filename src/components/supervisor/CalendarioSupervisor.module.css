@@ -1,35 +1,10 @@
-/* Estilos específicos para o Calendário do Supervisor */
+/* Estilos específicos para o Calendário do Supervisor - NOVO DESIGN COM TILES */
 
 /* Estilo para operações inativas */
 .operacao-inativa {
-  opacity: 0.7;
-  filter: grayscale(50%);
+  opacity: 0.85;
+  filter: grayscale(30%);
   position: relative;
-}
-
-.operacao-inativa::after {
-  content: "ARQUIVO";
-  position: absolute;
-  top: 2px;
-  right: -8px;
-  background: linear-gradient(45deg, #6b7280, #4b5563);
-  color: white;
-  font-size: 0.5rem;
-  font-weight: bold;
-  padding: 1px 4px;
-  border-radius: 2px;
-  transform: rotate(12deg);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-  z-index: 10;
-}
-
-/* Ajustes para operações inativas em diferentes contextos */
-.operacao-inativa .modalidadeName {
-  color: #6b7280 !important;
-}
-
-.operacao-inativa .participantStats {
-  color: #9ca3af !important;
 }
 
 /* Transições suaves para mudanças de estado */
@@ -41,11 +16,149 @@
   transition: all 0.3s ease;
 }
 
-/* Responsividade para mobile */
-@media (max-width: 768px) {
-  .operacao-inativa::after {
-    font-size: 0.4rem;
-    padding: 1px 3px;
-    right: -6px;
+/* Animações para os tiles */
+@keyframes tileHover {
+  0% {
+    transform: scale(1);
   }
+
+  100% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes ringProgress {
+  0% {
+    stroke-dashoffset: 150.8;
+  }
+
+  100% {
+    stroke-dashoffset: var(--progress-offset);
+  }
+}
+
+/* Estilos para o anel de progresso */
+.progress-ring {
+  transition: stroke-dashoffset 0.3s ease;
+}
+
+/* Hover effects para tiles */
+.calendar-tile:hover {
+  animation: tileHover 0.2s ease-out forwards;
+}
+
+/* Badge de pendências com animação */
+.pending-badge {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Responsividade aprimorada - GARANTINDO VISIBILIDADE COMPLETA DOS TILES */
+@media (max-width: 640px) {
+  .calendar-tile {
+    min-height: 75px !important;
+    height: 75px !important;
+    /* Garantir que badges não sejam cortados */
+    margin: 4px 0;
+  }
+
+  .progress-ring {
+    width: 35px;
+    height: 35px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .calendar-tile {
+    min-height: 95px !important;
+    height: 95px !important;
+    margin: 6px 0;
+  }
+
+  .progress-ring {
+    width: 45px;
+    height: 45px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .calendar-tile {
+    min-height: 115px !important;
+    height: 115px !important;
+    margin: 8px 0;
+  }
+
+  .progress-ring {
+    width: 55px;
+    height: 55px;
+  }
+}
+
+/* Container do calendário com overflow seguro */
+.calendar-container {
+  overflow: visible !important;
+  padding: clamp(4px, 1vw, 12px) !important;
+}
+
+/* Grid responsivo com espaçamento seguro */
+.calendar-grid {
+  gap: clamp(2px, 0.5vw, 8px) !important;
+  padding: clamp(2px, 0.5vw, 6px) !important;
+}
+
+/* Tiles com dimensões garantidas */
+.tile-safe {
+  /* Altura fixa responsiva que garante visibilidade completa */
+  height: clamp(75px, 11vw, 120px) !important;
+  width: 100% !important;
+  /* Garantir que o conteúdo não seja cortado */
+  overflow: visible !important;
+  /* Padding interno para garantir espaço para badges e elementos */
+  padding: clamp(2px, 0.5vw, 4px) !important;
+  /* Margem vertical para evitar cortes */
+  margin: clamp(2px, 0.5vw, 4px) 0 !important;
+}
+
+/* Efeitos de sombra aprimorados */
+.tile-shadow {
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    0 4px 8px rgba(0, 0, 0, 0.04);
+}
+
+.tile-shadow:hover {
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* Indicador de hoje aprimorado */
+.today-indicator {
+  box-shadow:
+    0 0 0 2px #3b82f6,
+    0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+/* Gradientes personalizados */
+.gradient-active {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.gradient-inactive {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.gradient-outside {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
 }

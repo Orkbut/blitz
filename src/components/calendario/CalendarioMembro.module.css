@@ -823,6 +823,72 @@
   text-overflow: ellipsis !important;
 }
 
+/* ===== CALENDÁRIO MEMBRO - ESTILOS ESPECÍFICOS ===== */
+
+/* Wrapper principal do calendário */
+.calendarioWrapper {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Div condicional que aparece apenas em resoluções verticalizadas com espaço disponível */
+.mobileSpaceDiv {
+  display: none; /* Oculta por padrão */
+  width: 100%;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-top: 1px solid #e2e8f0;
+  margin-top: 20px; /* Espaçamento mínimo e fixo do calendário */
+}
+
+.mobileSpaceContent {
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+  padding: 8px 12px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Media queries para detectar quando há espaço em branco disponível */
+/* Aparece em resoluções verticalizadas (mobile) com altura suficiente */
+@media (max-width: 768px) and (min-height: 700px) {
+  .mobileSpaceDiv {
+    display: block;
+  }
+}
+
+/* Aparece em resoluções muito verticalizadas */
+@media (max-width: 480px) and (min-height: 600px) {
+  .mobileSpaceDiv {
+    display: block;
+  }
+}
+
+/* Aparece em dispositivos pequenos com altura considerável */
+@media (max-width: 375px) and (min-height: 550px) {
+  .mobileSpaceDiv {
+    display: block;
+  }
+}
+
+/* Oculta em resoluções desktop/landscape onde o calendário preenche a tela */
+@media (min-width: 769px) {
+  .mobileSpaceDiv {
+    display: none !important;
+  }
+}
+
+/* Oculta em orientação landscape onde geralmente não há espaço vertical */
+@media (orientation: landscape) and (max-height: 500px) {
+  .mobileSpaceDiv {
+    display: none !important;
+  }
+}
+
 /* ✅ CONTAINER RESPONSIVO BASEADO NO PROJETO DE REFERÊNCIA */
 .calendarContainer {
   width: 100%;
@@ -875,8 +941,8 @@
 
 /* ✅ ESTILOS PARA OPERAÇÕES INATIVAS */
 .operacaoInativa {
-  opacity: 0.7 !important;
-  filter: grayscale(50%) !important;
+  opacity: 0.85 !important;
+  filter: grayscale(30%) !important;
   position: relative !important;
 }
 

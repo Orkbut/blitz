@@ -270,6 +270,26 @@ export default function TabelaOperacoesDiretoria({
     return grupos;
   }, [dadosProcessados]);
 
+  // Ordenar períodos cronologicamente
+  const periodosOrdenados = useMemo(() => {
+    return Object.keys(dadosAgrupados).sort((a, b) => {
+      // Extrair a primeira data de cada período (formato: "DD/MM a DD/MM/YYYY")
+      const extrairPrimeiraData = (periodo: string) => {
+        const match = periodo.match(/(\d{2})\/(\d{2}).*?(\d{4})/);
+        if (match) {
+          const [, dia, mes, ano] = match;
+          return new Date(parseInt(ano), parseInt(mes) - 1, parseInt(dia));
+        }
+        return new Date(0); // Fallback para data inválida
+      };
+      
+      const dataA = extrairPrimeiraData(a);
+      const dataB = extrairPrimeiraData(b);
+      
+      return dataA.getTime() - dataB.getTime();
+    });
+  }, [dadosAgrupados]);
+
   const table = useReactTable({
     data: dadosProcessados,
     columns,
@@ -288,8 +308,10 @@ export default function TabelaOperacoesDiretoria({
 
   return (
     <div className="overflow-x-auto">
-      {Object.entries(dadosAgrupados).map(([periodo, registros]) => (
-        <div key={periodo} className="mb-6 last:mb-0">
+      {periodosOrdenados.map((periodo) => {
+        const registros = dadosAgrupados[periodo];
+        return (
+          <div key={periodo} className="mb-6 last:mb-0">
             <div className="bg-yellow-400 px-4 py-2 border border-dashed border-gray-600">
               <h3 className="font-bold text-black text-sm">
                 Período: {periodo}
@@ -361,7 +383,8 @@ export default function TabelaOperacoesDiretoria({
               </tbody>
             </table>
           </div>
-        ))}
+        );
+      })}
     </div>
   );
 }

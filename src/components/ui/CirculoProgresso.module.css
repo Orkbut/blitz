@@ -1,0 +1,561 @@
+/* CirculoProgresso - Game Feel Elegante */
+/* Princípios: Necessário + Suficiente + Proporcional */
+
+.container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: var(--diameter);
+  min-height: calc(var(--diameter) + 30px); /* espaço extra para período */
+  height: auto;
+  margin: 0 auto;
+}
+
+/* Tamanhos responsivos - valores aumentados para melhor legibilidade */
+.small {
+  min-width: 90px;
+  min-height: 90px;
+}
+
+.medium {
+  min-width: 110px;
+  min-height: 110px;
+}
+
+.large {
+  min-width: 140px;
+  min-height: 140px;
+}
+
+/* Container do SVG com entrada suave e otimizada */
+.svgContainer {
+  position: relative;
+  width: var(--diameter);
+  height: var(--diameter);
+  opacity: 0;
+  transform: scale(0.85) translateY(4px);
+  transition: all 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition-delay: var(--animation-delay, 0ms);
+  margin-bottom: 0;
+  flex-shrink: 0;
+  will-change: transform, opacity;
+  transform-origin: center center;
+}
+
+.svgContainer.visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+/* SVG responsivo */
+.progressSvg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(0deg);
+  transition: transform 0.3s ease;
+}
+
+
+
+/* Trilha de fundo com hierarquia visual sutil */
+.backgroundRing {
+  transition: opacity 0.25s ease, stroke 0.2s ease;
+  opacity: 0.28;
+}
+
+/* Anel de progresso com micro-interações aprimoradas */
+.progressRing {
+  transition: stroke-dashoffset 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              stroke 0.25s ease,
+              filter 0.25s ease,
+              opacity 0.2s ease;
+  filter: drop-shadow(0 0 1.5px rgba(var(--progress-color-rgb, 16, 185, 129), 0.25))
+          drop-shadow(0 1px 3px rgba(0, 0, 0, 0.05));
+  will-change: stroke-dashoffset;
+  transform: translateZ(0);
+}
+
+
+
+@keyframes subtlePulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+/* Conteúdo central com entrada cognitivamente otimizada */
+.centerContent {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition-delay: calc(var(--animation-delay, 0ms) + 180ms);
+  pointer-events: none;
+  max-width: 78%;
+  overflow: hidden;
+  z-index: 2;
+  font-family: 'SF Pro Display', 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  color: #1e293b;
+  will-change: opacity, transform;
+}
+
+.centerContent.contentVisible {
+  opacity: 1;
+  transform: translate(-50%, -50%);
+}
+
+/* Valor principal - otimizado para conforto visual e hierarquia cognitiva */
+.mainValue {
+  font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-size: var(--font-size);
+  font-weight: 475;
+  color: #1e293b;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: -0.005em;
+  font-feature-settings: 'tnum' 1, 'lnum' 1, 'ss01' 1, 'cv02' 1;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+  text-rendering: optimizeSpeed;
+  font-optical-sizing: auto;
+  font-variation-settings: 'wght' 475, 'opsz' 14;
+  text-shadow: 0 0.25px 0.5px rgba(255, 255, 255, 0.6), 0 1px 2px rgba(0, 0, 0, 0.02);
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.separator {
+  color: #94a3b8;
+  font-weight: 400;
+  margin: 0 2px;
+  opacity: 0.75;
+  transition: opacity 0.2s ease;
+  font-feature-settings: 'tnum' 1;
+}
+
+.maxValue {
+  color: #64748b;
+  font-weight: 450;
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+}
+
+/* Valor percentual com hierarquia visual clara */
+.percentualValue {
+  font-size: var(--font-size-secondary);
+  font-weight: 525;
+  color: #64748b;
+  line-height: 1.1;
+  margin-top: 2px;
+  opacity: 0.9;
+  transition: opacity 0.2s ease;
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+  letter-spacing: 0.01em;
+}
+
+/* Label/rótulo - hierarquia visual otimizada */
+.label {
+  font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-size: calc(var(--font-size-secondary) * 0.88);
+  font-weight: 425;
+  color: #64748b;
+  line-height: 1.35;
+  margin-top: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+  text-rendering: optimizeSpeed;
+  font-feature-settings: 'ss01' 1, 'cv01' 1, 'case' 1;
+  font-optical-sizing: auto;
+  font-variation-settings: 'wght' 425;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+  transform: translateZ(0);
+}
+
+/* Período externo - design cognitivamente otimizado */
+.periodoExterno {
+  font-family: 'SF Pro Display', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-size: clamp(0.88rem, 2vw, 1.05rem);
+  font-weight: 650;
+  color: #1e293b;
+  line-height: 1.35;
+  margin-top: clamp(14px, 2.5vw, 18px);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  letter-spacing: 0.025em;
+  transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  padding: clamp(11px, 1.7vw, 15px) clamp(14px, 2.2vw, 20px);
+  height: auto;
+  min-height: 2.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  
+  /* Design premium com hierarquia visual clara */
+  background: linear-gradient(145deg, #fafbfc 0%, #f8fafc 50%, #f1f5f9 100%);
+  border: 1.5px solid #e2e8f0;
+  background-clip: padding-box;
+  border-radius: clamp(14px, 2.2vw, 18px);
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    0 1px 3px rgba(0, 0, 0, 0.02),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -0.5px 0 rgba(148, 163, 184, 0.08);
+  
+  /* Micro-interações otimizadas */
+  cursor: default;
+  position: relative;
+  overflow: hidden;
+  text-shadow: 
+    0 0.5px 1px rgba(255, 255, 255, 0.9),
+    0 0.25px 0.5px rgba(0, 0, 0, 0.025),
+    0 1px 2px rgba(148, 163, 184, 0.08);
+  
+  /* Tipografia com redução de carga cognitiva */
+  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1, 'ss01' 1;
+  text-rendering: optimizeSpeed;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+  font-optical-sizing: auto;
+  font-variation-settings: 'wght' 650;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* Estilização especial para meses - usando CSS para destacar abreviações */
+.periodoExterno::after {
+  content: attr(data-periodo-formatted);
+  display: none;
+}
+
+/* Efeito de destaque para texto de mês */
+.periodoExterno {
+  background-clip: padding-box;
+  position: relative;
+}
+
+/* Pseudo-elemento para criar efeito de texto premium */
+.periodoExterno::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, transparent 0%, rgba(59, 130, 246, 0.03) 50%, transparent 100%);
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+
+
+/* Estado de hover com feedback visual sutil */
+.container:hover .periodoExterno {
+  background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+  border: 1.5px solid #60a5fa;
+  box-shadow: 
+    0 6px 20px rgba(96, 165, 250, 0.12),
+    0 3px 8px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(148, 163, 184, 0.15);
+  transform: translateY(-1px) scale(1.015);
+  color: #1e293b;
+  letter-spacing: 0.03em;
+}
+
+.container:hover .periodoExterno::before {
+  opacity: 1;
+}
+
+/* Micro-interações no hover do container */
+.container:hover .mainValue {
+  color: #0f172a;
+  letter-spacing: -0.002em;
+}
+
+.container:hover .separator {
+  opacity: 0.85;
+}
+
+.container:hover .maxValue {
+  opacity: 0.95;
+}
+
+.container:hover .label {
+  opacity: 0.9;
+}
+
+.container:hover .backgroundRing {
+  opacity: 0.35;
+}
+
+/* Elementos do período com hierarquia cognitiva */
+.periodoData {
+  font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-weight: 475;
+  font-size: 1.08em;
+  color: #334155;
+  letter-spacing: 0.01em;
+  position: relative;
+  font-feature-settings: 'tnum' 1, 'lnum' 1, 'ss01' 1;
+  text-transform: lowercase;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+  text-rendering: optimizeSpeed;
+  font-optical-sizing: auto;
+  font-variation-settings: 'wght' 475;
+  line-height: 1.25;
+  transition: color 0.2s ease;
+  text-shadow: 
+    0 0.25px 0.5px rgba(255, 255, 255, 0.8), 
+    0 0.5px 1px rgba(148, 163, 184, 0.12),
+    0 0.125px 0.25px rgba(0, 0, 0, 0.02);
+}
+
+.periodoSeparador {
+  font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-weight: 350;
+  color: #94a3b8;
+  font-size: 1.02em;
+  margin: 0 0.35em;
+  opacity: 0.65;
+  transition: all 0.25s ease;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+  text-rendering: optimizeSpeed;
+  font-optical-sizing: auto;
+  line-height: 1.25;
+}
+
+.periodoMes {
+  font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-weight: 525;
+  font-size: 1.15em;
+  color: #1e293b;
+  text-transform: capitalize;
+  letter-spacing: 0.015em;
+  font-feature-settings: 'ss01' 1, 'cv01' 1;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+  text-rendering: optimizeSpeed;
+  font-optical-sizing: auto;
+  font-variation-settings: 'wght' 525;
+  line-height: 1.25;
+  transition: color 0.2s ease;
+  text-shadow: 0 0.25px 0.5px rgba(255, 255, 255, 0.7), 0 0.125px 0.25px rgba(0, 0, 0, 0.01);
+}
+
+.periodoTexto {
+  font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-weight: 425;
+  color: #475569;
+  font-size: 1.03em;
+  letter-spacing: 0.012em;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+  text-rendering: optimizeSpeed;
+  font-feature-settings: 'ss01' 1;
+  font-optical-sizing: auto;
+  font-variation-settings: 'wght' 425;
+  line-height: 1.3;
+  opacity: 0.88;
+  transition: opacity 0.2s ease;
+}
+
+
+
+/* Estados de cor com transições */
+.container[data-status="success"] {
+  --progress-color-rgb: 16, 185, 129;
+}
+
+.container[data-status="warning"] {
+  --progress-color-rgb: 245, 158, 11;
+}
+
+.container[data-status="danger"] {
+  --progress-color-rgb: 239, 68, 68;
+}
+
+/* Animação de loading */
+@keyframes loading {
+  0% {
+    stroke-dashoffset: 175.9;
+  }
+  50% {
+    stroke-dashoffset: 87.95;
+  }
+  100% {
+    stroke-dashoffset: 175.9;
+  }
+}
+
+.container[data-loading="true"] .progressRing {
+  animation: loading 1.5s ease-in-out infinite;
+  stroke: #3b82f6;
+}
+
+/* Responsividade aprimorada */
+@media (max-width: 640px) {
+  .container {
+    margin: clamp(2px, 0.5vw, 4px) auto;
+  }
+  
+  .centerContent {
+    max-width: 75%;
+  }
+  
+  /* Otimização de período externo em mobile - Design moderno */
+   .periodoExterno {
+     font-size: clamp(0.65rem, 2.2vw, 0.85rem);
+     margin-top: clamp(6px, 1.5vw, 8px);
+     letter-spacing: 0.02em;
+     padding: clamp(4px, 1vw, 6px) clamp(6px, 1.2vw, 8px);
+     border-radius: clamp(6px, 1.2vw, 8px);
+   }
+  
+  .periodoData {
+    font-size: 1em;
+    letter-spacing: 0.005em;
+  }
+  
+  .periodoSeparador {
+    font-size: 0.85em;
+    margin: 0 0.15em;
+  }
+  
+  .periodoMes {
+    font-size: 1.05em;
+    letter-spacing: 0.015em;
+  }
+  
+
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .container {
+    margin: clamp(4px, 1vw, 6px) auto;
+  }
+  
+  /* Período externo otimizado para tablet - Design moderno */
+   .periodoExterno {
+     font-size: clamp(0.7rem, 1.9vw, 0.9rem);
+     letter-spacing: 0.025em;
+     padding: clamp(5px, 1.1vw, 8px) clamp(7px, 1.3vw, 10px);
+     border-radius: clamp(7px, 1.3vw, 10px);
+   }
+  
+  .periodoData {
+    font-size: 1.02em;
+    letter-spacing: 0.008em;
+  }
+  
+  .periodoSeparador {
+    font-size: 0.88em;
+    margin: 0 0.18em;
+  }
+  
+  .periodoMes {
+    font-size: 1.08em;
+    letter-spacing: 0.018em;
+  }
+}
+
+@media (min-width: 1025px) {
+  .container {
+    margin: clamp(6px, 1.2vw, 8px) auto;
+  }
+  
+  /* Período externo otimizado para desktop - Design moderno */
+   .periodoExterno {
+     font-size: clamp(0.75rem, 1.7vw, 0.95rem);
+     letter-spacing: 0.025em;
+     padding: clamp(6px, 1.2vw, 10px) clamp(8px, 1.5vw, 12px);
+     border-radius: clamp(8px, 1.5vw, 12px);
+   }
+  
+  .periodoData {
+    font-size: 1.05em;
+    letter-spacing: 0.01em;
+  }
+  
+  .periodoSeparador {
+    font-size: 0.9em;
+    margin: 0 0.2em;
+  }
+  
+  .periodoMes {
+    font-size: 1.1em;
+    letter-spacing: 0.02em;
+  }
+}
+
+/* Acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+  .svgContainer,
+  .centerContent,
+  .progressRing,
+  .progressSvg {
+    transition: none;
+    animation: none;
+  }
+  
+
+}
+
+/* Focus para acessibilidade */
+.container:focus-within {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 50%;
+}
+
+/* Estados especiais */
+.container[data-complete="true"] .progressRing {
+  stroke: #10b981;
+  filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.5));
+}
+
+.container[data-complete="true"] .centerContent {
+  color: #10b981;
+}
+
+/* Animação de conclusão */
+@keyframes complete {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.container[data-complete="true"] .centerContent {
+  animation: complete 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}

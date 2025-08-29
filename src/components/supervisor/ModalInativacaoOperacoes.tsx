@@ -515,8 +515,8 @@ export const ModalInativacaoOperacoes: React.FC<ModalInativacaoOperacoesProps> =
                               borderRadius: '8px',
                               cursor: loading ? 'not-allowed' : 'pointer',
                               transition: 'all 0.2s ease',
-                              opacity: operacao.inativa_pelo_supervisor ? 0.7 : 1,
-                              filter: operacao.inativa_pelo_supervisor ? 'grayscale(50%)' : 'none'
+                              opacity: operacao.inativa_pelo_supervisor ? 0.85 : 1,
+                              filter: operacao.inativa_pelo_supervisor ? 'grayscale(30%)' : 'none'
                             }}
                           >
                             {/* Checkbox */}

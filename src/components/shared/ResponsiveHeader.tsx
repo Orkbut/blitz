@@ -13,7 +13,7 @@ interface ResponsiveHeaderProps {
 export const ResponsiveHeader: React.FC<ResponsiveHeaderProps> = ({
   userName = "IDIONY GONÇALVES DOS SANT...",
   userCode = "3006362",
-  regional = "5"
+  regional = "Carregando..."
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
