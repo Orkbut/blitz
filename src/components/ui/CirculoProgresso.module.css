@@ -49,6 +49,20 @@
   transform: scale(1) translateY(0);
 }
 
+/* Estado clickable */
+.clickable {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.clickable:hover {
+  transform: scale(1.05);
+}
+
+.clickable:active {
+  transform: scale(0.98);
+}
+
 /* SVG responsivo */
 .progressSvg {
   width: 100%;

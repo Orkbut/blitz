@@ -51,6 +51,7 @@ interface Operacao {
 export const CalendarioSimplesComponent: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [tipoDestaque, setTipoDestaque] = useState<'anterior' | 'corrente' | 'diarias' | null>(null);
 
   const [membroAtual, setMembroAtual] = useState<string>(() => {
     // Inicializar com ID do membro logado
@@ -80,6 +81,92 @@ export const CalendarioSimplesComponent: React.FC = () => {
 
   // Estados para o modal
   const [operacoesPorDia, setOperacoesPorDia] = useState<Record<string, Operacao[]>>({});
+
+  // Funções para lidar com cliques nos círculos de progresso
+  const handleCircleClick = useCallback((tipo: 'anterior' | 'corrente' | 'diarias') => {
+    setTipoDestaque(prevTipo => prevTipo === tipo ? null : tipo);
+  }, []);
+
+  // Função para determinar se um dia deve ser destacado baseado no tipo selecionado
+  const shouldHighlightDay = (day: Date): boolean => {
+    if (!tipoDestaque) return false;
+
+    const dayStr = format(day, 'yyyy-MM-dd');
+    const operacoesDia = getOperacoesDia(day);
+    
+    // Se não há operações no dia, não destacar
+    if (operacoesDia.length === 0) return false;
+
+    const anoAtual = currentDate.getFullYear();
+    const mesAtual = currentDate.getMonth(); // 0-based
+
+    // Estados que contam para os limites (mesma lógica do useLimitesCalendario)
+    const ESTADOS_INCLUIDOS = [
+      'CONFIRMADO',
+      'ADICIONADO_SUP',
+      'PENDENTE',
+      'SOLICITADO',
+      'NA_FILA',
+      'APROVADO'
+    ];
+
+    // Função para verificar se uma operação tem participação válida do usuário
+    const temParticipacaoValida = (operacao: any): boolean => {
+      if (!operacao.minha_participacao) return false;
+      
+      // Verificar se o estado da participação está incluído nos estados válidos
+      return ESTADOS_INCLUIDOS.includes(operacao.minha_participacao.estado_visual);
+    };
+
+    if (tipoDestaque === 'anterior') {
+      // Período anterior: 10 do mês anterior até 09 do mês atual
+      const cicloAnteriorInicio = new Date(anoAtual, mesAtual - 1, 10);
+      const cicloAnteriorFim = new Date(anoAtual, mesAtual, 9, 23, 59, 59);
+      
+      const inicioStr = format(cicloAnteriorInicio, 'yyyy-MM-dd');
+      const fimStr = format(cicloAnteriorFim, 'yyyy-MM-dd');
+      
+      // Verificar se está no período E tem operações com participação válida
+      const isInPeriod = dayStr >= inicioStr && dayStr <= fimStr;
+      const hasValidParticipation = operacoesDia.some(op => temParticipacaoValida(op));
+      
+      return isInPeriod && hasValidParticipation;
+    }
+
+    if (tipoDestaque === 'corrente') {
+      // Período corrente: 10 do mês atual até 09 do próximo mês
+      const cicloCorrenteInicio = new Date(anoAtual, mesAtual, 10);
+      const cicloCorrenteFim = new Date(anoAtual, mesAtual + 1, 9, 23, 59, 59);
+      
+      const inicioStr = format(cicloCorrenteInicio, 'yyyy-MM-dd');
+      const fimStr = format(cicloCorrenteFim, 'yyyy-MM-dd');
+      
+      // Verificar se está no período E tem operações com participação válida
+      const isInPeriod = dayStr >= inicioStr && dayStr <= fimStr;
+      const hasValidParticipation = operacoesDia.some(op => temParticipacaoValida(op));
+      
+      return isInPeriod && hasValidParticipation;
+    }
+
+    if (tipoDestaque === 'diarias') {
+      // Diárias do mês: apenas operações PLANEJADA no mês civil atual com participação válida
+      const mesCivilInicio = startOfMonth(currentDate);
+      const mesCivilFim = endOfMonth(currentDate);
+      
+      const inicioStr = format(mesCivilInicio, 'yyyy-MM-dd');
+      const fimStr = format(mesCivilFim, 'yyyy-MM-dd');
+      
+      // Verificar se está no mês civil E tem operações PLANEJADA com participação válida
+      const isInMonth = dayStr >= inicioStr && dayStr <= fimStr;
+      const hasValidPlannedOps = operacoesDia.some(op => 
+        op.tipo === 'PLANEJADA' && temParticipacaoValida(op)
+      );
+      
+      return isInMonth && hasValidPlannedOps;
+    }
+
+    return false;
+  };
 
   // Fetch das operações
   const fetchOperacoes = useCallback(async () => {
@@ -586,6 +673,7 @@ export const CalendarioSimplesComponent: React.FC = () => {
         currentDate={currentDate}
         compact={false}
         debug={process.env.NODE_ENV === 'development'}
+        onCircleClick={handleCircleClick}
       />
 
       {/* Dias da Semana */}
@@ -606,6 +694,7 @@ export const CalendarioSimplesComponent: React.FC = () => {
           const isCurrentMonth = isSameMonth(day, currentDate);
           const isCurrentDay = isToday(day);
           const hasUniqueOperation = operacoesDia.length === 1;
+          const shouldHighlight = shouldHighlightDay(day);
 
           return (
             <div
@@ -614,6 +703,7 @@ export const CalendarioSimplesComponent: React.FC = () => {
                 ${styles.dayCell}
                 ${!isCurrentMonth ? styles.otherMonth : ''}
                 ${isCurrentDay ? styles.currentDay : ''}
+                ${shouldHighlight ? styles.highlightedDay : ''}
               `}
               onClick={() => handleDayClick(day)}
             >

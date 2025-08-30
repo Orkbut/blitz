@@ -13,6 +13,7 @@ interface LimitesBarrasProps {
   currentDate: Date;
   compact?: boolean;
   debug?: boolean;
+  onCircleClick?: (tipo: 'anterior' | 'corrente' | 'diarias') => void;
 }
 
 /**
@@ -23,7 +24,8 @@ export const LimitesBarras: React.FC<LimitesBarrasProps> = ({
   membroId,
   currentDate,
   compact = false,
-  debug = false
+  debug = false,
+  onCircleClick
 }) => {
   const {
     operacoesCicloAnterior,
@@ -167,6 +169,7 @@ export const LimitesBarras: React.FC<LimitesBarrasProps> = ({
             corFuncao={getProgressColorString}
             ariaLabel={`${periodoAnterior.status}: ${operacoesCicloAnterior.atual} de ${operacoesCicloAnterior.limite} operações no período ${periodoAnterior.periodo}`}
             className={styles.anterior}
+            onClick={() => onCircleClick?.('anterior')}
           />
 
           {/* Período Corrente - Indicador Circular */}
@@ -179,6 +182,7 @@ export const LimitesBarras: React.FC<LimitesBarrasProps> = ({
             corFuncao={getProgressColorString}
             ariaLabel={`${periodoCorrente.status}: ${operacoesCicloCorrente.atual} de ${operacoesCicloCorrente.limite} operações no período ${periodoCorrente.periodo}`}
             className={styles.corrente}
+            onClick={() => onCircleClick?.('corrente')}
           />
 
           {/* Diárias do Mês - Indicador Circular */}
@@ -191,6 +195,7 @@ export const LimitesBarras: React.FC<LimitesBarrasProps> = ({
             corFuncao={getProgressColorString}
             ariaLabel={`${periodoDiarias.status}: ${diariasEquivalentes.atual % 1 === 0 ? diariasEquivalentes.atual : diariasEquivalentes.atual.toFixed(1)} de ${diariasEquivalentes.limite} diárias em ${periodoDiarias.periodo}`}
             className={styles.diarias}
+            onClick={() => onCircleClick?.('diarias')}
           />
         </div>
       </div>

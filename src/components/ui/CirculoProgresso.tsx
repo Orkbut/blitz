@@ -48,6 +48,7 @@ interface CirculoProgressoProps {
   showPercentual?: boolean;
   animationDelay?: number;
   className?: string;
+  onClick?: () => void;
 }
 
 /**
@@ -67,7 +68,8 @@ export const CirculoProgresso: React.FC<CirculoProgressoProps> = ({
   ariaLabel,
   showPercentual = false,
   animationDelay = 0,
-  className = ''
+  className = '',
+  onClick
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [currentPercentual, setCurrentPercentual] = useState(0);
@@ -140,7 +142,7 @@ export const CirculoProgresso: React.FC<CirculoProgressoProps> = ({
 
   return (
     <div 
-      className={`${styles.container} ${styles[tamanho]} ${className}`}
+      className={`${styles.container} ${styles[tamanho]} ${className} ${onClick ? styles.clickable : ''}`}
       style={{
         '--diameter': config.diameter,
         '--font-size': config.fontSize,
@@ -149,6 +151,7 @@ export const CirculoProgresso: React.FC<CirculoProgressoProps> = ({
         '--progress-color': corAtual,
         '--animation-delay': `${animationDelay}ms`
       } as React.CSSProperties}
+      onClick={onClick}
     >
       {/* SVG do anel de progresso */}
       <div className={`${styles.svgContainer} ${isVisible ? styles.visible : ''}`}>
