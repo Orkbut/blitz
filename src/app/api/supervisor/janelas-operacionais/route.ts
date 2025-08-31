@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     // ✅ ISOLAMENTO POR REGIONAL: Obter contexto do supervisor
     const supervisorId = request.headers.get('X-Supervisor-Id');
     const regionalId = request.headers.get('X-Regional-Id');
-    
+
     let query = supabase
       .from('janela_operacional')
       .select(`
@@ -69,9 +69,9 @@ export async function GET(request: NextRequest) {
           limiteMax: janela.limite_max,
           criadoEm: janela.criado_em
         };
-        
 
-        
+
+
         return janelaFormatada;
       })
     );
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Erro ao buscar janelas operacionais:', error);
-    
+
     return NextResponse.json({
       success: false,
       error: 'Erro ao buscar janelas operacionais',
@@ -100,29 +100,29 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
+
     // ✅ CORRIGIDO: Obter contexto do supervisor pelos headers
     const supervisorId = request.headers.get('X-Supervisor-Id');
     const regionalId = request.headers.get('X-Regional-Id');
-    
+
     console.log('🔍 [API] Headers recebidos:', {
       supervisorId,
       regionalId,
       allHeaders: Object.fromEntries(request.headers.entries())
     });
-    
+
     if (!supervisorId || !regionalId) {
       return NextResponse.json({
         success: false,
         error: 'Contexto do supervisor não encontrado. Faça login novamente.'
       }, { status: 401 });
     }
-    
-    const { 
-      dataInicio, 
-      dataFim, 
-      modalidades, 
-      limiteMin = 2, 
+
+    const {
+      dataInicio,
+      dataFim,
+      modalidades,
+      limiteMin = 2,
       limiteMax = 30
     } = body;
 
@@ -136,63 +136,64 @@ export async function POST(request: NextRequest) {
 
 
 
-    // ✅ VALIDAÇÃO DE SOBREPOSIÇÃO DE JANELAS
-    const modalidadesArray = Array.isArray(modalidades) ? modalidades : [modalidades];
-    
-    // Buscar janelas existentes que se sobrepõem ao período
-    const { data: janelasExistentes, error: validationError } = await supabase
-      .from('janela_operacional')
-      .select('id, data_inicio, data_fim, modalidades')
-      .eq('ativa', true)
-      .eq('regional_id', parseInt(regionalId));
+    // ❌ VALIDAÇÃO DE SOBREPOSIÇÃO DE JANELAS - DESATIVADA
+    // Validação de interposição de períodos foi desativada conforme solicitado
+    // const modalidadesArray = Array.isArray(modalidades) ? modalidades : [modalidades];
 
-    if (validationError) {
-      console.error('❌ Erro ao validar sobreposição:', validationError);
-      return NextResponse.json({
-        success: false,
-        error: 'Erro ao validar sobreposição de janelas'
-      }, { status: 500 });
-    }
+    // // Buscar janelas existentes que se sobrepõem ao período
+    // const { data: janelasExistentes, error: validationError } = await supabase
+    //   .from('janela_operacional')
+    //   .select('id, data_inicio, data_fim, modalidades')
+    //   .eq('ativa', true)
+    //   .eq('regional_id', parseInt(regionalId));
 
-    // Verificar conflitos de sobreposição
-    const conflitos = janelasExistentes?.filter(janela => {
-      const janelaInicio = new Date(janela.data_inicio);
-      const janelaFim = new Date(janela.data_fim);
-      const novaInicio = new Date(dataInicio);
-      const novaFim = new Date(dataFim);
-      
-      // Verificar se há sobreposição temporal
-      const temSobreposicao = (
-        (novaInicio <= janelaFim && novaFim >= janelaInicio)
-      );
-      
-      if (!temSobreposicao) return false;
-      
-      // Se há sobreposição, verificar se as modalidades conflitam
-      const modalidadesExistentes = janela.modalidades.split(',');
-      const temModalidadeComum = modalidadesArray.some(nova => 
-        modalidadesExistentes.includes(nova)
-      );
-      
-      return temModalidadeComum;
-    }) || [];
+    // if (validationError) {
+    //   console.error('❌ Erro ao validar sobreposição:', validationError);
+    //   return NextResponse.json({
+    //     success: false,
+    //     error: 'Erro ao validar sobreposição de janelas'
+    //   }, { status: 500 });
+    // }
 
-    if (conflitos.length > 0) {
-      const conflito = conflitos[0];
-      const modalidadesConflito = conflito.modalidades.split(',');
-      const modalidadesComuns = modalidadesArray.filter(m => modalidadesConflito.includes(m));
-      
-      return NextResponse.json({
-        success: false,
-        error: `Conflito de sobreposição detectado`,
-        details: {
-          janelaConflitante: conflito.id,
-          periodoConflitante: `${conflito.data_inicio} até ${conflito.data_fim}`,
-          modalidadesConflitantes: modalidadesComuns,
-          regra: 'Não é permitido criar janelas com sobreposição temporal e modalidades iguais'
-        }
-      }, { status: 409 });
-    }
+    // // Verificar conflitos de sobreposição
+    // const conflitos = janelasExistentes?.filter(janela => {
+    //   const janelaInicio = new Date(janela.data_inicio);
+    //   const janelaFim = new Date(janela.data_fim);
+    //   const novaInicio = new Date(dataInicio);
+    //   const novaFim = new Date(dataFim);
+    //   
+    //   // Verificar se há sobreposição temporal
+    //   const temSobreposicao = (
+    //     (novaInicio <= janelaFim && novaFim >= janelaInicio)
+    //   );
+    //   
+    //   if (!temSobreposicao) return false;
+    //   
+    //   // Se há sobreposição, verificar se as modalidades conflitam
+    //   const modalidadesExistentes = janela.modalidades.split(',');
+    //   const temModalidadeComum = modalidadesArray.some(nova => 
+    //     modalidadesExistentes.includes(nova)
+    //   );
+    //   
+    //   return temModalidadeComum;
+    // }) || [];
+
+    // if (conflitos.length > 0) {
+    //   const conflito = conflitos[0];
+    //   const modalidadesConflito = conflito.modalidades.split(',');
+    //   const modalidadesComuns = modalidadesArray.filter(m => modalidadesConflito.includes(m));
+    //   
+    //   return NextResponse.json({
+    //     success: false,
+    //     error: `Conflito de sobreposição detectado`,
+    //     details: {
+    //       janelaConflitante: conflito.id,
+    //       periodoConflitante: `${conflito.data_inicio} até ${conflito.data_fim}`,
+    //       modalidadesConflitantes: modalidadesComuns,
+    //       regra: 'Não é permitido criar janelas com sobreposição temporal e modalidades iguais'
+    //     }
+    //   }, { status: 409 });
+    // }
 
     // ✅ CRIAR JANELA REAL NO SUPABASE
     console.log('🔍 [API] Dados que serão salvos no banco:', {
@@ -202,7 +203,7 @@ export async function POST(request: NextRequest) {
       data_fim: dataFim,
       modalidades: Array.isArray(modalidades) ? modalidades.join(',') : modalidades
     });
-    
+
     const { data: novaJanela, error } = await supabase
       .from('janela_operacional')
       .insert({
@@ -242,7 +243,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Erro ao criar janela operacional:', error);
-    
+
     return NextResponse.json({
       success: false,
       error: 'Erro ao criar janela operacional'
@@ -324,7 +325,7 @@ export async function DELETE(request: NextRequest) {
     // 3. Se existem operações inativas, bloquear exclusão (Requirements 4.2, 4.3)
     if (operacoesInativas && operacoesInativas.length > 0) {
       console.log(`❌ [DELETE] Exclusão bloqueada: ${operacoesInativas.length} operações inativas encontradas`);
-      
+
       const operacoesDetalhes = operacoesInativas.map(op => ({
         id: op.id,
         data: op.data_operacao,
@@ -395,7 +396,7 @@ export async function DELETE(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ [DELETE] Erro inesperado:', error);
-    
+
     return NextResponse.json({
       success: false,
       error: 'Erro ao excluir janela operacional',
@@ -409,7 +410,7 @@ export async function PUT(request: NextRequest) {
     // 🧪 ENDPOINT DE TESTE PARA VERIFICAR A FUNÇÃO RPC
     const { searchParams } = new URL(request.url);
     const janelaId = searchParams.get('test-id');
-    
+
     if (!janelaId) {
       return NextResponse.json({
         success: false,
@@ -418,18 +419,18 @@ export async function PUT(request: NextRequest) {
     }
 
     console.log(`🧪 [TESTE] Testando função RPC para janela ${janelaId}`);
-    
+
     // Testar a função RPC diretamente
     const { data: resultado, error: superpoderError } = await supabase
       .rpc('excluir_janela_superpoder', { p_janela_id: parseInt(janelaId) });
-    
+
     console.log(`🧪 [TESTE] Resultado:`, {
       resultado,
       superpoderError,
       hasError: !!superpoderError,
       hasData: !!resultado
     });
-    
+
     return NextResponse.json({
       success: true,
       test: 'Função RPC testada via API',
@@ -440,7 +441,7 @@ export async function PUT(request: NextRequest) {
         hasData: !!resultado
       }
     });
-    
+
   } catch (error) {
     console.error('❌ [TESTE] Erro:', error);
     return NextResponse.json({

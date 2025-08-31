@@ -52,64 +52,65 @@ export async function PUT(
       }, { status: 404 });
     }
 
-    // ✅ VALIDAÇÃO DE SOBREPOSIÇÃO COM OUTRAS JANELAS
-    const modalidadesArray = janelaExistente.modalidades.split(',');
+    // ❌ VALIDAÇÃO DE SOBREPOSIÇÃO COM OUTRAS JANELAS - DESATIVADA
+    // Validação de interposição de períodos foi desativada conforme solicitado
+    // const modalidadesArray = janelaExistente.modalidades.split(',');
     
-    // Buscar outras janelas ativas da mesma regional (excluindo a atual)
-    const { data: outrasJanelas, error: validationError } = await supabase
-      .from('janela_operacional')
-      .select('id, data_inicio, data_fim, modalidades')
-      .eq('ativa', true)
-      .eq('regional_id', parseInt(regionalId))
-      .neq('id', parseInt(janelaId)); // Excluir a janela atual
+    // // Buscar outras janelas ativas da mesma regional (excluindo a atual)
+    // const { data: outrasJanelas, error: validationError } = await supabase
+    //   .from('janela_operacional')
+    //   .select('id, data_inicio, data_fim, modalidades')
+    //   .eq('ativa', true)
+    //   .eq('regional_id', parseInt(regionalId))
+    //   .neq('id', parseInt(janelaId)); // Excluir a janela atual
 
-    if (validationError) {
-      console.error('❌ Erro ao validar sobreposição:', validationError);
-      return NextResponse.json({
-        success: false,
-        error: 'Erro ao validar sobreposição de janelas'
-      }, { status: 500 });
-    }
+    // if (validationError) {
+    //   console.error('❌ Erro ao validar sobreposição:', validationError);
+    //   return NextResponse.json({
+    //     success: false,
+    //     error: 'Erro ao validar sobreposição de janelas'
+    //   }, { status: 500 });
+    // }
 
-    // Verificar conflitos de sobreposição
-    const conflitos = outrasJanelas?.filter(janela => {
-      const janelaInicio = new Date(janela.data_inicio);
-      const janelaFim = new Date(janela.data_fim);
-      const novaInicio = new Date(dataInicio);
-      const novaFim = new Date(dataFim);
-      
-      // Verificar se há sobreposição temporal
-      const temSobreposicao = (
-        (novaInicio <= janelaFim && novaFim >= janelaInicio)
-      );
-      
-      if (!temSobreposicao) return false;
-      
-      // Se há sobreposição, verificar se as modalidades conflitam
-      const modalidadesExistentes = janela.modalidades.split(',');
-      const temModalidadeComum = modalidadesArray.some(modalidade => 
-        modalidadesExistentes.includes(modalidade)
-      );
-      
-      return temModalidadeComum;
-    }) || [];
+    // // Verificar conflitos de sobreposição
+    // const conflitos = outrasJanelas?.filter(janela => {
+    //   const janelaInicio = new Date(janela.data_inicio);
+    //   const janelaFim = new Date(janela.data_fim);
+    //   const novaInicio = new Date(dataInicio);
+    //   const novaFim = new Date(dataFim);
+    //   
+    //   // Verificar se há sobreposição temporal
+    //   const temSobreposicao = (
+    //     (novaInicio <= janelaFim && novaFim >= janelaInicio)
+    //   );
+    //   
+    //   if (!temSobreposicao) return false;
+    //   
+    //   // Se há sobreposição, verificar se as modalidades conflitam
+    //   const modalidadesExistentes = janela.modalidades.split(',');
+    //   const temModalidadeComum = modalidadesArray.some(modalidade => 
+    //     modalidadesExistentes.includes(modalidade)
+    //   );
+    //   
+    //   return temModalidadeComum;
+    // }) || [];
 
-    if (conflitos.length > 0) {
-      const conflito = conflitos[0];
-      const modalidadesConflito = conflito.modalidades.split(',');
-      const modalidadesComuns = modalidadesArray.filter(m => modalidadesConflito.includes(m));
-      
-      return NextResponse.json({
-        success: false,
-        error: `Conflito de sobreposição detectado`,
-        details: {
-          janelaConflitante: conflito.id,
-          periodoConflitante: `${conflito.data_inicio} até ${conflito.data_fim}`,
-          modalidadesConflitantes: modalidadesComuns,
-          regra: 'Não é permitido editar janelas com sobreposição temporal e modalidades iguais'
-        }
-      }, { status: 409 });
-    }
+    // if (conflitos.length > 0) {
+    //   const conflito = conflitos[0];
+    //   const modalidadesConflito = conflito.modalidades.split(',');
+    //   const modalidadesComuns = modalidadesArray.filter(m => modalidadesConflito.includes(m));
+    //   
+    //   return NextResponse.json({
+    //     success: false,
+    //     error: `Conflito de sobreposição detectado`,
+    //     details: {
+    //       janelaConflitante: conflito.id,
+    //       periodoConflitante: `${conflito.data_inicio} até ${conflito.data_fim}`,
+    //       modalidadesConflitantes: modalidadesComuns,
+    //       regra: 'Não é permitido editar janelas com sobreposição temporal e modalidades iguais'
+    //     }
+    //   }, { status: 409 });
+    // }
 
     // ✅ ATUALIZAR JANELA NO BANCO
     const { data: janelaAtualizada, error: updateError } = await supabase
