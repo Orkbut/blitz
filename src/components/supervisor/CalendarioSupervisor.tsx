@@ -61,6 +61,7 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
   onRefresh,
   loading: externalLoading = false
 }) => {
+
   // Efeito de scroll para o header interativo
   useEffect(() => {
     const header = document.getElementById('header-interativo');
@@ -101,6 +102,138 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
 
   // Garantir que operacoes seja sempre um array válido
   const operacoesSeguras = Array.isArray(operacoes) ? operacoes : [];
+
+  // ✅ NOVO: Calcular contador interno de solicitações pendentes
+  const contadorInternoSolicitacoesPendentes = React.useMemo(() => {
+    return operacoesSeguras.reduce((total, operacao) => {
+      const participantesPendentes = operacao.participacoes?.filter(p => 
+        p.estado_visual === 'PENDENTE' || p.estado_visual === 'AGUARDANDO_SUPERVISOR'
+      ) || [];
+      return total + participantesPendentes.length;
+    }, 0);
+  }, [operacoesSeguras]);
+
+  // ✅ NOVO: Função interna para aprovar todas as solicitações
+  const aprovarTodasSolicitacoesInterno = useCallback(async () => {
+    if (contadorInternoSolicitacoesPendentes === 0) {
+      alert('Nenhuma solicitação pendente no período carregado.');
+      return;
+    }
+
+    // Confirmar ação
+    const confirmacao = window.confirm(
+      `⚡ APROVAÇÃO EM LOTE\n\n` +
+      `Deseja aprovar automaticamente ${contadorInternoSolicitacoesPendentes} solicitação(ões) pendente(s) do período?\n\n` +
+      `• Membros que ultrapassaram 15 operações serão pulados automaticamente\n` +
+      `• Não será solicitada justificativa individual\n` +
+      `• O processo seguirá a ordem da fila de cada operação\n\n` +
+      `Esta ação não pode ser desfeita. Continuar?`
+    );
+
+    if (!confirmacao) return;
+
+    setLoading(true);
+    
+    let totalAprovados = 0;
+    let totalPulados = 0;
+    let detalhesErros: string[] = [];
+
+    try {
+      // Processar cada operação
+      for (const operacao of operacoesSeguras) {
+        const solicitacoesPendentes = operacao.participacoes?.filter(p => 
+          p.estado_visual === 'PENDENTE' || p.estado_visual === 'AGUARDANDO_SUPERVISOR'
+        ) || [];
+
+        if (solicitacoesPendentes.length === 0) continue;
+
+        // Ordenar por ID (ordem de chegada)
+        const solicitacoesOrdenadas = [...solicitacoesPendentes].sort((a, b) => a.id - b.id);
+
+        for (const participacao of solicitacoesOrdenadas) {
+          try {
+            // 1. Validar limites do servidor
+            const responseValidacao = await fetch('/api/supervisor/validar-limites-servidor', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...getSupervisorHeaders()
+              },
+              body: JSON.stringify({
+                servidorId: participacao.servidor?.id || participacao.servidor_id,
+                dataOperacao: operacao.data_operacao,
+                tipoOperacao: operacao.tipo,
+                modalidade: operacao.modalidade
+              })
+            });
+
+            const validacao = await responseValidacao.json();
+
+            // Se não pode confirmar (ultrapassou limites), pular
+            if (validacao.success && !validacao.data.podeConfirmar) {
+              totalPulados++;
+              continue;
+            }
+
+            // 2. Aprovar a solicitação
+            const response = await fetch(`/api/supervisor/solicitacoes/${participacao.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                acao: 'aprovar',
+                justificativaFifo: 'Aprovação em lote - período completo'
+              })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+              totalAprovados++;
+            } else {
+              totalPulados++;
+              detalhesErros.push(`${participacao.servidor?.nome || 'Membro'}: ${result.error}`);
+            }
+
+            // Delay para não sobrecarregar o servidor
+            await new Promise(resolve => setTimeout(resolve, 150));
+
+          } catch (error) {
+            totalPulados++;
+            detalhesErros.push(`${participacao.servidor?.nome || 'Membro'}: Erro de conexão`);
+          }
+        }
+      }
+
+      // Recarregar operações
+      if (janelaSelecionada) {
+        await carregarOperacoes();
+      }
+      
+      // Chamar refresh externo se disponível
+      if (onRefresh) {
+        onRefresh();
+      }
+
+      // Mostrar resultado
+      let mensagem = `✅ Aprovação em lote concluída!\n\n`;
+      mensagem += `• ${totalAprovados} solicitação(ões) aprovada(s)\n`;
+      mensagem += `• ${totalPulados} solicitação(ões) pulada(s)\n`;
+      
+      if (detalhesErros.length > 0 && detalhesErros.length <= 5) {
+        mensagem += `\nDetalhes dos erros:\n${detalhesErros.join('\n')}`;
+      } else if (detalhesErros.length > 5) {
+        mensagem += `\nPrimeiros erros:\n${detalhesErros.slice(0, 3).join('\n')}\n... e mais ${detalhesErros.length - 3} erros`;
+      }
+
+      alert(mensagem);
+
+    } catch (error) {
+      console.error('❌ Erro na aprovação em lote do período:', error);
+      alert('Erro inesperado durante a aprovação em lote.');
+    } finally {
+      setLoading(false);
+    }
+  }, [contadorInternoSolicitacoesPendentes, operacoesSeguras, janelaSelecionada, onRefresh]);
 
   // Carregar janelas disponíveis
   useEffect(() => {
@@ -496,6 +629,73 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
                     }}>
                       Nova Operação
                     </span>
+                  </button>
+                )}
+
+                {/* ✅ NOVO: Botão Aprovar Todas */}
+                {contadorInternoSolicitacoesPendentes >= 0 && (
+                  <button
+                    onClick={aprovarTodasSolicitacoesInterno}
+                    disabled={loading || contadorInternoSolicitacoesPendentes === 0}
+                    className="text-white font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    style={{
+                      background: loading 
+                        ? 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)'
+                        : contadorInternoSolicitacoesPendentes === 0
+                        ? 'linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)'
+                        : 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                      padding: 'clamp(6px, 1.2vw, 9px) clamp(10px, 2vw, 14px)',
+                      borderRadius: 'clamp(4px, 0.8vw, 6px)',
+                      fontSize: 'clamp(0.6rem, 1.2vw, 0.7rem)',
+                      gap: 'clamp(2px, 0.4vw, 4px)',
+                      minWidth: 'clamp(100px, 18vw, 130px)',
+                      maxWidth: 'clamp(120px, 22vw, 150px)',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      boxSizing: 'border-box',
+                      border: 'none',
+                      boxShadow: loading 
+                        ? '0 2px 6px rgba(107, 114, 128, 0.3)'
+                        : '0 2px 6px rgba(34, 197, 94, 0.3)',
+                      letterSpacing: 'clamp(0.1px, 0.15vw, 0.2px)',
+                      fontWeight: '600'
+                    }}
+                    title={contadorInternoSolicitacoesPendentes === 0 
+                      ? 'Nenhuma solicitação pendente no período'
+                      : `Aprovar automaticamente ${contadorInternoSolicitacoesPendentes} solicitação(ões) pendente(s) do período`}
+                  >
+                    {loading ? (
+                      <>
+                        <div 
+                          className="animate-spin rounded-full border-2 border-white border-t-transparent"
+                          style={{
+                            width: 'clamp(10px, 2vw, 14px)',
+                            height: 'clamp(10px, 2vw, 14px)'
+                          }}
+                        ></div>
+                        <span style={{
+                          minWidth: '0',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                        }}>
+                          Processando...
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span style={{ fontSize: 'clamp(0.6rem, 1.2vw, 0.7rem)' }}>⚡</span>
+                        <span style={{
+                          minWidth: '0',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                        }}>
+                          Aprovar Todas ({contadorInternoSolicitacoesPendentes})
+                        </span>
+                      </>
+                    )}
                   </button>
                 )}
               </div>

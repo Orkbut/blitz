@@ -25,7 +25,7 @@ export default function SupervisorPage() {
   useEffect(() => {
     const checkAuth = () => {
       const supervisorAuth = localStorage.getItem('supervisorAuth');
-      
+
       if (!supervisorAuth) {
         router.push('/supervisor/auth');
         return;
@@ -58,9 +58,12 @@ export default function SupervisorPage() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [dataParaReabrirModal, setDataParaReabrirModal] = useState<string | null>(null);
 
+  // ✅ NOVO: State para aprovação em lote
+  const [loadingAprovacaoLote, setLoadingAprovacaoLote] = useState(false);
+
   // ✅ NOVOS STATES PARA UX MELHORADA DE JUSTIFICATIVAS
-  const [justificativasFifo, setJustificativasFifo] = useState<{[key: number]: string}>({});
-  const [mostrandoJustificativa, setMostrandoJustificativa] = useState<{[key: number]: boolean}>({});
+  const [justificativasFifo, setJustificativasFifo] = useState<{ [key: number]: string }>({});
+  const [mostrandoJustificativa, setMostrandoJustificativa] = useState<{ [key: number]: boolean }>({});
   const [avisoElegante, setAvisoElegante] = useState<{
     show: boolean;
     tipo: 'erro' | 'sucesso' | 'aviso';
@@ -118,10 +121,10 @@ export default function SupervisorPage() {
   const [janelaParaEditar, setJanelaParaEditar] = useState<any>(null);
   const [operacaoSelecionadaModal, setOperacaoSelecionadaModal] = useState<any>(null);
   const [operacoesSelecionadasTimeline, setOperacoesSelecionadasTimeline] = useState<Operacao[]>([]);
-  
+
   // ✅ NOVO: STATE PARA MENU DROPDOWN (compatível com mobile)
   const [showDropdownMenu, setShowDropdownMenu] = useState(false);
-  
+
   // ✅ NOVO: STATE PARA MODAL DE HORÁRIO
   const [showHorarioPopover, setShowHorarioPopover] = useState<number | null>(null);
   const [operacaoParaHorario, setOperacaoParaHorario] = useState<any>(null);
@@ -164,14 +167,14 @@ export default function SupervisorPage() {
   // ✅ CALLBACK MEMOIZADO PARA CARREGAR OPERAÇÕES
   const carregarOperacoes = useCallback(async () => {
     if (activeTab !== 'operacoes') return;
-    
+
     setLoading(true);
     try {
       const response = await fetch('/api/unified/operacoes?portal=supervisor', {
         headers: getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL: Contexto automático do supervisor
       });
       const result = await response.json();
-      
+
       if (result.success) {
         setOperacoes(result.data || []);
       }
@@ -190,7 +193,7 @@ export default function SupervisorPage() {
         headers: getSupervisorHeaders() // ✅ CONTEXTO AUTOMÁTICO DO SUPERVISOR LOGADO
       });
       const result = await response.json();
-      
+
       if (result.success) {
         setJanelas(result.data || []);
       } else {
@@ -237,12 +240,12 @@ export default function SupervisorPage() {
       });
 
       const result = await response.json();
-      
+
       if (result.success) {
         const impacto = result.data.impacto;
         mostrarAvisoElegante(
-          'sucesso', 
-          'Janela Excluída!', 
+          'sucesso',
+          'Janela Excluída!',
           `Janela #${janelaId} excluída com sucesso. ` +
           `${impacto.operacoesRemovidas} operações, ` +
           `${impacto.participacoesRemovidas} participações e ` +
@@ -325,7 +328,7 @@ export default function SupervisorPage() {
       const response = await fetch(`/api/supervisor/operacoes/${operacaoParaHorario.id}/horario`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           ...getSupervisorContext(),
           horario: horario || null,
           turno: turno || null
@@ -333,12 +336,12 @@ export default function SupervisorPage() {
       });
 
       const result = await response.json();
-      
+
       if (result.success) {
         const acao = result.data.acao;
         let titulo = 'Atualizado!';
         let mensagem = '';
-        
+
         switch (acao) {
           case 'horario_e_turno_definidos':
             titulo = 'Horário e Turno Definidos!';
@@ -360,29 +363,29 @@ export default function SupervisorPage() {
             titulo = 'Atualizado!';
             mensagem = 'Operação atualizada com sucesso.';
         }
-        
+
         // ✅ OTIMIZAÇÃO: Atualizar apenas a operação específica
-        setOperacoes(prevOperacoes => 
-          prevOperacoes.map(op => 
-            op.id === operacaoParaHorario.id 
+        setOperacoes(prevOperacoes =>
+          prevOperacoes.map(op =>
+            op.id === operacaoParaHorario.id
               ? { ...op, horario: result.data.horario, turno: result.data.turno }
               : op
           )
         );
-        
+
         // ✅ SALVAR DATA PARA REABRIR MODAL APÓS FECHAR HORÁRIO
         const dataOperacao = operacaoParaHorario.data_operacao.split('T')[0];
-        
+
         mostrarAvisoElegante('sucesso', titulo, mensagem);
         fecharHorarioPopover();
-        
+
         // ✅ PROGRAMAR REABERTURA DO MODAL DA TIMELINE
         setTimeout(() => {
           setDataParaReabrirModal(dataOperacao);
           // Limpar após usar
           setTimeout(() => setDataParaReabrirModal(null), 100);
         }, 300); // Pequeno delay para garantir que o modal de horário feche primeiro
-        
+
         // ✅ REMOVIDO: await carregarOperacoes() - não precisa mais recarregar tudo
       } else {
         mostrarAvisoElegante('erro', 'Erro ao Atualizar', result.error);
@@ -403,7 +406,7 @@ export default function SupervisorPage() {
       const response = await fetch(`/api/supervisor/operacoes/${operacaoParaHorario.id}/horario`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           ...getSupervisorContext(),
           horario: null,
           turno: null
@@ -411,30 +414,30 @@ export default function SupervisorPage() {
       });
 
       const result = await response.json();
-      
+
       if (result.success) {
         // ✅ OTIMIZAÇÃO: Atualizar apenas a operação específica
-        setOperacoes(prevOperacoes => 
-          prevOperacoes.map(op => 
-            op.id === operacaoParaHorario.id 
+        setOperacoes(prevOperacoes =>
+          prevOperacoes.map(op =>
+            op.id === operacaoParaHorario.id
               ? { ...op, horario: null, turno: result.data.turno }
               : op
           )
         );
-        
+
         // ✅ SALVAR DATA PARA REABRIR MODAL APÓS FECHAR HORÁRIO
         const dataOperacao = operacaoParaHorario.data_operacao.split('T')[0];
-        
+
         mostrarAvisoElegante('sucesso', 'Horário Removido!', 'Horário removido da operação.');
         fecharHorarioPopover();
-        
+
         // ✅ PROGRAMAR REABERTURA DO MODAL DA TIMELINE
         setTimeout(() => {
           setDataParaReabrirModal(dataOperacao);
           // Limpar após usar
           setTimeout(() => setDataParaReabrirModal(null), 100);
         }, 300); // Pequeno delay para garantir que o modal de horário feche primeiro
-        
+
         // ✅ REMOVIDO: await carregarOperacoes() - não precisa mais recarregar tudo
       } else {
         mostrarAvisoElegante('erro', 'Erro ao Remover Horário', result.error);
@@ -469,16 +472,16 @@ export default function SupervisorPage() {
       const response = await fetch(`/api/supervisor/operacoes/${operacaoId}/excluir-temporariamente`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           ...getSupervisorContext(),
-          motivo: motivo.trim() 
+          motivo: motivo.trim()
         })
       });
 
       const result = await response.json();
-      
+
       if (result.success) {
-        mostrarAvisoElegante('sucesso', 'Operação Excluída!', 
+        mostrarAvisoElegante('sucesso', 'Operação Excluída!',
           `Operação excluída temporariamente. ${result.data.participacoesAfetadas} participações afetadas.`);
         await carregarOperacoes();
       } else {
@@ -514,7 +517,7 @@ export default function SupervisorPage() {
       });
 
       const result = await response.json();
-      
+
       if (result.success) {
         mostrarAvisoElegante('sucesso', 'Operação Reativada!', 'Operação reativada com sucesso!');
         await carregarOperacoes();
@@ -544,7 +547,7 @@ export default function SupervisorPage() {
         headers: getSupervisorHeaders() // 🚨 ISOLAMENTO REGIONAL: Incluir contexto do supervisor
       });
       const result = await response.json();
-      
+
       if (result.success) {
         const operacoesMapeadas: Operacao[] = result.data.map((op: any) => ({
           id: op.id,
@@ -564,7 +567,7 @@ export default function SupervisorPage() {
           participantes_confirmados: op.participantes_confirmados || 0,
           pessoas_na_fila: op.pessoas_na_fila || 0
         }));
-        
+
         setOperacoes(operacoesMapeadas);
       } else {
         console.error('❌ Erro no resultado:', result.error);
@@ -581,10 +584,10 @@ export default function SupervisorPage() {
         headers: getSupervisorHeaders() // 🚨 ISOLAMENTO REGIONAL: Incluir contexto do supervisor
       });
       const result = await response.json();
-      
+
       if (result.success) {
         const solicitacoesDados = result.data.todas || result.data || [];
-        
+
         const solicitacoesFormatadas = solicitacoesDados.map((s: any) => ({
           id: s.id,
           membroNome: s.membroNome,
@@ -602,7 +605,7 @@ export default function SupervisorPage() {
           isProximoDaFila: s.isProximoDaFila,
           operacaoDetalhes: s.operacaoDetalhes
         }));
-        
+
         setSolicitacoes(solicitacoesFormatadas);
       } else {
         console.error('❌ Erro no resultado:', result.error);
@@ -613,12 +616,12 @@ export default function SupervisorPage() {
       mostrarAvisoElegante('erro', 'Erro de Conexão', 'Não foi possível carregar as solicitações.');
     }
   }, [mostrarAvisoElegante]); // ✅ Dependência memoizada
-  
+
   // ✅ CALLBACKS ESTÁVEIS PARA MODAL - Memoizados conforme best practices React
   const handleGerenciarModalClose = useCallback(() => {
     setOperacaoParaGerenciar(null);
     setOperacaoSelecionadaModal(null);
-    carregarOperacoesMemoizado(); 
+    carregarOperacoesMemoizado();
   }, [carregarOperacoesMemoizado]); // ✅ Dependência estável
 
   const handleGerenciarModalUpdate = useCallback(() => {
@@ -626,6 +629,149 @@ export default function SupervisorPage() {
     carregarOperacoesMemoizado();
     carregarSolicitacoesMemoizado();
   }, [carregarOperacoesMemoizado, carregarSolicitacoesMemoizado]); // ✅ Dependências estáveis
+
+  // ✅ NOVO: Contador de solicitações pendentes do período carregado
+  const contadorSolicitacoesPendentes = React.useMemo(() => {
+    return operacoes.reduce((total, operacao) => {
+      const participantesPendentes = operacao.participantes?.filter(p =>
+        p.estado_visual === 'PENDENTE' || p.estado_visual === 'AGUARDANDO_SUPERVISOR'
+      ) || [];
+      return total + participantesPendentes.length;
+    }, 0);
+  }, [operacoes]);
+
+  // ✅ NOVO: Função para aprovar todas as solicitações do período
+  const aprovarTodasSolicitacoesPeriodo = useCallback(async () => {
+    if (contadorSolicitacoesPendentes === 0) {
+      setAvisoElegante({
+        show: true,
+        tipo: 'aviso',
+        titulo: 'Nenhuma Solicitação',
+        mensagem: 'Não há solicitações pendentes no período carregado.'
+      });
+      return;
+    }
+
+    // Confirmar ação
+    const confirmacao = window.confirm(
+      `⚡ APROVAÇÃO EM LOTE\n\n` +
+      `Deseja aprovar automaticamente ${contadorSolicitacoesPendentes} solicitação(ões) pendente(s) de todo o período?\n\n` +
+      `• Membros que ultrapassaram 15 operações serão pulados automaticamente\n` +
+      `• Não será solicitada justificativa individual\n` +
+      `• O processo seguirá a ordem da fila de cada operação\n\n` +
+      `Esta ação não pode ser desfeita. Continuar?`
+    );
+
+    if (!confirmacao) return;
+
+    setLoadingAprovacaoLote(true);
+
+    let totalAprovados = 0;
+    let totalPulados = 0;
+    let detalhesErros: string[] = [];
+
+    try {
+      // Processar cada operação
+      for (const operacao of operacoes) {
+        const solicitacoesPendentes = operacao.participantes?.filter(p =>
+          p.estado_visual === 'PENDENTE' || p.estado_visual === 'AGUARDANDO_SUPERVISOR'
+        ) || [];
+
+        if (solicitacoesPendentes.length === 0) continue;
+
+        // Ordenar por data de participação (ordem da fila)
+        const solicitacoesOrdenadas = [...solicitacoesPendentes].sort((a, b) =>
+          new Date(a.data_participacao || 0).getTime() - new Date(b.data_participacao || 0).getTime()
+        );
+
+        for (const participacao of solicitacoesOrdenadas) {
+          try {
+            // 1. Validar limites do servidor
+            const responseValidacao = await fetch('/api/supervisor/validar-limites-servidor', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...getSupervisorHeaders()
+              },
+              body: JSON.stringify({
+                servidorId: participacao.membro_id,
+                dataOperacao: operacao.data_operacao,
+                tipoOperacao: operacao.tipo,
+                modalidade: operacao.modalidade
+              })
+            });
+
+            const validacao = await responseValidacao.json();
+
+            // Se não pode confirmar (ultrapassou limites), pular
+            if (validacao.success && !validacao.data.podeConfirmar) {
+              totalPulados++;
+              continue;
+            }
+
+            // 2. Aprovar a solicitação
+            const response = await fetch(`/api/supervisor/solicitacoes/${participacao.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                acao: 'aprovar',
+                justificativaFifo: 'Aprovação em lote - período completo'
+              })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+              totalAprovados++;
+            } else {
+              totalPulados++;
+              detalhesErros.push(`${participacao.nome}: ${result.error}`);
+            }
+
+            // Delay para não sobrecarregar o servidor
+            await new Promise(resolve => setTimeout(resolve, 150));
+
+          } catch (error) {
+            totalPulados++;
+            detalhesErros.push(`${participacao.nome}: Erro de conexão`);
+          }
+        }
+      }
+
+      // Recarregar dados
+      await carregarOperacoesMemoizado();
+      await carregarSolicitacoesMemoizado();
+
+      // Mostrar resultado
+      let mensagem = `✅ Aprovação em lote concluída!\n\n`;
+      mensagem += `• ${totalAprovados} solicitação(ões) aprovada(s)\n`;
+      mensagem += `• ${totalPulados} solicitação(ões) pulada(s)\n`;
+
+      if (detalhesErros.length > 0 && detalhesErros.length <= 5) {
+        mensagem += `\nDetalhes dos erros:\n${detalhesErros.join('\n')}`;
+      } else if (detalhesErros.length > 5) {
+        mensagem += `\nPrimeiros erros:\n${detalhesErros.slice(0, 3).join('\n')}\n... e mais ${detalhesErros.length - 3} erros`;
+      }
+
+      setAvisoElegante({
+        show: true,
+        tipo: totalAprovados > 0 ? 'sucesso' : 'aviso',
+        titulo: '⚡ Aprovação em Lote',
+        mensagem
+      });
+
+    } catch (error) {
+      console.error('❌ Erro na aprovação em lote do período:', error);
+      setAvisoElegante({
+        show: true,
+        tipo: 'erro',
+        titulo: 'Erro na Aprovação',
+        mensagem: 'Erro inesperado durante a aprovação em lote.'
+      });
+    } finally {
+      setLoadingAprovacaoLote(false);
+    }
+  }, [contadorSolicitacoesPendentes, operacoes, getSupervisorHeaders, carregarOperacoesMemoizado, carregarSolicitacoesMemoizado]);
 
   // ✅ Efeito para ocultar header no scroll para baixo e mostrar no scroll para cima
   useEffect(() => {
@@ -671,12 +817,12 @@ export default function SupervisorPage() {
       quantidadeOperacoes: operacoes.length,
       operacoes
     });
-    
+
     if (operacoes.length === 0) {
       console.log('❌ [handleOperacaoClick] Array vazio, retornando');
       return;
     }
-    
+
     // Se há apenas uma operação, abre o modal individual
     if (operacoes.length === 1) {
       console.log('📱 [handleOperacaoClick] Uma operação - abrindo modal individual');
@@ -703,14 +849,14 @@ export default function SupervisorPage() {
       {/* 🎯 HEADER MELHORADO - RESPONSIVO COM CLAMP */}
       <header className={`sticky top-0 z-[1000] bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg transition-transform duration-300 ease-in-out ${headerVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}
         style={{ willChange: 'transform, opacity' }}>
-        <div 
+        <div
           className="max-w-7xl mx-auto"
           style={{
             padding: 'clamp(8px, 2vw, 16px) clamp(12px, 3vw, 24px)',
             boxSizing: 'border-box'
           }}
         >
-          <div 
+          <div
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -720,7 +866,7 @@ export default function SupervisorPage() {
             }}
           >
             {/* Brand compacto + Navegação - RESPONSIVO COM CLAMP */}
-            <div 
+            <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -729,7 +875,7 @@ export default function SupervisorPage() {
                 minWidth: '0'
               }}
             >
-              <div 
+              <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -737,7 +883,7 @@ export default function SupervisorPage() {
                   flexShrink: '0'
                 }}
               >
-                <div 
+                <div
                   className="bg-white/20 rounded-lg flex items-center justify-center"
                   style={{
                     width: 'clamp(24px, 5vw, 32px)',
@@ -747,7 +893,7 @@ export default function SupervisorPage() {
                 >
                   <span style={{ fontSize: 'clamp(0.8rem, 2.5vw, 1.2rem)' }}>🎯</span>
                 </div>
-                <h1 
+                <h1
                   className="font-bold text-white"
                   style={{
                     fontSize: 'clamp(0.7rem, 2.5vw, 1.1rem)',
@@ -760,9 +906,9 @@ export default function SupervisorPage() {
                   Portal do Supervisor
                 </h1>
               </div>
-              
+
               {/* Navegação integrada - RESPONSIVA COM CLAMP */}
-              <div 
+              <div
                 className="bg-white/10 backdrop-blur rounded-lg"
                 style={{
                   padding: 'clamp(2px, 0.5vw, 4px)',
@@ -771,13 +917,12 @@ export default function SupervisorPage() {
                   gap: 'clamp(1px, 0.2vw, 2px)'
                 }}
               >
-                <button 
+                <button
                   onClick={() => setActiveTab('operacoes')}
-                  className={`font-medium rounded transition-all ${
-                    activeTab === 'operacoes'
-                      ? 'bg-white/20 text-white'
-                      : 'text-blue-100 hover:bg-white/10'
-                  }`}
+                  className={`font-medium rounded transition-all ${activeTab === 'operacoes'
+                    ? 'bg-white/20 text-white'
+                    : 'text-blue-100 hover:bg-white/10'
+                    }`}
                   style={{
                     padding: 'clamp(4px, 1vw, 8px) clamp(6px, 1.5vw, 12px)',
                     fontSize: 'clamp(0.6rem, 1.5vw, 0.8rem)',
@@ -789,9 +934,9 @@ export default function SupervisorPage() {
                   }}
                 >
                   <span style={{ fontSize: 'clamp(0.6rem, 1.5vw, 0.8rem)' }}>📅</span>
-                  <span 
+                  <span
                     className="hidden sm:inline"
-                    style={{ 
+                    style={{
                       marginLeft: 'clamp(2px, 0.5vw, 4px)',
                       minWidth: '0',
                       overflow: 'hidden',
@@ -801,13 +946,12 @@ export default function SupervisorPage() {
                     Calendário
                   </span>
                 </button>
-                <button 
+                <button
                   onClick={() => setActiveTab('janelas')}
-                  className={`font-medium rounded transition-all ${
-                    activeTab === 'janelas'
-                      ? 'bg-white/20 text-white'
-                      : 'text-blue-100 hover:bg-white/10'
-                  }`}
+                  className={`font-medium rounded transition-all ${activeTab === 'janelas'
+                    ? 'bg-white/20 text-white'
+                    : 'text-blue-100 hover:bg-white/10'
+                    }`}
                   style={{
                     padding: 'clamp(4px, 1vw, 8px) clamp(6px, 1.5vw, 12px)',
                     fontSize: 'clamp(0.6rem, 1.5vw, 0.8rem)',
@@ -819,9 +963,9 @@ export default function SupervisorPage() {
                   }}
                 >
                   <span style={{ fontSize: 'clamp(0.6rem, 1.5vw, 0.8rem)' }}>🗂️</span>
-                  <span 
+                  <span
                     className="hidden sm:inline"
-                    style={{ 
+                    style={{
                       marginLeft: 'clamp(2px, 0.5vw, 4px)',
                       minWidth: '0',
                       overflow: 'hidden',
@@ -834,8 +978,9 @@ export default function SupervisorPage() {
               </div>
             </div>
 
+
             {/* Menu compacto + Usuário - RESPONSIVO COM CLAMP */}
-            <div 
+            <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -846,7 +991,7 @@ export default function SupervisorPage() {
               {/* Menu dropdown - RESPONSIVO COM CLAMP */}
               <div className={`relative dropdown-menu-container transition-opacity duration-200 ${headerVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
                 style={{ willChange: 'opacity' }}>
-                <button 
+                <button
                   onClick={() => setShowDropdownMenu(!showDropdownMenu)}
                   className="bg-white/10 text-white hover:bg-white/20 transition-all flex items-center"
                   style={{
@@ -859,9 +1004,9 @@ export default function SupervisorPage() {
                   }}
                 >
                   <span style={{ fontSize: 'clamp(0.6rem, 1.5vw, 0.8rem)' }}>⚙️</span>
-                  <span 
+                  <span
                     className="hidden sm:inline"
-                    style={{ 
+                    style={{
                       minWidth: '0',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis'
@@ -869,10 +1014,10 @@ export default function SupervisorPage() {
                   >
                     Menu
                   </span>
-                  <svg 
-                    className={`transition-transform ${showDropdownMenu ? 'rotate-180' : ''}`} 
-                    fill="none" 
-                    stroke="currentColor" 
+                  <svg
+                    className={`transition-transform ${showDropdownMenu ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
                     viewBox="0 0 24 24"
                     style={{
                       width: 'clamp(12px, 2.5vw, 16px)',
@@ -882,22 +1027,22 @@ export default function SupervisorPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                
+
                 {/* Menu dropdown - agora funciona com clique/toque */}
                 {showDropdownMenu && (
                   <>
                     {/* Camada fixa para garantir sobreposição em qualquer contexto */}
                     <div className="fixed inset-0 z-[10000] pointer-events-none" aria-hidden="true"></div>
                     <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border py-2 z-[10010] animate-fade-in pointer-events-auto">
-                      <a 
-                        href="/supervisor/diretoria" 
+                      <a
+                        href="/supervisor/diretoria"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
                         onClick={() => setShowDropdownMenu(false)}
                       >
                         🏛️ Diretoria
                       </a>
-                      <a 
-                        href="/relatorio-diarias" 
+                      <a
+                        href="/relatorio-diarias"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
                         onClick={() => setShowDropdownMenu(false)}
                       >
@@ -909,7 +1054,7 @@ export default function SupervisorPage() {
               </div>
 
               {/* Usuário com responsividade - RESPONSIVO COM CLAMP */}
-              <div 
+              <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -917,7 +1062,7 @@ export default function SupervisorPage() {
                 }}
               >
                 {/* Versão completa - apenas em telas médias e grandes */}
-                <div 
+                <div
                   className="hidden md:flex items-center bg-white/10 border border-white/20"
                   style={{
                     gap: 'clamp(4px, 1vw, 8px)',
@@ -926,7 +1071,7 @@ export default function SupervisorPage() {
                     boxSizing: 'border-box'
                   }}
                 >
-                  <div 
+                  <div
                     className="bg-green-500 text-white rounded-full flex items-center justify-center font-bold"
                     style={{
                       width: 'clamp(28px, 6vw, 36px)',
@@ -948,7 +1093,7 @@ export default function SupervisorPage() {
                     })()}
                   </div>
                   <div style={{ minWidth: '0', overflow: 'hidden' }}>
-                    <div 
+                    <div
                       className="font-medium text-white"
                       style={{
                         fontSize: 'clamp(0.6rem, 1.5vw, 0.8rem)',
@@ -970,7 +1115,7 @@ export default function SupervisorPage() {
                         return 'Douglas Santos';
                       })()}
                     </div>
-                    <div 
+                    <div
                       className="text-blue-100"
                       style={{
                         fontSize: 'clamp(0.5rem, 1.2vw, 0.7rem)',
@@ -996,7 +1141,7 @@ export default function SupervisorPage() {
                 </div>
 
                 {/* Versão compacta - apenas em telas pequenas - RESPONSIVA */}
-                <div 
+                <div
                   className="md:hidden bg-green-500 text-white rounded-full flex items-center justify-center font-bold"
                   style={{
                     width: 'clamp(28px, 6vw, 36px)',
@@ -1035,9 +1180,9 @@ export default function SupervisorPage() {
                     boxSizing: 'border-box'
                   }}
                 >
-                  <svg 
-                    fill="none" 
-                    stroke="currentColor" 
+                  <svg
+                    fill="none"
+                    stroke="currentColor"
                     viewBox="0 0 24 24"
                     style={{
                       width: 'clamp(16px, 3vw, 20px)',
@@ -1068,8 +1213,8 @@ export default function SupervisorPage() {
 
         {/* TAB: JANELAS OPERACIONAIS */}
         {activeTab === 'janelas' && (
-          <section className="rounded-xl p-6 transition-all duration-300" style={{ 
-            background: 'var(--bg-card)', 
+          <section className="rounded-xl p-6 transition-all duration-300" style={{
+            background: 'var(--bg-card)',
             border: '1px solid var(--border-color)',
             boxShadow: 'var(--shadow-lg)'
           }}>
@@ -1089,7 +1234,7 @@ export default function SupervisorPage() {
                   </p>
                 </div>
               </div>
-              
+
               <button
                 onClick={() => setShowCriarJanelaModal(true)}
                 className="px-4 py-2 text-sm font-medium text-white rounded-lg hover:shadow-md transition-all duration-200"
@@ -1101,7 +1246,7 @@ export default function SupervisorPage() {
                 📅 Nova Janela
               </button>
             </div>
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {janelas.map((janela) => (
                 <article key={janela.id} className="group relative overflow-hidden rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl" style={{
@@ -1112,17 +1257,17 @@ export default function SupervisorPage() {
                 }}>
                   {/* Gradiente decorativo no topo */}
                   <div className="absolute inset-x-0 top-0 h-1" style={{
-                    background: janela.status === 'ATIVA' 
-                      ? 'linear-gradient(90deg, #10b981, #34d399, #6ee7b7)' 
+                    background: janela.status === 'ATIVA'
+                      ? 'linear-gradient(90deg, #10b981, #34d399, #6ee7b7)'
                       : 'linear-gradient(90deg, #6b7280, #9ca3af, #d1d5db)'
                   }}></div>
-                  
+
                   {/* Header com ícone e status */}
                   <div className="flex items-start justify-between p-6 pb-4">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-lg" style={{
-                        background: janela.status === 'ATIVA' 
-                          ? 'linear-gradient(135deg, #10b981, #059669)' 
+                        background: janela.status === 'ATIVA'
+                          ? 'linear-gradient(135deg, #10b981, #059669)'
                           : 'linear-gradient(135deg, #6b7280, #4b5563)',
                         color: 'white'
                       }}>
@@ -1137,7 +1282,7 @@ export default function SupervisorPage() {
                         </p>
                       </div>
                     </div>
-                    
+
                     {/* Botões de ação - aparecem no hover */}
                     <div className="opacity-0 group-hover:opacity-100 transition-all duration-200 flex gap-2">
                       {/* Botão de editar */}
@@ -1153,7 +1298,7 @@ export default function SupervisorPage() {
                       >
                         <span className="text-sm">✏️</span>
                       </button>
-                      
+
                       {/* Botão de excluir */}
                       <button
                         onClick={() => excluirJanela(janela.id, `${formatarDataBR(janela.dataInicio)} - ${formatarDataBR(janela.dataFim)}`)}
@@ -1173,21 +1318,19 @@ export default function SupervisorPage() {
                       </button>
                     </div>
                   </div>
-                  
+
                   {/* Status badge elegante */}
                   <div className="px-6 pb-4">
-                    <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold ${
-                      janela.status === 'ATIVA' 
-                        ? 'bg-green-100 text-green-800 border border-green-200' 
-                        : 'bg-gray-100 text-gray-800 border border-gray-200'
-                    }`}>
-                      <span className={`w-2 h-2 rounded-full mr-2 ${
-                        janela.status === 'ATIVA' ? 'bg-green-500' : 'bg-gray-500'
-                      }`}></span>
+                    <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold ${janela.status === 'ATIVA'
+                      ? 'bg-green-100 text-green-800 border border-green-200'
+                      : 'bg-gray-100 text-gray-800 border border-gray-200'
+                      }`}>
+                      <span className={`w-2 h-2 rounded-full mr-2 ${janela.status === 'ATIVA' ? 'bg-green-500' : 'bg-gray-500'
+                        }`}></span>
                       {janela.status}
                     </span>
                   </div>
-                  
+
                   {/* Informações principais */}
                   <div className="px-6 pb-6 space-y-4">
                     {/* Modalidades */}
@@ -1199,18 +1342,17 @@ export default function SupervisorPage() {
                         <dt className="text-sm font-medium text-gray-700 mb-1">Modalidades</dt>
                         <dd className="flex gap-2 flex-wrap">
                           {janela.modalidades.map((modalidade) => (
-                            <span key={modalidade} className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium ${
-                              modalidade === 'BLITZ' 
-                                ? 'bg-red-100 text-red-800 border border-red-200' 
-                                : 'bg-amber-100 text-amber-800 border border-amber-200'
-                            }`}>
+                            <span key={modalidade} className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium ${modalidade === 'BLITZ'
+                              ? 'bg-red-100 text-red-800 border border-red-200'
+                              : 'bg-amber-100 text-amber-800 border border-amber-200'
+                              }`}>
                               {modalidade === 'BLITZ' ? '🚨 RADAR' : modalidade}
                             </span>
                           ))}
                         </dd>
                       </div>
                     </div>
-                    
+
                     {/* Regional */}
                     <div className="flex items-center gap-3">
                       <div className="w-6 h-6 rounded-lg bg-purple-100 flex items-center justify-center">
@@ -1221,24 +1363,24 @@ export default function SupervisorPage() {
                         <dd className="text-sm text-gray-900 font-medium">{janela.regional}</dd>
                       </div>
                     </div>
-                    
+
                     {/* Operações e limites */}
                     <div className="grid grid-cols-2 gap-4 pt-2">
                       <div className="text-center p-3 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
                         <div className="text-2xl font-bold text-blue-700">{janela.operacoesCriadas}</div>
                         <div className="text-xs text-blue-600 font-medium">Operações</div>
                       </div>
-                                             <div className="text-center p-3 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200">
-                                                  <div className="text-2xl font-bold text-emerald-700">{janela.limite_max || 30}</div>
-                         <div className="text-xs text-emerald-600 font-medium">Limite Máx</div>
-                       </div>
-                     </div>
-                   </div>
-                   
-                   {/* Footer com data de criação */}
-                   <div className="px-6 py-3 bg-gray-50 border-t border-gray-100">
-                     <div className="flex items-center justify-between text-xs text-gray-500">
-                       <span>Criada em {formatarDataBR(janela.criado_em?.split('T')[0] || '')}</span>
+                      <div className="text-center p-3 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200">
+                        <div className="text-2xl font-bold text-emerald-700">{janela.limite_max || 30}</div>
+                        <div className="text-xs text-emerald-600 font-medium">Limite Máx</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Footer com data de criação */}
+                  <div className="px-6 py-3 bg-gray-50 border-t border-gray-100">
+                    <div className="flex items-center justify-between text-xs text-gray-500">
+                      <span>Criada em {formatarDataBR(janela.criado_em?.split('T')[0] || '')}</span>
                       <span className="flex items-center gap-1">
                         <span>🔧</span>
                         Supervisor
@@ -1255,26 +1397,24 @@ export default function SupervisorPage() {
       {/* ✅ AVISO ELEGANTE (SUBSTITUI ALERTS CHATOS) */}
       {avisoElegante.show && (
         <div className="fixed top-20 right-4 z-50 max-w-md" role="alert" aria-live="polite">
-          <div className={`rounded-lg shadow-lg p-4 border-l-4 transition-all duration-300 ${
-            avisoElegante.tipo === 'sucesso' 
-              ? 'border-green-400' 
-              : avisoElegante.tipo === 'erro'
+          <div className={`rounded-lg shadow-lg p-4 border-l-4 transition-all duration-300 ${avisoElegante.tipo === 'sucesso'
+            ? 'border-green-400'
+            : avisoElegante.tipo === 'erro'
               ? 'border-red-400'
               : 'border-yellow-400'
-          }`} style={{
-            background: avisoElegante.tipo === 'sucesso' 
-              ? 'var(--success-light)' 
-              : avisoElegante.tipo === 'erro'
-              ? 'var(--danger-light)'
-              : 'var(--warning-light)',
-            border: `1px solid ${
-              avisoElegante.tipo === 'sucesso' 
-                ? 'var(--success)' 
+            }`} style={{
+              background: avisoElegante.tipo === 'sucesso'
+                ? 'var(--success-light)'
                 : avisoElegante.tipo === 'erro'
-                ? 'var(--danger)'
-                : 'var(--warning)'
-            }`
-          }}>
+                  ? 'var(--danger-light)'
+                  : 'var(--warning-light)',
+              border: `1px solid ${avisoElegante.tipo === 'sucesso'
+                ? 'var(--success)'
+                : avisoElegante.tipo === 'erro'
+                  ? 'var(--danger)'
+                  : 'var(--warning)'
+                }`
+            }}>
             <div className="flex">
               <div className="flex-shrink-0">
                 {avisoElegante.tipo === 'sucesso' && (
@@ -1289,11 +1429,11 @@ export default function SupervisorPage() {
               </div>
               <div className="ml-3 flex-1">
                 <h3 className={`text-sm font-medium`} style={{
-                  color: avisoElegante.tipo === 'sucesso' 
-                    ? 'var(--success)' 
+                  color: avisoElegante.tipo === 'sucesso'
+                    ? 'var(--success)'
                     : avisoElegante.tipo === 'erro'
-                    ? 'var(--danger)'
-                    : 'var(--warning)'
+                      ? 'var(--danger)'
+                      : 'var(--warning)'
                 }}>
                   {avisoElegante.titulo}
                 </h3>
@@ -1310,8 +1450,8 @@ export default function SupervisorPage() {
                   color: avisoElegante.tipo === 'sucesso'
                     ? 'var(--success)'
                     : avisoElegante.tipo === 'erro'
-                    ? 'var(--danger)'
-                    : 'var(--warning)'
+                      ? 'var(--danger)'
+                      : 'var(--warning)'
                 }}
                 aria-label="Fechar notificação"
               >
@@ -1323,7 +1463,7 @@ export default function SupervisorPage() {
       )}
 
       {/* ✅ MODAIS */}
-      
+
       {/* Modal de Operação Selecionada */}
       {operacaoSelecionadaModal && (
         <ModalOperacaoSupervisor
@@ -1346,7 +1486,7 @@ export default function SupervisorPage() {
           onReativarOperacao={reativarOperacao}
         />
       )}
-      
+
       {/* Modal de Horário */}
       {showHorarioPopover && operacaoParaHorario && (
         <HorarioPopover

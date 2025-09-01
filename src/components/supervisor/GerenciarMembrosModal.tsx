@@ -1083,6 +1083,153 @@ const GerenciarMembrosModalComponent: React.FC<GerenciarMembrosModalProps> = ({ 
     }
   }, [operacaoSelecionada, membros, modal, onUpdate, setLoadingState]);
 
+  // ✅ NOVO: Contador de solicitações pendentes
+  const { contadorSolicitacoesPendentes, temSolicitacoesPendentes } = useMemo(() => {
+    if (!operacaoSelecionada?.participantes) {
+      return { contadorSolicitacoesPendentes: 0, temSolicitacoesPendentes: false };
+    }
+
+    const pendentes = operacaoSelecionada.participantes.filter(p => 
+      p.estado_visual === 'PENDENTE' || p.estado_visual === 'AGUARDANDO_SUPERVISOR'
+    );
+
+    return {
+      contadorSolicitacoesPendentes: pendentes.length,
+      temSolicitacoesPendentes: pendentes.length > 0
+    };
+  }, [operacaoSelecionada?.participantes]);
+
+  // ✅ NOVO: Função para aprovar todas as solicitações
+  const aprovarTodasSolicitacoes = useCallback(async () => {
+    if (!operacaoSelecionada || !temSolicitacoesPendentes) return;
+
+    const solicitacoesPendentes = operacaoSelecionada.participantes?.filter(p => 
+      p.estado_visual === 'PENDENTE' || p.estado_visual === 'AGUARDANDO_SUPERVISOR'
+    ) || [];
+
+    if (solicitacoesPendentes.length === 0) {
+      modal.showAlert('ℹ️ Nenhuma Solicitação', 'Não há solicitações pendentes para aprovar.', 'info');
+      return;
+    }
+
+    // Confirmar ação
+    const confirmacao = await new Promise<boolean>((resolve) => {
+      modal.showConfirm(
+        '⚡ Aprovar Todas as Solicitações',
+        `Deseja aprovar automaticamente ${solicitacoesPendentes.length} solicitação(ões) pendente(s)?\n\n• Membros que ultrapassaram 15 operações serão pulados automaticamente\n• Não será solicitada justificativa individual\n• O processo seguirá a ordem da fila`,
+        () => resolve(true),
+        () => resolve(false),
+        'Aprovar Todas',
+        'Cancelar'
+      );
+    });
+
+    if (!confirmacao) return;
+
+    setLoadingState('aprovarTodas', true);
+    
+    let aprovados = 0;
+    let pulados: Array<{nome: string, motivo: string}> = [];
+
+    try {
+      // Ordenar por data de participação (ordem da fila)
+      const solicitacoesOrdenadas = [...solicitacoesPendentes].sort((a, b) => 
+        new Date(a.data_participacao || 0).getTime() - new Date(b.data_participacao || 0).getTime()
+      );
+
+      for (const participacao of solicitacoesOrdenadas) {
+        try {
+          // 1. Validar limites do servidor
+          const responseValidacao = await fetch('/api/supervisor/validar-limites-servidor', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...getSupervisorHeaders()
+            },
+            body: JSON.stringify({
+              servidorId: participacao.membro_id,
+              dataOperacao: operacaoSelecionada.data_operacao,
+              tipoOperacao: operacaoSelecionada.tipo,
+              modalidade: operacaoSelecionada.modalidade
+            })
+          });
+
+          const validacao = await responseValidacao.json();
+          const membro = membros.find(m => m.id === participacao.membro_id);
+          const nomeMembro = membro?.nome || participacao.nome || 'Membro';
+
+          // Se não pode confirmar (ultrapassou limites), pular
+          if (validacao.success && !validacao.data.podeConfirmar) {
+            pulados.push({
+              nome: nomeMembro,
+              motivo: validacao.data.motivo || 'Limite atingido'
+            });
+            continue;
+          }
+
+          // 2. Aprovar a solicitação
+          const response = await fetch(`/api/supervisor/solicitacoes/${participacao.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              acao: 'aprovar',
+              justificativaFifo: 'Aprovação em lote - supervisor'
+            })
+          });
+
+          const result = await response.json();
+          
+          if (result.success) {
+            aprovados++;
+          } else {
+            pulados.push({
+              nome: nomeMembro,
+              motivo: result.error || 'Erro na aprovação'
+            });
+          }
+
+          // Pequeno delay para não sobrecarregar o servidor
+          await new Promise(resolve => setTimeout(resolve, 200));
+
+        } catch (error) {
+          const membro = membros.find(m => m.id === participacao.membro_id);
+          const nomeMembro = membro?.nome || participacao.nome || 'Membro';
+          
+          pulados.push({
+            nome: nomeMembro,
+            motivo: 'Erro de conexão'
+          });
+        }
+      }
+
+      // Atualizar dados
+      await atualizarOperacoes();
+      onUpdate();
+
+      // Mostrar resultado
+      let mensagem = `✅ Processo concluído!\n\n`;
+      mensagem += `• ${aprovados} solicitação(ões) aprovada(s)\n`;
+      
+      if (pulados.length > 0) {
+        mensagem += `• ${pulados.length} solicitação(ões) pulada(s):\n`;
+        pulados.slice(0, 5).forEach(p => {
+          mensagem += `  - ${p.nome}: ${p.motivo}\n`;
+        });
+        if (pulados.length > 5) {
+          mensagem += `  ... e mais ${pulados.length - 5} membro(s)\n`;
+        }
+      }
+
+      modal.showAlert('⚡ Aprovação em Lote', mensagem, aprovados > 0 ? 'success' : 'info');
+
+    } catch (error) {
+      console.error('❌ Erro na aprovação em lote:', error);
+      modal.showAlert('❌ Erro', 'Erro inesperado durante a aprovação em lote.', 'error');
+    } finally {
+      setLoadingState('aprovarTodas', false);
+    }
+  }, [operacaoSelecionada, temSolicitacoesPendentes, membros, modal, getSupervisorHeaders, setLoadingState, atualizarOperacoes, onUpdate]);
+
   // ✅ MEMOIZAÇÃO OTIMIZADA: Cache de status de participação com limpeza automática
   const statusCache = useMemo(() => new Map(), [operacaoSelecionada?.id]);
 
@@ -1184,6 +1331,24 @@ const GerenciarMembrosModalComponent: React.FC<GerenciarMembrosModalProps> = ({ 
                 <div className={styles.metaItem}>
                   <Clock size={16} /> <span>{operacaoEspecifica.turno}</span>
                 </div>
+              </div>
+            )}
+
+            {/* 🚀 NOVO: Botão Aprovar Todas */}
+            {operacaoSelecionada && (
+              <div className={styles.batchActions}>
+                <button
+                  className={styles.aprovarTodasBtn}
+                  onClick={aprovarTodasSolicitacoes}
+                  disabled={loadingStates.aprovarTodas || !temSolicitacoesPendentes}
+                  title={!temSolicitacoesPendentes ? 'Nenhuma solicitação pendente' : 'Aprovar todas as solicitações pendentes automaticamente'}
+                >
+                  {loadingStates.aprovarTodas ? (
+                    <>⏳ Processando...</>
+                  ) : (
+                    <>⚡ Aprovar Todas ({contadorSolicitacoesPendentes})</>
+                  )}
+                </button>
               </div>
             )}
           </div>
