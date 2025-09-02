@@ -25,7 +25,10 @@
     "debug:eu-vou": "npx tsx debug-eu-vou-issue.ts",
     "analyze:deep": "npm run analyze:functions && npm run analyze:buttons",
     "db:migrate": "echo 'Execute as migrations no Supabase Dashboard: src/migrations/005_add_concurrency_constraints.sql'",
-    "db:migrate:rollback": "echo 'Para rollback, execute: src/migrations/005_add_concurrency_constraints_rollback.sql'"
+    "db:migrate:rollback": "echo 'Para rollback, execute: src/migrations/005_add_concurrency_constraints_rollback.sql'",
+    "pwa:setup": "node scripts/generate-pwa-icons.cjs",
+    "pwa:validate": "npx pwa-asset-generator --help || echo 'Para validar PWA: npm install -g pwa-asset-generator'",
+    "build:pwa": "npm run build && npm run start"
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.13",
