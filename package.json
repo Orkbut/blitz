@@ -28,6 +28,7 @@
     "db:migrate:rollback": "echo 'Para rollback, execute: src/migrations/005_add_concurrency_constraints_rollback.sql'",
     "pwa:setup": "node scripts/generate-pwa-icons.cjs",
     "pwa:validate": "npx pwa-asset-generator --help || echo 'Para validar PWA: npm install -g pwa-asset-generator'",
+    "icons:generate": "node scripts/generate-icons.cjs",
     "build:pwa": "npm run build && npm run start"
   },
   "dependencies": {
@@ -69,6 +70,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.3.3",
     "jsdom": "^26.1.0",
+    "sharp": "^0.33.5",
     "tailwindcss": "^4",
     "tsx": "^4.19.1",
     "typescript": "^5",
