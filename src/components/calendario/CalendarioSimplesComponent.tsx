@@ -193,20 +193,7 @@ export const CalendarioSimplesComponent: React.FC = () => {
   const gerarRelatorioMembro = async (janelaIdForReport?: number): Promise<string> => {
     const mesAtual = currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
     
-    // NOVO: se uma janela foi selecionada, reutilizar o endpoint oficial da diretoria para garantir o mesmo formato
-    if (janelaIdForReport) {
-      try {
-        const resp = await fetch(`/api/supervisor/diretoria?formato=texto&janela_id=${janelaIdForReport}`);
-        const texto = await resp.text();
-        if (!resp.ok) {
-          throw new Error(texto || 'Falha ao obter relatório');
-        }
-        return texto;
-      } catch (error) {
-        console.error('❌ Erro ao obter relatório via API diretoria:', error);
-        // Continua no fallback abaixo (mês atual) se falhar
-      }
-    }
+    // Sempre gerar relatório pelo calendário do membro, sem exigir confirmação do supervisor
 
     try {
       console.log('🔄 Iniciando geração do relatório...');
@@ -217,15 +204,33 @@ export const CalendarioSimplesComponent: React.FC = () => {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       );
       
-      // Buscar janela operacional ativa que contém a data atual do calendário
-      const dataAtual = currentDate.toISOString().split('T')[0];
-      const { data: janela, error: errorJanela } = await supabase
-        .from('janela_operacional')
-        .select('id, data_inicio, data_fim, modalidades')
-        .lte('data_inicio', dataAtual)
-        .gte('data_fim', dataAtual)
-        .eq('ativa', true)
-        .single();
+      // Buscar janela operacional
+      // Se o usuário selecionou explicitamente uma janela, buscar por ID.
+      // Caso contrário, buscar a janela ativa que contenha a data atual do calendário.
+      let janela: any = null;
+      let errorJanela: any = null;
+
+      if (janelaIdForReport) {
+        const { data, error } = await supabase
+          .from('janela_operacional')
+          .select('id, data_inicio, data_fim, modalidades')
+          .eq('id', janelaIdForReport)
+          .single();
+        janela = data;
+        errorJanela = error;
+      } else {
+        // Buscar janela operacional ativa que contém a data atual do calendário
+        const dataAtual = currentDate.toISOString().split('T')[0];
+        const { data, error } = await supabase
+          .from('janela_operacional')
+          .select('id, data_inicio, data_fim, modalidades')
+          .lte('data_inicio', dataAtual)
+          .gte('data_fim', dataAtual)
+          .eq('ativa', true)
+          .single();
+        janela = data;
+        errorJanela = error;
+      }
       
       if (errorJanela && errorJanela.code !== 'PGRST116') {
         throw new Error(`Erro ao buscar janela operacional: ${errorJanela.message}`);
@@ -261,7 +266,7 @@ export const CalendarioSimplesComponent: React.FC = () => {
         return `Nenhuma operação encontrada para ${mesAtual}.`;
       }
       
-      // Buscar participações confirmadas (igual à API do supervisor)
+      // Buscar participações incluindo confirmados e pendentes (não exige aprovação do supervisor)
       const operacaoIds = operacoesPeriodo.map(op => op.id);
       const { data: participacoes, error: errorParticipacoes } = await supabase
         .from('participacao')
@@ -289,7 +294,7 @@ export const CalendarioSimplesComponent: React.FC = () => {
       console.log('📊 Participações encontradas:', participacoes?.length || 0);
       
       if (!participacoes || participacoes.length === 0) {
-        return `Nenhuma participação confirmada encontrada para ${mesAtual}.`;
+        return `Nenhuma participação encontrada para ${mesAtual}.`;
       }
       
       // Buscar informações da janela operacional para título e período (igual à API do supervisor)
