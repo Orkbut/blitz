@@ -308,6 +308,11 @@ export default function DiretoriaPage() {
     return relatorio;
   };
 
+  // Função para detectar se é dispositivo móvel
+  const isMobileDevice = () => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  };
+
   const compartilharRelatorio = async () => {
     try {
       if (!janelaSelecionada) {
@@ -328,14 +333,25 @@ export default function DiretoriaPage() {
       // Copiar para área de transferência
       await navigator.clipboard.writeText(texto);
       
-      // Tentar abrir WhatsApp Web com o texto pré-preenchido
+      // Detectar dispositivo e usar protocolo apropriado
       const textoEncoded = encodeURIComponent(texto);
-      const whatsappUrl = `https://web.whatsapp.com/send?text=${textoEncoded}`;
+      let whatsappUrl: string;
       
-      // Abrir em nova aba
+      if (isMobileDevice()) {
+        // Para dispositivos móveis, usar protocolo whatsapp:// para abrir o app nativo
+        whatsappUrl = `whatsapp://send?text=${textoEncoded}`;
+      } else {
+        // Para desktop, usar WhatsApp Web
+        whatsappUrl = `https://web.whatsapp.com/send?text=${textoEncoded}`;
+      }
+      
+      // Abrir WhatsApp
       window.open(whatsappUrl, '_blank');
       
-      mostrarAvisoElegante('sucesso', 'Sucesso', 'Relatório copiado e WhatsApp Web aberto! Cole o texto ou use o texto pré-preenchido.');
+      const mensagem = isMobileDevice() 
+        ? 'Relatório copiado e WhatsApp aberto! Cole o texto ou use o texto pré-preenchido.' 
+        : 'Relatório copiado e WhatsApp Web aberto! Cole o texto ou use o texto pré-preenchido.';
+      mostrarAvisoElegante('sucesso', 'Sucesso', mensagem);
     } catch (error) {
       console.error('❌ Erro ao compartilhar relatório:', error);
       mostrarAvisoElegante('erro', 'Erro', 'Erro ao gerar relatório para compartilhamento');

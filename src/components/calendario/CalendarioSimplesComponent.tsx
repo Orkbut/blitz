@@ -473,6 +473,11 @@ export const CalendarioSimplesComponent: React.FC = () => {
       }
   };
 
+  // Função para detectar se é dispositivo móvel
+  const isMobileDevice = () => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  };
+
   // Função para compartilhar relatório no WhatsApp
   const compartilharRelatorio = async () => {
     try {
@@ -487,14 +492,25 @@ export const CalendarioSimplesComponent: React.FC = () => {
       // Copiar para área de transferência
       await navigator.clipboard.writeText(texto);
       
-      // Tentar abrir WhatsApp Web com o texto pré-preenchido
+      // Detectar dispositivo e usar protocolo apropriado
       const textoEncoded = encodeURIComponent(texto);
-      const whatsappUrl = `https://web.whatsapp.com/send?text=${textoEncoded}`;
+      let whatsappUrl: string;
       
-      // Abrir em nova aba
+      if (isMobileDevice()) {
+        // Para dispositivos móveis, usar protocolo whatsapp:// para abrir o app nativo
+        whatsappUrl = `whatsapp://send?text=${textoEncoded}`;
+      } else {
+        // Para desktop, usar WhatsApp Web
+        whatsappUrl = `https://web.whatsapp.com/send?text=${textoEncoded}`;
+      }
+      
+      // Abrir WhatsApp
       window.open(whatsappUrl, '_blank');
       
-      toast.success('Relatório copiado e WhatsApp Web aberto!');
+      const mensagem = isMobileDevice() 
+        ? 'Relatório copiado e WhatsApp aberto!' 
+        : 'Relatório copiado e WhatsApp Web aberto!';
+      toast.success(mensagem);
     } catch (error) {
       console.error('❌ Erro ao compartilhar relatório:', error);
       toast.error('Erro ao gerar relatório para compartilhamento');
