@@ -51,8 +51,12 @@ NODE_ENV=development
 NEXT_PUBLIC_USE_CIRCULAR_INDICATORS=true
 NEXT_PUBLIC_USE_OPTIMIZED_GERENCIAR_MEMBROS=false
 NEXT_PUBLIC_ENABLE_PERFORMANCE_METRICS=false
+NEXT_PUBLIC_SUPABASE_LOG_LEVEL=info
 
-# Chave de serviço do Supabase (necessária para operações administrativas)
+# Configurações de CRON
+CRON_SECRET=radar-limpeza-2024
+
+# Service Role Key (para operações administrativas)
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtY2VqeXFrZmh2eGFpeXZtcWFjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTY5NzI4NywiZXhwIjoyMDY1MjczMjg3fQ.x2bwx0K7A-cZDjM8_V8dVQABvZMGSw2SnPZN8Bv050M
 ```
 
@@ -188,21 +192,53 @@ rm -rf node_modules package-lock.json
 npm install --legacy-peer-deps
 ```
 
-#### 10.2. Erro de Conexão com Supabase
+#### 10.2. Erro HTTP 500 na API (CRÍTICO)
+**Sintoma:** Erro 500 ao acessar APIs, especialmente relacionadas a operações
+
+**Causa:** A variável `SUPABASE_SERVICE_ROLE_KEY` está comentada ou ausente no `.env.local`
+
+**Solução:**
+1. Verifique se a linha não está comentada com `#`
+2. Certifique-se de que a chave está presente e válida
+3. Reinicie o servidor após a correção: `npm run dev`
+
+```env
+# ❌ ERRADO - linha comentada
+# SUPABASE_SERVICE_ROLE_KEY=sua_chave_aqui
+
+# ✅ CORRETO - linha ativa
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+#### 10.3. Círculos Indicadores Ausentes no Calendário
+**Sintoma:** Os indicadores circulares não aparecem no calendário
+
+**Causa:** A feature flag `NEXT_PUBLIC_USE_CIRCULAR_INDICATORS` está como `false`
+
+**Solução:**
+```env
+# ❌ ERRADO
+NEXT_PUBLIC_USE_CIRCULAR_INDICATORS=false
+
+# ✅ CORRETO
+NEXT_PUBLIC_USE_CIRCULAR_INDICATORS=true
+```
+
+#### 10.4. Erro de Conexão com Supabase
 - Verifique se as variáveis de ambiente estão corretas
 - Teste a conexão: http://localhost:3000/api/test-connection
 
-#### 10.3. Erro de Build
+#### 10.5. Erro de Build
 ```bash
 # Build ignorando erros TypeScript/ESLint (configurado)
 npm run build
 ```
 
-#### 10.4. Problemas de Realtime
+#### 10.6. Problemas de Realtime
 - Verifique se o Realtime está habilitado no Supabase
 - Confirme as configurações em `src/lib/supabase.ts`
 
-#### 10.5. Erro de Porta em Uso
+#### 10.7. Erro de Porta em Uso
 ```bash
 # Usar porta diferente
 npx next dev -p 3001
@@ -267,9 +303,13 @@ Para debug, verifique:
 - [ ] Repositório clonado
 - [ ] Dependências instaladas (`npm install`)
 - [ ] Arquivo `.env.local` configurado
+- [ ] **CRÍTICO:** `SUPABASE_SERVICE_ROLE_KEY` descomentada e válida
+- [ ] **IMPORTANTE:** `NEXT_PUBLIC_USE_CIRCULAR_INDICATORS=true` para círculos no calendário
 - [ ] Servidor de desenvolvimento rodando (`npm run dev`)
 - [ ] Acesso ao sistema funcionando (http://localhost:3000)
 - [ ] Conexão com Supabase funcionando
+- [ ] APIs funcionando sem erro 500
+- [ ] Círculos indicadores visíveis no calendário
 - [ ] Testes básicos passando (`npm test`)
 
 ---

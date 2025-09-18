@@ -55,6 +55,7 @@ export default function DiretoriaPage() {
   const [janelasDisponiveis, setJanelasDisponiveis] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingJanelas, setLoadingJanelas] = useState(true);
+  const [loadingRelatorio, setLoadingRelatorio] = useState(false);
   const [processando, setProcessando] = useState<number | null>(null);
   
   // Estado para controlar a aba ativa
@@ -98,34 +99,248 @@ export default function DiretoriaPage() {
     setTimeout(() => setAvisoElegante(null), 5000);
   };
 
-  const baixarRelatorioTabela = async () => {
+  // 🎯 FUNÇÃO PARA GERAR RELATÓRIO USANDO A MESMA LÓGICA DA TABELA
+  const gerarRelatorioLocal = (operacoes: any[], participacoes: any[], janelaId: number) => {
+    // Buscar informações da janela para o título
+    const janela = janelasDisponiveis.find(j => j.id === janelaId);
+    const tituloJanela = janela ? `Janela Operacional #${janela.numero} - ${janela.descricao}` : `Janela Operacional #${janelaId}`;
+    
+    // 🎯 FORMATAÇÃO VISUAL MELHORADA DAS DATAS
+    const formatarPeriodoVisual = (dataInicio: string, dataFim: string) => {
+      const mesesAbrev = {
+        '01': 'JAN', '02': 'FEV', '03': 'MAR', '04': 'ABR',
+        '05': 'MAI', '06': 'JUN', '07': 'JUL', '08': 'AGO',
+        '09': 'SET', '10': 'OUT', '11': 'NOV', '12': 'DEZ'
+      };
+      
+      // Converter datas do formato YYYY-MM-DD para formato visual
+      const [anoInicio, mesInicio, diaInicio] = dataInicio.split('-');
+      const [anoFim, mesFim, diaFim] = dataFim.split('-');
+      
+      const mesInicioAbrev = mesesAbrev[mesInicio as keyof typeof mesesAbrev] || mesInicio;
+      const mesFimAbrev = mesesAbrev[mesFim as keyof typeof mesesAbrev] || mesFim;
+      
+      return `${mesInicioAbrev} ${diaInicio}-${mesInicio}-${anoInicio} a ${mesFimAbrev} ${diaFim}-${mesFim}-${anoFim}`;
+    };
+    
+    const periodoJanela = janela ? formatarPeriodoVisual(janela.dataInicio, janela.dataFim) : 'Período não definido';
+
+    // 🚨 FILTRAR RIGOROSAMENTE - APENAS participações ATIVAS E CONFIRMADAS (mesma lógica da tabela)
+    const participacoesConfirmadas = participacoes.filter(p => {
+      const isAtiva = p.ativa === true;
+      const isConfirmada = ['CONFIRMADO', 'ADICIONADO_SUP'].includes(p.estado_visual);
+      const hasOperacao = p.operacao_id && p.data_operacao;
+      
+      return isAtiva && isConfirmada && hasOperacao;
+    });
+
+    if (participacoesConfirmadas.length === 0) {
+      return `${tituloJanela}\n${periodoJanela}\n\nNenhuma participação confirmada encontrada.`;
+    }
+
+    // Agrupar participações por servidor (mesma lógica da tabela)
+    const participacoesPorServidor = participacoesConfirmadas.reduce((acc, participacao) => {
+      const servidorId = participacao.membro_id || participacao.servidor_id;
+      const nome = participacao.servidor_nome || participacao.nome || 'Servidor';
+      const matricula = participacao.matricula || '';
+      
+      if (!acc[servidorId]) {
+        acc[servidorId] = {
+          nome,
+          matricula,
+          participacoes: []
+        };
+      }
+      
+      acc[servidorId].participacoes.push(participacao);
+      return acc;
+    }, {} as Record<number, any>);
+
+    // Calcular PORTARIA MOR para cada servidor (mesma lógica da tabela)
+    const portarias: any[] = [];
+
+    Object.entries(participacoesPorServidor).forEach(([servidorIdStr, dados]: [string, any]) => {
+      const servidorId = Number(servidorIdStr);
+      
+      // Buscar operações deste servidor
+      const operacoesDoServidor = dados.participacoes.map((p: any) => {
+        const operacao = operacoes.find(op => op.id === p.operacao_id);
+        return {
+          ...p,
+          data_operacao: operacao?.data_operacao || operacao?.dataOperacao || p.data_operacao,
+          operacao
+        };
+      }).filter((p: any) => p.data_operacao);
+
+      // Ordenar por data
+      operacoesDoServidor.sort((a: any, b: any) => 
+        new Date(a.data_operacao).getTime() - new Date(b.data_operacao).getTime()
+      );
+
+      // Agrupar em sequências consecutivas para formar PORTARIA MOR
+      let sequenciasPortaria: string[][] = [];
+      let sequenciaAtual: string[] = [];
+      let dataAnterior: Date | null = null;
+
+      operacoesDoServidor.forEach(({ data_operacao }: any) => {
+        const dataAtual = new Date(data_operacao);
+      
+        if (dataAnterior && dataAtual.getTime() - dataAnterior.getTime() > 24 * 60 * 60 * 1000) {
+          // Nova sequência - finalizar a anterior
+          if (sequenciaAtual.length > 0) {
+            sequenciasPortaria.push([...sequenciaAtual]);
+          }
+          sequenciaAtual = [data_operacao];
+        } else {
+          sequenciaAtual.push(data_operacao);
+        }
+        
+        dataAnterior = dataAtual;
+      });
+
+      // Finalizar última sequência
+      if (sequenciaAtual.length > 0) {
+        sequenciasPortaria.push([...sequenciaAtual]);
+      }
+
+      // Criar PORTARIA MOR para cada sequência
+      sequenciasPortaria.forEach(sequencia => {
+        const diasOperacao = sequencia.sort((a, b) => 
+          new Date(a).getTime() - new Date(b).getTime()
+        );
+        
+        // Calcular data do retorno (+1 dia APÓS a última operação)
+        const ultimaDataOperacao = new Date(diasOperacao[diasOperacao.length - 1] + 'T00:00:00-03:00');
+        const dataRetorno = new Date(ultimaDataOperacao.getTime() + 24 * 60 * 60 * 1000);
+        
+        // Calcular sequência (D+1, DD+1, DDD+1, etc.)
+        const qtdDias = diasOperacao.length;
+        const sequenciaStr = 'D'.repeat(qtdDias) + '+1';
+        
+        // Formatear período com timezone correto
+        const dataInicioCorreta = new Date(diasOperacao[0] + 'T00:00:00-03:00');
+        const periodo = `${dataInicioCorreta.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} a ${dataRetorno.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
+        
+        // Criar chave de agrupamento baseada na sequência e período
+        const chaveAgrupamento = `${sequenciaStr}_${periodo}`;
+        
+        portarias.push({
+          servidorId,
+          nome: dados.nome,
+          matricula: dados.matricula,
+          diasOperacao,
+          dataRetorno: dataRetorno.toISOString().split('T')[0],
+          sequencia: sequenciaStr,
+          periodo,
+          chaveAgrupamento
+        });
+      });
+    });
+
+    // Agrupar PORTARIA MOR por chave de agrupamento (mesmo período + sequência)
+    const grupos = portarias.reduce((acc, portaria) => {
+      if (!acc[portaria.chaveAgrupamento]) {
+        acc[portaria.chaveAgrupamento] = {
+          periodo: portaria.periodo,
+          sequencia: portaria.sequencia,
+          servidores: []
+        };
+      }
+      
+      acc[portaria.chaveAgrupamento].servidores.push(portaria);
+      return acc;
+    }, {} as Record<string, { periodo: string; sequencia: string; servidores: any[] }>);
+
+    // 🎯 DETERMINAR MODALIDADES DINAMICAMENTE
+    const modalidadesOperacoes = [...new Set(operacoes.map(op => op.modalidade).filter(Boolean))];
+    
+    let tipoOperacao = 'OPERAÇÃO';
+    if (modalidadesOperacoes.length === 1) {
+      if (modalidadesOperacoes[0] === 'BLITZ') {
+        tipoOperacao = 'OPERAÇÃO RADAR';
+      } else if (modalidadesOperacoes[0] === 'BALANCA') {
+        tipoOperacao = 'OPERAÇÃO PESAGEM';
+      }
+    } else if (modalidadesOperacoes.length === 2 && 
+               modalidadesOperacoes.includes('BLITZ') && 
+               modalidadesOperacoes.includes('BALANCA')) {
+      tipoOperacao = 'OPERAÇÃO RADAR E PESAGEM';
+    } else if (modalidadesOperacoes.length > 0) {
+      // Fallback para casos não previstos
+      const modalidadesTexto = modalidadesOperacoes.map(m => 
+        m === 'BLITZ' ? 'RADAR' : m === 'BALANCA' ? 'PESAGEM' : m
+      ).join(' E ');
+      tipoOperacao = `OPERAÇÃO ${modalidadesTexto}`;
+    }
+
+    // Gerar texto do relatório no formato simplificado
+    let relatorio = '';
+    
+    // Cabeçalho centralizado dinâmico
+    relatorio += '========================================';
+    relatorio += `            ${tipoOperacao}\n`;
+    relatorio += `                ${periodoJanela.toUpperCase()}\n`;
+    relatorio += '========================================\n\n';
+
+    // Ordenar grupos por período (data de início)
+    const gruposOrdenados = Object.entries(grupos).sort(([, a], [, b]) => {
+      const dataA = new Date((a as any).periodo.split(' a ')[0].split('/').reverse().join('-'));
+      const dataB = new Date((b as any).periodo.split(' a ')[0].split('/').reverse().join('-'));
+      return dataA.getTime() - dataB.getTime();
+    });
+
+    gruposOrdenados.forEach(([chave, grupo]) => {
+      // Extrair apenas as datas do período (remover ano se presente)
+      const periodoLimpo = (grupo as any).periodo.replace(/\/\d{4}/g, '');
+      relatorio += `DIAS: ${periodoLimpo}\n`;
+      
+      // Ordenar servidores por nome
+      const servidoresOrdenados = (grupo as any).servidores.sort((a: any, b: any) => a.nome.localeCompare(b.nome));
+      
+      servidoresOrdenados.forEach((servidor: any, index: number) => {
+        relatorio += `${index + 1}. ✓ ${servidor.nome}\n`;
+        relatorio += `   Mat.: ${servidor.matricula}\n`;
+      });
+      
+      relatorio += '\n';
+    });
+
+    return relatorio;
+  };
+
+  const compartilharRelatorio = async () => {
     try {
       if (!janelaSelecionada) {
         mostrarAvisoElegante('erro', 'Erro', 'Selecione uma janela operacional primeiro');
         return;
       }
 
-      const response = await fetch(`/api/supervisor/diretoria?formato=texto&janela_id=${janelaSelecionada}`, {
-        headers: getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
-      });
-      const texto = await response.text();
-      
-      if (!response.ok) {
-        throw new Error('Erro ao gerar relatório');
+      if (operacoesPlanejadas.length === 0 || participacoesPlanejadas.length === 0) {
+        mostrarAvisoElegante('erro', 'Erro', 'Nenhum dado disponível para gerar relatório');
+        return;
       }
+
+      setLoadingRelatorio(true);
       
-      const blob = new Blob([texto], { type: 'text/plain; charset=utf-8' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `tabela-diretoria-janela-${janelaSelecionada}-${new Date().toISOString().split('T')[0]}.txt`;
-      link.click();
-      window.URL.revokeObjectURL(url);
+      // 🎯 USAR OS MESMOS DADOS DA TABELA - Gerar relatório localmente
+      const texto = gerarRelatorioLocal(operacoesPlanejadas, participacoesPlanejadas, janelaSelecionada);
       
-      mostrarAvisoElegante('sucesso', 'Sucesso', 'Relatório baixado com sucesso!');
+      // Copiar para área de transferência
+      await navigator.clipboard.writeText(texto);
+      
+      // Tentar abrir WhatsApp Web com o texto pré-preenchido
+      const textoEncoded = encodeURIComponent(texto);
+      const whatsappUrl = `https://web.whatsapp.com/send?text=${textoEncoded}`;
+      
+      // Abrir em nova aba
+      window.open(whatsappUrl, '_blank');
+      
+      mostrarAvisoElegante('sucesso', 'Sucesso', 'Relatório copiado e WhatsApp Web aberto! Cole o texto ou use o texto pré-preenchido.');
     } catch (error) {
-      console.error('❌ Erro ao baixar relatório:', error);
-      mostrarAvisoElegante('erro', 'Erro', 'Erro ao baixar relatório da tabela');
+      console.error('❌ Erro ao compartilhar relatório:', error);
+      mostrarAvisoElegante('erro', 'Erro', 'Erro ao gerar relatório para compartilhamento');
+    } finally {
+      setLoadingRelatorio(false);
     }
   };
 
@@ -512,14 +727,25 @@ export default function DiretoriaPage() {
                   
                   {janelaSelecionada && (
                     <button
-                      onClick={() => baixarRelatorioTabela()}
-                      className="bg-green-600 text-white px-3 py-1.5 rounded-full text-xs font-medium hover:bg-green-700 transition-colors duration-200 flex items-center justify-center space-x-1.5 whitespace-nowrap flex-shrink-0"
-                      title="Baixar relatório da tabela em formato texto"
+                      onClick={() => compartilharRelatorio()}
+                      disabled={loading || loadingJanelas || loadingRelatorio || !operacoesPlanejadas.length}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 flex items-center justify-center space-x-1.5 whitespace-nowrap flex-shrink-0 shadow-sm ${
+                        loading || loadingJanelas || loadingRelatorio || !operacoesPlanejadas.length
+                          ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                          : 'bg-green-500 text-white hover:bg-green-600 hover:shadow-md'
+                      }`}
+                      title={loading || loadingJanelas || loadingRelatorio || !operacoesPlanejadas.length 
+                        ? 'Aguarde o carregamento dos dados para gerar o relatório' 
+                        : 'Compartilhar relatório no WhatsApp'}
                     >
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      <span>Baixar TXT</span>
+                      {loadingRelatorio ? (
+                        <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-current"></div>
+                      ) : (
+                        <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
+                        </svg>
+                      )}
+                      <span>WhatsApp</span>
                     </button>
                   )}
                   

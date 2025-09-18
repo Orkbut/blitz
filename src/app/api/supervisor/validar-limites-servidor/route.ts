@@ -1,22 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { ValidadorLimitesServidor } from '@/core/domain/services/ValidadorLimitesServidor';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 /**
- * ✅ API para validar limites de servidor antes de confirmar participação
- * Valida tanto limite de atividades (período 10→09) quanto limite de diárias (mês civil)
+ * NO-OP seguro: sempre permite a confirmação mantendo o contrato de resposta
+ * Preserva o shape esperado pelo frontend para não quebrar fluxos existentes.
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { servidorId, dataOperacao, tipoOperacao, modalidade } = body;
+    const { servidorId, dataOperacao, tipoOperacao } = body || {};
 
-    // Validação de entrada
+    // Mantém validação básica de entrada para evitar chamadas inválidas acidentais
     if (!servidorId || !dataOperacao || !tipoOperacao) {
       return NextResponse.json({
         success: false,
@@ -24,34 +17,27 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    console.log('🔍 Validando limites:', { servidorId, dataOperacao, tipoOperacao });
-
-    // Criar validador
-    const validador = new ValidadorLimitesServidor(supabase);
-
-    // Executar validação
-    const resultado = await validador.validarLimites({
-      servidorId: parseInt(servidorId),
-      dataOperacao,
-      tipoOperacao,
-      modalidade
-    });
-
-    console.log('📊 Resultado da validação:', resultado);
-
+    // Retorna resultado positivo sempre, com limites "inofensivos"
     return NextResponse.json({
       success: true,
-      data: resultado,
+      data: {
+        podeConfirmar: true,
+        limitesAtuais: {
+          atividadesPeriodo10a09: 0,
+          diariasNoMes: 0,
+          limiteAtividades: 999999,
+          limiteDiarias: 999999
+        }
+      },
       timestamp: new Date().toISOString()
     });
 
   } catch (error) {
-    console.error('❌ Erro na validação de limites:', error);
-    
+    console.error('❌ Erro na rota de validação (no-op):', error);
     return NextResponse.json({
       success: false,
       error: 'Erro interno do servidor',
       details: error instanceof Error ? error.message : 'Erro desconhecido'
     }, { status: 500 });
   }
-} 
+}

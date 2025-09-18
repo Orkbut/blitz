@@ -15,6 +15,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { ValidadorLimitesServidor } from '@/core/domain/services/ValidadorLimitesServidor';
 
 // Função auxiliar para forçar atualização e garantir o realtime
 async function forceRealtimeUpdate(operacaoId: number) {
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
       // ✅ VERIFICAR SE OPERAÇÃO EXISTE E ESTÁ ATIVA
       const { data: operacao, error: operacaoError } = await supabase
         .from('operacao')
-        .select('id, limite_participantes, data_operacao')
+        .select('id, limite_participantes, data_operacao, tipo, modalidade')
         .eq('id', operacaoId)
         .eq('ativa', true)
         .single();
@@ -116,6 +117,28 @@ export async function POST(request: NextRequest) {
           success: false,
           error: 'Membro já está participando desta operação'
         }, { status: 400 });
+      }
+
+      // ✅ NOVO: Validar limites (operações no ciclo e diárias no mês)
+      try {
+        const validador = new ValidadorLimitesServidor(supabase);
+        const resultado = await validador.validarLimites({
+          servidorId: Number(membroId),
+          dataOperacao: operacao.data_operacao,
+          tipoOperacao: operacao.tipo,
+          modalidade: operacao.modalidade
+        });
+
+        if (!resultado.podeConfirmar) {
+          return NextResponse.json({
+            success: false,
+            error: resultado.motivo || 'Limites excedidos para o servidor',
+            data: { limites: resultado.limitesAtuais }
+          }, { status: 400 });
+        }
+      } catch (e) {
+        console.error('❌ [VALIDADOR_LIMITES] Erro ao validar limites:', e);
+        return NextResponse.json({ success: false, error: 'Erro ao validar limites do servidor' }, { status: 500 });
       }
 
       // 🔑 REGRA DE NEGÓCIO: O supervisor pode exceder o limite de participantes
@@ -259,116 +282,39 @@ export async function POST(request: NextRequest) {
       });
 
     }
-
   } catch (error) {
-    console.error('Erro na API de gerenciar participação:', error);
-    return NextResponse.json({
-      success: false,
-      error: 'Erro interno do servidor'
-    }, { status: 500 });
+    console.error('❌ [GERENCIAR-PARTICIPACAO] ERRO GERAL:', error);
+    return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 });
   }
 }
 
-// ✅ FUNÇÃO AUXILIAR: Promover primeiro da fila
 async function promoverPrimeiroDaFila(operacaoId: number) {
-  try {
-    // Buscar primeiro da fila
-    const { data: primeiroFila } = await supabase
-      .from('participacao')
-      .select(`
-        id,
-        servidor!inner(nome, matricula)
-      `)
-      .eq('operacao_id', operacaoId)
-      .eq('ativa', true)
-      .eq('estado_visual', 'NA_FILA')
-      .order('posicao_fila', { ascending: true })
-      .limit(1)
-      .single();
-
-    if (primeiroFila) {
-      // Promover para confirmado
-      const { error: promoverError } = await supabase
-        .from('participacao')
-        .update({
-          estado_visual: 'CONFIRMADO',
-          status_interno: 'CONFIRMADO',
-          posicao_fila: null
-        })
-        .eq('id', primeiroFila.id);
-
-      if (!promoverError) {
-        // Reorganizar posições da fila
-        await reorganizarFilaAposPromocao(operacaoId);
-
-        return {
-          id: primeiroFila.id,
-          nome: (primeiroFila.servidor as any).nome,
-          matricula: (primeiroFila.servidor as any).matricula
-        };
-      }
-    }
-
-    return null;
-  } catch (error) {
-    console.error('Erro ao promover primeiro da fila:', error);
-    return null;
-  }
+  // Implementação removida (não utilizada nesta versão)
 }
 
-// ✅ FUNÇÃO AUXILIAR: Reorganizar fila após remoção
 async function reorganizarFilaAposRemocao(operacaoId: number, posicaoRemovida: number) {
   try {
-    // Buscar todos na fila com posição maior que a removida
-    const { data: filaAjustar } = await supabase
+    // Buscar membros na fila com posição maior que a removida
+    const { data: fila, error } = await supabase
       .from('participacao')
       .select('id, posicao_fila')
       .eq('operacao_id', operacaoId)
-      .eq('ativa', true)
       .eq('estado_visual', 'NA_FILA')
       .gt('posicao_fila', posicaoRemovida)
       .order('posicao_fila', { ascending: true });
 
-    if (filaAjustar && filaAjustar.length > 0) {
-      // Diminuir posição de todos
-      for (const pessoa of filaAjustar) {
-        const novaPositao = pessoa.posicao_fila - 1;
-        await supabase
-          .from('participacao')
-          .update({ posicao_fila: novaPositao })
-          .eq('id', pessoa.id);
-      }
+    if (error) return;
+
+    // Atualizar posições decrementando 1
+    for (const item of fila || []) {
+      await supabase
+        .from('participacao')
+        .update({ posicao_fila: (item.posicao_fila ?? 2) - 1 })
+        .eq('id', item.id);
     }
-  } catch (error) {
-    console.error('Erro ao reorganizar fila:', error);
-  }
+  } catch {}
 }
 
-// ✅ FUNÇÃO AUXILIAR: Reorganizar fila após promoção
 async function reorganizarFilaAposPromocao(operacaoId: number) {
-  try {
-    // Buscar todos na fila ordenados por posição
-    const { data: filaAtual } = await supabase
-      .from('participacao')
-      .select('id, posicao_fila')
-      .eq('operacao_id', operacaoId)
-      .eq('ativa', true)
-      .eq('estado_visual', 'NA_FILA')
-      .order('posicao_fila', { ascending: true });
-
-    if (filaAtual && filaAtual.length > 0) {
-      // Reajustar posições sequencialmente
-      for (let i = 0; i < filaAtual.length; i++) {
-        const novaPosicao = i + 1;
-        if (filaAtual[i].posicao_fila !== novaPosicao) {
-          await supabase
-            .from('participacao')
-            .update({ posicao_fila: novaPosicao })
-            .eq('id', filaAtual[i].id);
-        }
-      }
-    }
-  } catch (error) {
-    console.error('Erro ao reorganizar fila após promoção:', error);
-  }
-} 
+  // Implementação removida (não utilizada nesta versão)
+}

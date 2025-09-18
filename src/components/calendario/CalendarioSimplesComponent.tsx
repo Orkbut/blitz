@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, startOfWeek, endOfWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Calendar, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Loader2, MessageCircle } from 'lucide-react';
 import { useRealtimeUnified } from '@/hooks/useRealtimeUnified';
 import { OperacaoDialog } from './OperacaoDialog';
 import { LimitesBarras } from './LimitesBarras';
@@ -79,8 +79,429 @@ export const CalendarioSimplesComponent: React.FC = () => {
     return false;
   });
 
+  const [loadingRelatorio, setLoadingRelatorio] = useState(false);
+
+  // Estados para janelas e seleção de janela do relatório
+  const [janelasDisponiveis, setJanelasDisponiveis] = useState<Array<{ id: number; dataInicio: string; dataFim: string }>>([]);
+  const [janelaSelecionada, setJanelaSelecionada] = useState<number | null>(null);
+
+  // Carregar janelas operacionais ativas (ordem: mais recentes primeiro) e pré-selecionar a última criada
+  useEffect(() => {
+    let isMounted = true;
+    const carregarJanelas = async () => {
+      try {
+        const resp = await fetch('/api/supervisor/janelas-operacionais');
+        if (!resp.ok) return;
+        const json = await resp.json();
+        if (!isMounted) return;
+        if (json?.data && Array.isArray(json.data)) {
+          setJanelasDisponiveis(json.data as Array<{ id: number; dataInicio: string; dataFim: string }>);
+          // Não pré-selecionar automaticamente; manter desabilitado até o usuário escolher
+          setJanelaSelecionada((prev) => (prev && json.data.some((j: any) => j.id === prev) ? prev : null));
+        }
+      } catch (e) {
+        console.error('Erro ao carregar janelas operacionais:', e);
+      }
+    };
+    carregarJanelas();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
   // Estados para o modal
   const [operacoesPorDia, setOperacoesPorDia] = useState<Record<string, Operacao[]>>({});
+
+  // Parser seguro para datas no formato 'YYYY-MM-DD' (tratar como horário local para evitar deslocamento de fuso)
+  const parseLocalDate = (dateStr: string): Date => {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      return new Date(`${dateStr}T12:00:00`);
+    }
+    return new Date(dateStr);
+  };
+
+  // Função auxiliar para calcular sequências consecutivas
+  const calcularSequenciasConsecutivas = (datas: string[]): string[][] => {
+    if (datas.length === 0) return [];
+    
+    const sequencias: string[][] = [];
+    let sequenciaAtual: string[] = [datas[0]];
+    
+    for (let i = 1; i < datas.length; i++) {
+      const dataAtual = parseLocalDate(datas[i]);
+      const dataAnterior = parseLocalDate(datas[i - 1]);
+      const diffDias = (dataAtual.getTime() - dataAnterior.getTime()) / (1000 * 60 * 60 * 24);
+      
+      if (diffDias === 1) {
+        // Dia consecutivo
+        sequenciaAtual.push(datas[i]);
+      } else {
+        // Nova sequência
+        sequencias.push([...sequenciaAtual]);
+        sequenciaAtual = [datas[i]];
+      }
+    }
+    
+    // Adicionar última sequência
+    sequencias.push(sequenciaAtual);
+    return sequencias;
+  };
+
+  // Função auxiliar para calcular períodos consecutivos (igual à API do supervisor)
+  const calcularPeriodosConsecutivos = (datas: Date[]): any[] => {
+    if (datas.length === 0) return [];
+
+    const periodos = [];
+    let inicioAtual = datas[0];
+    let fimAtual = datas[0];
+
+    for (let i = 1; i < datas.length; i++) {
+      const dataAtual = datas[i];
+      const dataAnterior = datas[i - 1];
+      
+      // Verificar se é consecutiva (diferença de 1 dia)
+      const diferencaDias = Math.round((dataAtual.getTime() - dataAnterior.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (diferencaDias === 1) {
+        fimAtual = dataAtual;
+      } else {
+        // Finalizar período atual
+        const dias = Math.round((fimAtual.getTime() - inicioAtual.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        periodos.push({
+          inicio: inicioAtual,
+          fim: fimAtual,
+          dias
+        });
+        
+        // Iniciar novo período
+        inicioAtual = dataAtual;
+        fimAtual = dataAtual;
+      }
+    }
+
+    // Adicionar último período
+    const dias = Math.round((fimAtual.getTime() - inicioAtual.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    periodos.push({
+      inicio: inicioAtual,
+      fim: fimAtual,
+      dias
+    });
+
+    return periodos;
+  };
+
+  // Função para gerar relatório no formato da diretoria (igual à API do supervisor)
+  const gerarRelatorioMembro = async (janelaIdForReport?: number): Promise<string> => {
+    const mesAtual = currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+    
+    // NOVO: se uma janela foi selecionada, reutilizar o endpoint oficial da diretoria para garantir o mesmo formato
+    if (janelaIdForReport) {
+      try {
+        const resp = await fetch(`/api/supervisor/diretoria?formato=texto&janela_id=${janelaIdForReport}`);
+        const texto = await resp.text();
+        if (!resp.ok) {
+          throw new Error(texto || 'Falha ao obter relatório');
+        }
+        return texto;
+      } catch (error) {
+        console.error('❌ Erro ao obter relatório via API diretoria:', error);
+        // Continua no fallback abaixo (mês atual) se falhar
+      }
+    }
+
+    try {
+      console.log('🔄 Iniciando geração do relatório...');
+      
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+      
+      // Buscar janela operacional ativa que contém a data atual do calendário
+      const dataAtual = currentDate.toISOString().split('T')[0];
+      const { data: janela, error: errorJanela } = await supabase
+        .from('janela_operacional')
+        .select('id, data_inicio, data_fim, modalidades')
+        .lte('data_inicio', dataAtual)
+        .gte('data_fim', dataAtual)
+        .eq('ativa', true)
+        .single();
+      
+      if (errorJanela && errorJanela.code !== 'PGRST116') {
+        throw new Error(`Erro ao buscar janela operacional: ${errorJanela.message}`);
+      }
+      
+      // Buscar operações PLANEJADAS da janela (igual à API do supervisor)
+      let queryOperacoes = supabase
+        .from('operacao')
+        .select('id, data_operacao, turno, modalidade, tipo, limite_participantes, status, janela_id')
+        .eq('ativa', true)
+        .eq('tipo', 'PLANEJADA')
+        .order('data_operacao', { ascending: true });
+      
+      // Se encontrou janela, filtrar por ela
+      if (janela) {
+        queryOperacoes = queryOperacoes.eq('janela_id', janela.id);
+      } else {
+        // Fallback: buscar operações do mês atual do calendário
+        const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+        queryOperacoes = queryOperacoes
+          .gte('data_operacao', startDate.toISOString().split('T')[0])
+          .lte('data_operacao', endDate.toISOString().split('T')[0]);
+      }
+      
+      const { data: operacoesPeriodo, error: errorOperacoes } = await queryOperacoes;
+      
+      if (errorOperacoes) {
+        throw new Error(`Erro ao buscar operações: ${errorOperacoes.message}`);
+      }
+      
+      if (!operacoesPeriodo || operacoesPeriodo.length === 0) {
+        return `Nenhuma operação encontrada para ${mesAtual}.`;
+      }
+      
+      // Buscar participações confirmadas (igual à API do supervisor)
+      const operacaoIds = operacoesPeriodo.map(op => op.id);
+      const { data: participacoes, error: errorParticipacoes } = await supabase
+        .from('participacao')
+        .select(`
+          id,
+          membro_id,
+          operacao_id,
+          data_participacao,
+          estado_visual,
+          ativa,
+          servidor:membro_id(
+            id,
+            nome,
+            matricula
+          )
+        `)
+        .eq('ativa', true)
+        .in('estado_visual', ['CONFIRMADO', 'ADICIONADO_SUP', 'PENDENTE', 'SOLICITADO', 'NA_FILA', 'APROVADO'])
+        .in('operacao_id', operacaoIds);
+      
+      if (errorParticipacoes) {
+        throw new Error(`Erro ao buscar participações: ${errorParticipacoes.message}`);
+      }
+      
+      console.log('📊 Participações encontradas:', participacoes?.length || 0);
+      
+      if (!participacoes || participacoes.length === 0) {
+        return `Nenhuma participação confirmada encontrada para ${mesAtual}.`;
+      }
+      
+      // Buscar informações da janela operacional para título e período (igual à API do supervisor)
+      let tituloOperacao = 'OPERAÇÃO RADAR E PESAGEM';
+      let periodoOperacao = '';
+      
+      if (janela) {
+        // Gerar título baseado nas modalidades da janela
+        const modalidades = janela.modalidades?.split(',') || ['RADAR', 'PESAGEM'];
+        if (modalidades.includes('BLITZ') && modalidades.includes('BALANCA')) {
+          tituloOperacao = 'OPERAÇÃO RADAR E PESAGEM';
+        } else if (modalidades.includes('BLITZ')) {
+          tituloOperacao = 'OPERAÇÃO RADAR';
+        } else if (modalidades.includes('BALANCA')) {
+          tituloOperacao = 'OPERAÇÃO PESAGEM';
+        }
+        
+        // Gerar período baseado nas datas da janela
+        const dataInicio = new Date(`${janela.data_inicio}T12:00:00`);
+        const dataFim = new Date(`${janela.data_fim}T12:00:00`);
+        
+        // Se o período abrange múltiplos meses, mostrar o período completo
+        if (dataInicio.getMonth() !== dataFim.getMonth() || dataInicio.getFullYear() !== dataFim.getFullYear()) {
+          const mesInicioAbrev = dataInicio.toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase().replace('.', '');
+          const mesFimAbrev = dataFim.toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase().replace('.', '');
+          const diaInicio = dataInicio.toLocaleDateString('pt-BR', { day: '2-digit' });
+          const diaFim = dataFim.toLocaleDateString('pt-BR', { day: '2-digit' });
+          const anoInicio = dataInicio.getFullYear();
+          const anoFim = dataFim.getFullYear();
+          periodoOperacao = `${mesInicioAbrev} ${diaInicio}-${String(dataInicio.getMonth() + 1).padStart(2, '0')}-${anoInicio} A ${mesFimAbrev} ${diaFim}-${String(dataFim.getMonth() + 1).padStart(2, '0')}-${anoFim}`;
+        } else {
+          // Se é do mesmo mês, mostrar apenas o mês/ano
+          periodoOperacao = dataInicio.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
+        }
+      } else {
+        // Fallback para o comportamento anterior quando não há janela
+        const primeiraData = new Date(Math.min(...operacoesPeriodo.map(op => parseLocalDate(op.data_operacao).getTime())));
+        periodoOperacao = primeiraData.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
+      }
+      
+      // Agrupar participações por servidor (igual à API do supervisor)
+      const servidoresPorId = participacoes.reduce((acc, participacao) => {
+        const servidorData = Array.isArray(participacao.servidor) ? participacao.servidor[0] : participacao.servidor;
+        const servidorId = participacao.membro_id;
+        const nome = servidorData?.nome || 'Servidor';
+        const matricula = servidorData?.matricula || '';
+        
+        if (!acc[servidorId]) {
+          acc[servidorId] = {
+            nome,
+            matricula,
+            participacoes: []
+          };
+        }
+        
+        // Encontrar dados da operação
+        const operacao = operacoesPeriodo.find(op => op.id === participacao.operacao_id);
+        if (operacao) {
+          acc[servidorId].participacoes.push({
+            data: operacao.data_operacao,
+            operacao_id: operacao.id,
+            estado_visual: participacao.estado_visual
+          });
+        }
+        
+        return acc;
+      }, {} as Record<number, any>);
+      
+      // Calcular períodos consecutivos para cada servidor (igual à API do supervisor)
+      const servidoresComPeriodos = Object.values(servidoresPorId).map((servidor: any) => {
+        const ESTADOS_CONFIRMADOS = ['CONFIRMADO', 'ADICIONADO_SUP'];
+        const datasOrdenadas = servidor.participacoes
+          .filter((p: any) => ESTADOS_CONFIRMADOS.includes(p.estado_visual))
+          .map((p: any) => p.data)
+          .sort()
+          .map((data: string) => parseLocalDate(data));
+
+        const periodos = calcularPeriodosConsecutivos(datasOrdenadas);
+        
+        // Alinhar regra de contagem com o supervisor: diárias equivalentes consideram dias (inclusive)
+        const totalDias = periodos.reduce((sum: number, periodo: any) => sum + periodo.dias, 0);
+        const totalParticipacoes = servidor.participacoes.length;
+
+        return {
+          ...servidor,
+          periodos,
+          totalDias,
+          totalParticipacoes
+        };
+      });
+      
+      // Agrupar servidores por períodos únicos (igual à API do supervisor)
+      const periodosPorChave = new Map<string, any>();
+      
+      servidoresComPeriodos.forEach(servidor => {
+        servidor.periodos.forEach((periodo: any) => {
+          const dataInicio = periodo.inicio.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+          // Ajuste de meia diária: acrescentar 1 dia ao fim para a exibição e chave
+          const fimExtendido = new Date(periodo.fim.getTime());
+          fimExtendido.setDate(fimExtendido.getDate() + 1);
+          const dataFim = fimExtendido.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+          
+          // Criar chave única para o período (com fim estendido)
+          const chave = `${dataInicio}-${dataFim}`;
+          const chaveTempo = periodo.inicio.getTime(); // Para ordenação
+          
+          if (!periodosPorChave.has(chave)) {
+            periodosPorChave.set(chave, {
+              dataInicio,
+              dataFim,
+              chaveTempo,
+              servidores: []
+            });
+          }
+
+          // Calcular contagens por status dentro deste período para este servidor
+          const ESTADOS_CONFIRMADOS = ['CONFIRMADO', 'ADICIONADO_SUP'];
+          const ESTADOS_PENDENTES = ['PENDENTE', 'SOLICITADO', 'NA_FILA', 'APROVADO'];
+          const participacoesNoPeriodo = servidor.participacoes.filter((p: any) => {
+            const d = parseLocalDate(p.data);
+            return d >= periodo.inicio && d <= periodo.fim;
+          });
+          const confirmadosCount = participacoesNoPeriodo.filter((p: any) => ESTADOS_CONFIRMADOS.includes(p.estado_visual)).length;
+          const pendentesCount = participacoesNoPeriodo.filter((p: any) => ESTADOS_PENDENTES.includes(p.estado_visual)).length;
+          
+          periodosPorChave.get(chave)!.servidores.push({
+            nome: servidor.nome,
+            matricula: servidor.matricula,
+            confirmadosCount,
+            pendentesCount
+          });
+        });
+      });
+      
+      // Converter para array e ordenar por data de início (igual à API do supervisor)
+      const periodosOrdenados = Array.from(periodosPorChave.values())
+        .sort((a, b) => a.chaveTempo - b.chaveTempo);
+      
+      // Ordenar servidores dentro de cada período por nome (igual à API do supervisor)
+      periodosOrdenados.forEach(periodo => {
+        periodo.servidores.sort((a: any, b: any) => a.nome.localeCompare(b.nome));
+      });
+      
+      // Gerar relatório no formato WhatsApp (igual à API do supervisor)
+      let relatorio = '========================================';
+      relatorio += `\n           ${tituloOperacao}\n`;
+      relatorio += `               ${periodoOperacao}\n`;
+      relatorio += '========================================\n\n';
+      
+      periodosOrdenados.forEach(periodo => {
+        // Formatar período
+        let periodoTexto = '';
+        if (periodo.dataInicio === periodo.dataFim) {
+          periodoTexto = periodo.dataInicio;
+        } else {
+          periodoTexto = `${periodo.dataInicio} a ${periodo.dataFim}`;
+        }
+        
+        relatorio += `DIAS: ${periodoTexto}\n`;
+        
+        // Listar servidores com formatação elegante
+        periodo.servidores.forEach((servidor: any, index: number) => {
+          const sufixos: string[] = [];
+          if (servidor.confirmadosCount > 0) sufixos.push(`✓${servidor.confirmadosCount}`);
+          if (servidor.pendentesCount > 0) sufixos.push(`⏳${servidor.pendentesCount}`);
+          const sufixoTexto = sufixos.length ? ` (${sufixos.join(' ')})` : '';
+          const prefixo = servidor.confirmadosCount > 0 ? '✓' : '⏳';
+
+          relatorio += `${index + 1}. ${prefixo} ${servidor.nome.toUpperCase()}${sufixoTexto}\n`;
+          relatorio += `   Mat.: ${servidor.matricula}\n`;
+        });
+        
+        relatorio += '\n';
+      });
+      
+      return relatorio;
+
+     } catch (error) {
+        console.error('❌ Erro ao gerar relatório:', error);
+        return `Erro ao gerar relatório para ${mesAtual}: ${(error as Error).message}`;
+      }
+  };
+
+  // Função para compartilhar relatório no WhatsApp
+  const compartilharRelatorio = async () => {
+    try {
+      if (!janelaSelecionada) {
+        toast.error('Selecione uma janela operacional para compartilhar.');
+        return;
+      }
+      setLoadingRelatorio(true);
+      
+      const texto = await gerarRelatorioMembro(janelaSelecionada);
+      
+      // Copiar para área de transferência
+      await navigator.clipboard.writeText(texto);
+      
+      // Tentar abrir WhatsApp Web com o texto pré-preenchido
+      const textoEncoded = encodeURIComponent(texto);
+      const whatsappUrl = `https://web.whatsapp.com/send?text=${textoEncoded}`;
+      
+      // Abrir em nova aba
+      window.open(whatsappUrl, '_blank');
+      
+      toast.success('Relatório copiado e WhatsApp Web aberto!');
+    } catch (error) {
+      console.error('❌ Erro ao compartilhar relatório:', error);
+      toast.error('Erro ao gerar relatório para compartilhamento');
+    } finally {
+      setLoadingRelatorio(false);
+    }
+  };
 
   // Funções para lidar com cliques nos círculos de progresso
   const handleCircleClick = useCallback((tipo: 'anterior' | 'corrente' | 'diarias') => {
@@ -637,6 +1058,40 @@ export const CalendarioSimplesComponent: React.FC = () => {
 
   return (
     <div className={`${styles.calendarContainer} ${isDarkTheme ? styles.darkTheme : ''}`}>
+      {/* NOVO: Barra superior com seletor de janela e botão de compartilhar (independente do mês visualizado) */}
+      <div className={styles.rightButtons} style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 8 }}>
+        <select
+          value={janelaSelecionada || ''}
+          onChange={(e) => setJanelaSelecionada(e.target.value ? Number(e.target.value) : null)}
+          aria-label="Selecionar janela operacional"
+        >
+          <option value="">Selecione a Janela Operacional</option>
+          {janelasDisponiveis.map((j) => {
+            // Evitar deslocamento de fuso ao interpretar 'YYYY-MM-DD' (tratar como data local)
+            const di = new Date(`${j.dataInicio}T12:00:00`);
+            const df = new Date(`${j.dataFim}T12:00:00`);
+            const periodo = `${di.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} a ${df.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}`;
+            return (
+              <option key={j.id} value={j.id}>
+                Janela #{j.id}: {periodo}
+              </option>
+            );
+          })}
+        </select>
+        <button 
+          className={styles.whatsappButton}
+          onClick={compartilharRelatorio}
+          disabled={loadingRelatorio || !janelaSelecionada}
+          title="Compartilhar relatório no WhatsApp"
+        >
+          {loadingRelatorio ? (
+            <div className={styles.loadingSpinner}></div>
+          ) : (
+            <MessageCircle size={16} />
+          )}
+        </button>
+      </div>
+
       {/* Header com Navegação Integrada */}
       <div className={styles.calendarHeader}>
         <button
@@ -660,6 +1115,7 @@ export const CalendarioSimplesComponent: React.FC = () => {
         </button>
 
         <div className={styles.rightButtons}>
+          {/* Botão de compartilhar foi movido para a barra superior */}
           <button className={styles.todayButton} onClick={goToToday}>
             <Calendar size={16} />
             <span>Hoje</span>

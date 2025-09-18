@@ -23,6 +23,7 @@
 import { NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { EuVouOrchestratorSimplificado } from '@/core/domain/services/EuVouOrchestratorSimplificado';
+import { ValidadorLimitesServidor } from '@/core/domain/services/ValidadorLimitesServidor';
 
 interface ParticipationRequest {
   action: 'join' | 'cancel' | 'approve' | 'reject' | 'position' | 'list' | 'manage';
@@ -614,7 +615,7 @@ async function handleApproveParticipation(participationId: string, data?: any) {
       .from('participacao')
       .select(`
         *,
-        operacao(id, data_operacao, limite_participantes, status),
+        operacao(id, data_operacao, limite_participantes, status, tipo, modalidade),
         servidor(id, nome, matricula)
       `)
       .eq('id', participationId)
@@ -657,7 +658,35 @@ async function handleApproveParticipation(participationId: string, data?: any) {
       }, { status: 400 });
     }
 
-    // 🔍 STEP 4: Verificar limite da operação
+    // ✅ NOVO STEP 4: Validar limites de operações (10→09) e diárias (mês) antes de aprovar
+    try {
+      const validador = new ValidadorLimitesServidor(supabase);
+      const resultado = await validador.validarLimites({
+        servidorId: Number(participacaoExistente.membro_id),
+        dataOperacao: participacaoExistente.operacao?.data_operacao,
+        tipoOperacao: participacaoExistente.operacao?.tipo,
+        modalidade: participacaoExistente.operacao?.modalidade
+      });
+
+      if (!resultado.podeConfirmar) {
+        console.warn('⚠️ [APPROVE-PARTICIPATION] Limites excedidos para o servidor:', {
+          membro_id: participacaoExistente.membro_id,
+          operacao_id: participacaoExistente.operacao_id,
+          limites: resultado.limitesAtuais,
+          motivo: resultado.motivo
+        });
+        return Response.json({
+          success: false,
+          error: resultado.motivo || 'Limites excedidos para o servidor',
+          data: { limites: resultado.limitesAtuais }
+        }, { status: 400 });
+      }
+    } catch (e) {
+      console.error('🚨 [APPROVE-PARTICIPATION] Erro ao validar limites:', e);
+      return Response.json({ success: false, error: 'Erro ao validar limites do servidor' }, { status: 500 });
+    }
+
+    // 🔍 STEP 5: Verificar limite da operação
     const limiteOperacao = participacaoExistente.operacao?.limite_participantes || 0;
 
     const { data: participacoesConfirmadas, error: countError } = await supabase
@@ -687,7 +716,7 @@ async function handleApproveParticipation(participationId: string, data?: any) {
       }, { status: 400 });
     }
 
-    // 🔍 STEP 5: Tentar atualizar a participação
+    // 🔍 STEP 6: Tentar atualizar a participação
     console.log(`✅ [APPROVE-PARTICIPATION] Attempting to update participation...`);
 
     const updateData = {
@@ -722,7 +751,7 @@ async function handleApproveParticipation(participationId: string, data?: any) {
       data_confirmacao: participacaoAtualizada.data_confirmacao
     });
 
-    // 🔍 STEP 6: Tentar registrar o evento
+    // 🔍 STEP 7: Tentar registrar o evento
     try {
       console.log(`✅ [APPROVE-PARTICIPATION] Attempting to log event...`);
 
@@ -825,4 +854,4 @@ async function handleRejectParticipation(participationId: string, data?: any) {
       error: 'Internal server error'
     }, { status: 500 });
   }
-} 
+}

@@ -15,8 +15,8 @@ interface ResultadoValidacao {
 interface DadosValidacao {
   servidorId: number;
   dataOperacao: string;
-  tipoOperacao: 'PLANEJADA' | 'VOLUNTARIA' | 'BLITZ' | 'BALANCA';
-  modalidade?: string;
+  tipoOperacao: 'PLANEJADA' | 'VOLUNTARIA';
+  modalidade?: 'BLITZ' | 'BALANCA';
 }
 
 export class ValidadorLimitesServidor {
@@ -32,55 +32,63 @@ export class ValidadorLimitesServidor {
    */
   async validarLimites(dados: DadosValidacao): Promise<ResultadoValidacao> {
     try {
-
-
       // 1. Buscar parâmetros de limite
       const parametros = await this.parametrizacaoService.buscarParametrosLimite();
+      const LIM_ATIV = parametros.limiteCicloFuncional ?? 15;
+      const LIM_DIARIAS = parametros.limiteMensalDiarias ?? 15;
       
-      // 2. Calcular atividades no período 10→09
-      const atividadesPeriodo = await this.calcularAtividadesPeriodo10a09(
+      // 2. Calcular atividades no período 10→09 (apenas BLITZ/BALANCA, planejada/voluntária)
+      const atividadesPeriodoBase = await this.calcularAtividadesPeriodo10a09(
         dados.servidorId, 
         dados.dataOperacao
       );
 
+      // Projeção: incluir esta aprovação na contagem do ciclo
+      const atividadesComProjecao = atividadesPeriodoBase + 1;
+
       // 3. Calcular diárias no mês atual (se for operação que gera diárias)
-      let diariasNoMes = 0;
-      const geraraDiarias = this.operacaoGeraDiarias(dados.tipoOperacao);
+      let diariasProjetadasNoMes = 0;
+      const geraDiarias = this.operacaoGeraDiarias(dados.tipoOperacao);
       
-      if (geraraDiarias) {
-        diariasNoMes = await this.calcularDiariasNoMes(
+      if (geraDiarias) {
+        // Projeta a inclusão do dia atual no cálculo das sequências (meia diária respeitando retorno no mês)
+        diariasProjetadasNoMes = await this.calcularDiariasNoMes(
           dados.servidorId, 
-          dados.dataOperacao
+          dados.dataOperacao,
+          dados.dataOperacao // incluir data atual como participação adicional
         );
       }
 
-      // 4. Verificar limites
+      // 4. Montar limites atuais (já com projeção)
       const limitesAtuais = {
-        atividadesPeriodo10a09: atividadesPeriodo,
-        diariasNoMes: diariasNoMes,
-        limiteAtividades: parametros.limiteCicloFuncional,
-        limiteDiarias: parametros.limiteMensalDiarias
+        atividadesPeriodo10a09: atividadesComProjecao,
+        diariasNoMes: diariasProjetadasNoMes,
+        limiteAtividades: LIM_ATIV,
+        limiteDiarias: LIM_DIARIAS
       };
 
       // 5. Validar limite de atividades (sempre aplicado)
-      if (atividadesPeriodo >= parametros.limiteCicloFuncional) {
+      if (atividadesComProjecao > LIM_ATIV) {
         return {
           podeConfirmar: false,
-          motivo: `Servidor atingiu limite de ${parametros.limiteCicloFuncional} atividades no período 10→09`,
+          motivo: `Servidor excederá o limite de ${LIM_ATIV} operações no período 10→09 (${atividadesComProjecao}/${LIM_ATIV}).`,
           limitesAtuais
         };
       }
 
       // 6. Validar limite de diárias (só se for operação que gera diárias)
-      if (geraraDiarias && diariasNoMes >= parametros.limiteMensalDiarias) {
-        return {
-          podeConfirmar: false,
-          motivo: `Servidor atingiu limite de ${parametros.limiteMensalDiarias} diárias no mês`,
-          limitesAtuais
-        };
+      if (geraDiarias) {
+        const excedeLimitePadrao = diariasProjetadasNoMes > LIM_DIARIAS;
+        const chegaQuinzeMeia = diariasProjetadasNoMes >= 15.5; // regra explícita
+        if (excedeLimitePadrao || chegaQuinzeMeia) {
+          const regra = chegaQuinzeMeia ? ' (atinge 15,5 no mês)' : '';
+          return {
+            podeConfirmar: false,
+            motivo: `Servidor excederá o limite de ${LIM_DIARIAS} diárias no mês${regra} (${diariasProjetadasNoMes.toFixed(1)}/${LIM_DIARIAS}).`,
+            limitesAtuais
+          };
+        }
       }
-
-
 
       return {
         podeConfirmar: true,
@@ -148,12 +156,14 @@ export class ValidadorLimitesServidor {
 
       if (error) throw error;
 
-      // Filtrar participações no período 10→09
-      const participacoesPeriodo = (participacoes || []).filter(p => {
+      // Filtrar participações no período 10→09 e por modalidade/tipo válidos
+      const participacoesPeriodo = (participacoes || []).filter((p: any) => {
         if (!p.operacao?.data_operacao || !p.operacao?.ativa) return false;
-        
-        const dataOp = new Date(p.operacao.data_operacao);
-        return dataOp >= dataInicio && dataOp <= dataFim;
+        const d = new Date(p.operacao.data_operacao);
+        const inWindow = d >= dataInicio && d <= dataFim;
+        const modalidadeOk = ['BLITZ', 'BALANCA'].includes(p.operacao.modalidade);
+        const tipoOk = ['PLANEJADA', 'VOLUNTARIA'].includes(p.operacao.tipo);
+        return inWindow && modalidadeOk && tipoOk;
       });
 
       console.log(`📊 Servidor ${servidorId}: ${participacoesPeriodo.length} atividades no período 10→09`);
@@ -171,7 +181,8 @@ export class ValidadorLimitesServidor {
    */
   private async calcularDiariasNoMes(
     servidorId: number, 
-    dataOperacao: string
+    dataOperacao: string,
+    incluirDiaExtra?: string | null
   ): Promise<number> {
     try {
       const dataOp = new Date(dataOperacao);
@@ -181,15 +192,17 @@ export class ValidadorLimitesServidor {
       // Período do mês civil (01→31)
       const dataInicio = new Date(ano, mes, 1);
       const dataFim = new Date(ano, mes + 1, 0); // último dia do mês
+      const inicioStr = dataInicio.toISOString().split('T')[0];
+      const fimStr = dataFim.toISOString().split('T')[0];
 
-      // Buscar operações confirmadas no mês
+      // Buscar operações confirmadas no mês (apenas PLANEJADA)
       const { data: operacoes, error: errorOp } = await this.supabase
         .from('operacao')
         .select('id, data_operacao, modalidade, tipo, status')
         .eq('ativa', true)
         .eq('tipo', 'PLANEJADA')
-        .gte('data_operacao', dataInicio.toISOString().split('T')[0])
-        .lte('data_operacao', dataFim.toISOString().split('T')[0]);
+        .gte('data_operacao', inicioStr)
+        .lte('data_operacao', fimStr);
 
       if (errorOp) throw errorOp;
 
@@ -204,7 +217,7 @@ export class ValidadorLimitesServidor {
       if (errorPart) throw errorPart;
 
       // Mapear dados para a calculadora
-      const operacoesMapeadas = (operacoes || []).map(op => ({
+      const operacoesMapeadas = (operacoes || []).map((op: any) => ({
         id: op.id,
         data_operacao: op.data_operacao,
         modalidade: op.modalidade,
@@ -212,9 +225,9 @@ export class ValidadorLimitesServidor {
         status: op.status
       }));
 
-      const participacoesMapeadas = (participacoes || [])
-        .filter(p => operacoesMapeadas.some(op => op.id === p.operacao_id))
-        .map(p => {
+      let participacoesMapeadas = (participacoes || [])
+        .filter((p: any) => operacoesMapeadas.some(op => op.id === p.operacao_id))
+        .map((p: any) => {
           const operacao = operacoesMapeadas.find(op => op.id === p.operacao_id);
           return {
             membro_id: p.membro_id,
@@ -227,18 +240,45 @@ export class ValidadorLimitesServidor {
           };
         });
 
-      // Usar calculadora existente
+      // Projeção: incluir o dia extra (operação atual) se aplicável
+      if (incluirDiaExtra) {
+        const opExtra = operacoesMapeadas.find(op => op.data_operacao === incluirDiaExtra);
+        if (opExtra) {
+          participacoesMapeadas.push({
+            membro_id: servidorId,
+            nome: 'Servidor',
+            matricula: '',
+            operacao_id: opExtra.id,
+            data_operacao: opExtra.data_operacao,
+            estado_visual: 'CONFIRMADO',
+            ativa: true
+          });
+        }
+      }
+
+      // Deduplicar por dia (1 por data)
+      const visto = new Set<string>();
+      const participacoesUnicasPorDia = participacoesMapeadas.filter(p => {
+        const d = p.data_operacao;
+        if (!d) return false;
+        if (visto.has(d)) return false;
+        visto.add(d);
+        return true;
+      });
+
+      // Usar calculadora existente com recorte do mês civil para considerar a meia do retorno somente se cair dentro do mês
       const estatisticas = CalculadorDiariasServidor.calcularEstatisticasServidores(
         operacoesMapeadas,
-        participacoesMapeadas
+        participacoesUnicasPorDia,
+        { filtroDataInicio: inicioStr, filtroDataFim: fimStr }
       );
 
       const estatisticasServidor = estatisticas.find(e => e.servidorId === servidorId);
       const totalDiarias = estatisticasServidor?.totalDiariasEquivalentes || 0;
 
-      console.log(`📊 Servidor ${servidorId}: ${totalDiarias} diárias no mês`);
+      console.log(`📊 Servidor ${servidorId}: ${totalDiarias} diárias (projetadas) no mês`);
       
-      return Math.floor(totalDiarias); // Arredondar para baixo
+      return Number(totalDiarias.toFixed(1));
 
     } catch (error) {
       console.error('❌ Erro ao calcular diárias no mês:', error);
@@ -253,4 +293,4 @@ export class ValidadorLimitesServidor {
     // Operações voluntárias não geram diárias
     return tipoOperacao !== 'VOLUNTARIA';
   }
-} 
+}

@@ -6,6 +6,12 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+// Tratar datas 'YYYY-MM-DD' como locais para evitar deslocamento de fuso
+function parseLocalDate(dateStr: string): Date {
+  // Usar meio-dia local para evitar que a conversão para timezone mude o dia
+  return new Date(`${dateStr}T12:00:00`);
+}
+
 // GET - Listar operações para diretoria
 export async function GET(request: NextRequest) {
   try {
@@ -93,7 +99,7 @@ export async function GET(request: NextRequest) {
 
     // Se formato for texto, gerar relatório formatado para WhatsApp
     if (formato === 'texto') {
-      const relatorioTexto = gerarRelatorioWhatsApp(operacoes || [], participacoes || []);
+      const relatorioTexto = await gerarRelatorioWhatsApp(operacoes || [], participacoes || [], janela_id || undefined);
       
       return new NextResponse(relatorioTexto, {
         status: 200,
@@ -139,11 +145,60 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * Gera relatório formatado profissionalmente da tabela de diretoria
+ * Gera relatório formatado para WhatsApp da tabela de diretoria
  */
-function gerarRelatorioWhatsApp(operacoes: any[], participacoes: any[]): string {
+async function gerarRelatorioWhatsApp(operacoes: any[], participacoes: any[], janela_id?: string): Promise<string> {
   if (participacoes.length === 0) {
     return 'Nenhuma participação confirmada encontrada para gerar relatório.';
+  }
+
+  // Buscar informações da janela operacional se janela_id foi fornecido
+  let tituloOperacao = 'OPERAÇÃO RADAR E PESAGEM';
+  let periodoOperacao = '';
+  
+  if (janela_id) {
+    try {
+      const { data: janela } = await supabase
+        .from('janela_operacional')
+        .select('data_inicio, data_fim, modalidades')
+        .eq('id', parseInt(janela_id))
+        .single();
+      
+      if (janela) {
+        // Gerar título baseado nas modalidades da janela
+        const modalidades = janela.modalidades?.split(',') || ['RADAR', 'PESAGEM'];
+        if (modalidades.includes('BLITZ') && modalidades.includes('BALANCA')) {
+          tituloOperacao = 'OPERAÇÃO RADAR E PESAGEM';
+        } else if (modalidades.includes('BLITZ')) {
+          tituloOperacao = 'OPERAÇÃO RADAR';
+        } else if (modalidades.includes('BALANCA')) {
+          tituloOperacao = 'OPERAÇÃO PESAGEM';
+        }
+        
+        // Gerar período baseado nas datas da janela
+        const dataInicio = new Date(`${janela.data_inicio}T12:00:00`);
+        const dataFim = new Date(`${janela.data_fim}T12:00:00`);
+        
+        // Se o período abrange múltiplos meses, mostrar o período completo
+        if (dataInicio.getMonth() !== dataFim.getMonth() || dataInicio.getFullYear() !== dataFim.getFullYear()) {
+          const mesInicioAno = dataInicio.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
+          const mesFimAno = dataFim.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
+          periodoOperacao = `${mesInicioAno} - ${mesFimAno}`;
+        } else {
+          // Se é do mesmo mês, mostrar apenas o mês/ano
+          periodoOperacao = dataInicio.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
+        }
+      }
+    } catch (error) {
+      console.error('❌ Erro ao buscar informações da janela:', error);
+      // Fallback para o comportamento anterior
+      const primeiraData = new Date(Math.min(...operacoes.map(op => parseLocalDate(op.data_operacao).getTime())));
+      periodoOperacao = primeiraData.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
+    }
+  } else {
+    // Fallback para o comportamento anterior quando não há janela_id
+    const primeiraData = new Date(Math.min(...operacoes.map(op => parseLocalDate(op.data_operacao).getTime())));
+    periodoOperacao = primeiraData.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
   }
 
   // Agrupar participações por servidor
@@ -173,12 +228,12 @@ function gerarRelatorioWhatsApp(operacoes: any[], participacoes: any[]): string 
     return acc;
   }, {} as Record<number, any>);
 
-  // Calcular períodos consecutivos para cada servidor (lógica similar à PORTARIA MOR)
+  // Calcular períodos consecutivos para cada servidor
   const servidoresComPeriodos = Object.values(servidoresPorId).map((servidor: any) => {
     const datasOrdenadas = servidor.participacoes
       .map((p: any) => p.data)
       .sort()
-      .map((data: string) => new Date(data));
+      .map((data: string) => parseLocalDate(data));
 
     const periodos = calcularPeriodosConsecutivos(datasOrdenadas);
     
@@ -190,52 +245,71 @@ function gerarRelatorioWhatsApp(operacoes: any[], participacoes: any[]): string 
     };
   });
 
-  // Ordenar por nome
-  servidoresComPeriodos.sort((a, b) => a.nome.localeCompare(b.nome));
-
-  // Gerar relatório no formato profissional igual ao de diárias
-  let relatorio = '📋 RELATÓRIO DA TABELA DE DIRETORIA\n';
-  relatorio += '=' .repeat(60) + '\n\n';
-
-  servidoresComPeriodos.forEach((servidor, index) => {
-    relatorio += `${index + 1}. ${servidor.nome} (${servidor.matricula})\n`;
-    relatorio += `   • Total de dias: ${servidor.totalDias}\n`;
-    relatorio += `   • Participações confirmadas: ${servidor.totalParticipacoes}\n`;
-    relatorio += `   • Sequências de operação: ${servidor.periodos.length}\n`;
-    
-    if (servidor.periodos.length > 0) {
-      relatorio += `   • Períodos:\n`;
-      servidor.periodos.forEach(periodo => {
-        const dataInicio = periodo.inicio.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-        const dataFim = periodo.fim.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-        const sequencia = gerarSequencia(periodo.dias);
-        
-        relatorio += `     - ${dataInicio} a ${dataFim} (${sequencia})\n`;
+  // Agrupar servidores por períodos únicos
+  const periodosPorChave = new Map<string, any>();
+  
+  servidoresComPeriodos.forEach(servidor => {
+    servidor.periodos.forEach((periodo: any) => {
+      const dataInicio = periodo.inicio.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+      // Regra de meia diária: acrescentar +1 dia ao fim para exibição e agrupamento
+      const fimExtendido = new Date(periodo.fim.getTime());
+      fimExtendido.setDate(fimExtendido.getDate() + 1);
+      const dataFim = fimExtendido.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+      
+      // Criar chave única para o período (usando o fim estendido)
+      const chave = `${dataInicio}-${dataFim}`;
+      const chaveTempo = periodo.inicio.getTime(); // Para ordenação
+      
+      if (!periodosPorChave.has(chave)) {
+        periodosPorChave.set(chave, {
+          dataInicio,
+          dataFim,
+          chaveTempo,
+          servidores: []
+        });
+      }
+      
+      periodosPorChave.get(chave)!.servidores.push({
+        nome: servidor.nome,
+        matricula: servidor.matricula
       });
+    });
+  });
+
+  // Converter para array e ordenar por data de início
+  const periodosOrdenados = Array.from(periodosPorChave.values())
+    .sort((a, b) => a.chaveTempo - b.chaveTempo);
+
+  // Ordenar servidores dentro de cada período por nome
+  periodosOrdenados.forEach(periodo => {
+    periodo.servidores.sort((a: any, b: any) => a.nome.localeCompare(b.nome));
+  });
+
+  // Gerar relatório no formato WhatsApp
+  let relatorio = '========================================';
+  relatorio += `\n           ${tituloOperacao}\n`;
+  relatorio += `               ${periodoOperacao}\n`;
+  relatorio += '========================================\n\n';
+
+  periodosOrdenados.forEach(periodo => {
+    // Formatar período
+    let periodoTexto = '';
+    if (periodo.dataInicio === periodo.dataFim) {
+      periodoTexto = periodo.dataInicio;
+    } else {
+      periodoTexto = `${periodo.dataInicio} a ${periodo.dataFim}`;
     }
+    
+    relatorio += `*DIAS: ${periodoTexto}*\n`;
+    
+    // Listar servidores com formatação elegante
+    periodo.servidores.forEach((servidor: any, index: number) => {
+      relatorio += `${index + 1}. ✓ *${servidor.nome.toUpperCase()}*\n`;
+      relatorio += `   Mat.: ${servidor.matricula}\n`;
+    });
     
     relatorio += '\n';
   });
-
-  // Estatísticas gerais
-  const totalServidores = servidoresComPeriodos.length;
-  const totalDias = servidoresComPeriodos.reduce((sum, s) => sum + s.totalDias, 0);
-  const totalParticipacoes = servidoresComPeriodos.reduce((sum, s) => sum + s.totalParticipacoes, 0);
-  const totalOperacoes = operacoes.length;
-
-  relatorio += '📈 RESUMO GERAL\n';
-  relatorio += '-'.repeat(30) + '\n';
-  relatorio += `Total de servidores: ${totalServidores}\n`;
-  relatorio += `Total de operações: ${totalOperacoes}\n`;
-  relatorio += `Total de participações: ${totalParticipacoes}\n`;
-  relatorio += `Total de dias: ${totalDias}\n\n`;
-
-  // Informações adicionais
-  relatorio += 'ℹ️ INFORMAÇÕES:\n';
-  relatorio += '• Apenas participações confirmadas (CONFIRMADO/ADICIONADO_SUP)\n';
-  relatorio += '• Baseado na tabela da Diretoria\n';
-  relatorio += '• Sequências: D=1 dia, DD=2 dias, DDD=3 dias, etc.\n';
-  relatorio += `• Data de geração: ${new Date().toLocaleString('pt-BR')}\n`;
 
   return relatorio;
 }
@@ -569,4 +643,4 @@ async function registrarRetornoDiretoria(operacao: any, decisao: string, motivo?
       membrosDesbloqueados: true
     }
   });
-} 
+}
