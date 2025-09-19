@@ -366,13 +366,25 @@ export const CalendarioSimplesComponent: React.FC = () => {
       // Calcular períodos consecutivos para cada servidor (igual à API do supervisor)
       const servidoresComPeriodos = Object.values(servidoresPorId).map((servidor: any) => {
         const ESTADOS_CONFIRMADOS = ['CONFIRMADO', 'ADICIONADO_SUP'];
-        const datasOrdenadas = servidor.participacoes
+        const ESTADOS_VALIDOS = ['CONFIRMADO', 'ADICIONADO_SUP', 'PENDENTE', 'NA_FILA'];
+
+        // Primeiro, tentar com confirmados (mantém compatibilidade com a lógica original)
+        const datasConfirmadasOrdenadas = servidor.participacoes
           .filter((p: any) => ESTADOS_CONFIRMADOS.includes(p.estado_visual))
           .map((p: any) => p.data)
           .sort()
           .map((data: string) => parseLocalDate(data));
 
-        const periodos = calcularPeriodosConsecutivos(datasOrdenadas);
+        // Se não houver confirmados, usar qualquer participação válida (pendentes/na fila)
+        const datasParaPeriodos = datasConfirmadasOrdenadas.length > 0
+          ? datasConfirmadasOrdenadas
+          : servidor.participacoes
+              .filter((p: any) => ESTADOS_VALIDOS.includes(p.estado_visual))
+              .map((p: any) => p.data)
+              .sort()
+              .map((data: string) => parseLocalDate(data));
+
+        const periodos = calcularPeriodosConsecutivos(datasParaPeriodos);
         
         // Alinhar regra de contagem com o supervisor: diárias equivalentes consideram dias (inclusive)
         const totalDias = periodos.reduce((sum: number, periodo: any) => sum + periodo.dias, 0);
@@ -455,15 +467,9 @@ export const CalendarioSimplesComponent: React.FC = () => {
         
         relatorio += `DIAS: ${periodoTexto}\n`;
         
-        // Listar servidores com formatação elegante
+        // Listar servidores (formato original, sem sufixos/ícones de pendência)
         periodo.servidores.forEach((servidor: any, index: number) => {
-          const sufixos: string[] = [];
-          if (servidor.confirmadosCount > 0) sufixos.push(`✓${servidor.confirmadosCount}`);
-          if (servidor.pendentesCount > 0) sufixos.push(`⏳${servidor.pendentesCount}`);
-          const sufixoTexto = sufixos.length ? ` (${sufixos.join(' ')})` : '';
-          const prefixo = servidor.confirmadosCount > 0 ? '✓' : '⏳';
-
-          relatorio += `${index + 1}. ${prefixo} ${servidor.nome.toUpperCase()}${sufixoTexto}\n`;
+          relatorio += `${index + 1}. ✓ ${servidor.nome.toUpperCase()}\n`;
           relatorio += `   Mat.: ${servidor.matricula}\n`;
         });
         
@@ -477,12 +483,17 @@ export const CalendarioSimplesComponent: React.FC = () => {
         return `Erro ao gerar relatório para ${mesAtual}: ${(error as Error).message}`;
       }
   };
-
   // Função para detectar se é dispositivo móvel
   const isMobileDevice = () => {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    // Preferir User-Agent Client Hints quando disponível
+    const uaData = (navigator as any).userAgentData;
+    if (typeof uaData?.mobile === 'boolean') return uaData.mobile;
+    // Fallback robusto para userAgent
+    const ua = navigator.userAgent || (navigator as any).vendor || (window as any).opera || '';
+    const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+    return mobileRegex.test(ua);
   };
-
+  
   // Função para compartilhar relatório no WhatsApp
   const compartilharRelatorio = async () => {
     try {
@@ -494,23 +505,35 @@ export const CalendarioSimplesComponent: React.FC = () => {
       
       const texto = await gerarRelatorioMembro(janelaSelecionada);
       
-      // Copiar para área de transferência
-      await navigator.clipboard.writeText(texto);
-      
-      // Detectar dispositivo e usar protocolo apropriado
-      const textoEncoded = encodeURIComponent(texto);
-      let whatsappUrl: string;
-      
-      if (isMobileDevice()) {
-        // Para dispositivos móveis, usar protocolo whatsapp:// para abrir o app nativo
-        whatsappUrl = `whatsapp://send?text=${textoEncoded}`;
-      } else {
-        // Para desktop, usar WhatsApp Web
-        whatsappUrl = `https://web.whatsapp.com/send?text=${textoEncoded}`;
+      // Copiar para área de transferência (sempre tentamos copiar como apoio)
+      try {
+        await navigator.clipboard.writeText(texto);
+      } catch (e) {
+        console.warn('Não foi possível copiar para a área de transferência automaticamente.', e);
+      }
+
+      // Se disponível, usar o Web Share API (melhor experiência nos dispositivos móveis)
+      if ((navigator as any).share) {
+        try {
+          await (navigator as any).share({ text: texto });
+          toast.success('Relatório compartilhado pelo menu nativo do dispositivo!');
+          return;
+        } catch (e) {
+          // Usuário pode cancelar o compartilhamento; seguimos para o fallback do WhatsApp
+          console.warn('Compartilhamento nativo não concluído, usando fallback do WhatsApp.', e);
+        }
       }
       
-      // Abrir WhatsApp
-      window.open(whatsappUrl, '_blank');
+      // Fallback via link do WhatsApp (compatível com mobile e desktop)
+      const textoEncoded = encodeURIComponent(texto);
+      const whatsappUrl = isMobileDevice()
+        ? `https://wa.me/?text=${textoEncoded}`
+        : `https://web.whatsapp.com/send?text=${textoEncoded}`;
+      
+      const win = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+      if (!win) {
+        toast('Abrimos o link do WhatsApp. Caso não tenha aberto automaticamente, cole o texto (já copiado) na conversa desejada.');
+      }
       
       const mensagem = isMobileDevice() 
         ? 'Relatório copiado e WhatsApp aberto!' 

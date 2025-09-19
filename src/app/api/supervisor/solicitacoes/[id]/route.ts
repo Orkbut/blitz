@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { ValidadorLimitesServidor } from '@/core/domain/services/ValidadorLimitesServidor';
 
 // ✅ OTIMIZADO: Função auxiliar para promover o primeiro da fila
 async function promoverPrimeiroDaFila(operacaoId: number) {
@@ -140,7 +141,10 @@ export async function PUT(
       const { data: operacaoInfo, error: operacaoError } = await supabase
         .from('operacao')
         .select(`
-          id, 
+          id,
+          data_operacao,
+          tipo,
+          modalidade,
           limite_participantes,
           participacao!inner(id, estado_visual, ativa)
         `)
@@ -152,6 +156,28 @@ export async function PUT(
           success: false,
           error: 'Erro ao verificar operação'
         }, { status: 500 });
+      }
+
+      // ✅ NOVO: Validar limites (operações no ciclo e diárias no mês) ANTES de aprovar
+      try {
+        const validador = new ValidadorLimitesServidor(supabase);
+        const resultado = await validador.validarLimites({
+          servidorId: Number(solicitacao.membro_id),
+          dataOperacao: operacaoInfo.data_operacao,
+          tipoOperacao: operacaoInfo.tipo,
+          modalidade: operacaoInfo.modalidade
+        });
+
+        if (!resultado.podeConfirmar) {
+          return NextResponse.json({
+            success: false,
+            error: resultado.motivo || 'Limites excedidos para o servidor',
+            data: { limites: resultado.limitesAtuais }
+          }, { status: 400 });
+        }
+      } catch (e) {
+        console.error('❌ [VALIDADOR_LIMITES][APROVACAO] Erro ao validar limites:', e);
+        return NextResponse.json({ success: false, error: 'Erro ao validar limites do servidor' }, { status: 500 });
       }
 
       const confirmados = operacaoInfo.participacao.filter((p: any) => 
@@ -357,4 +383,4 @@ export async function PUT(
       details: error instanceof Error ? error.message : 'Erro desconhecido'
     }, { status: 500 });
   }
-} 
+}
