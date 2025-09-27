@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import TabelaOperacoesDiretoria from '@/components/supervisor/TabelaOperacoesDiretoria';
 import ExcelViewer from '@/components/supervisor/ExcelViewer';
 import { getSupervisorHeaders, getSupervisorData, isSupervisorAuthenticated } from '@/lib/auth-utils';
@@ -48,6 +49,7 @@ const STATUS_LABELS = {
 };
 
 export default function DiretoriaPage() {
+  const router = useRouter();
   const [operacoes, setOperacoes] = useState<Operacao[]>([]);
   const [operacoesPlanejadas, setOperacoesPlanejadas] = useState<any[]>([]);
   const [participacoesPlanejadas, setParticipacoesPlanejadas] = useState<any[]>([]);
@@ -783,13 +785,13 @@ export default function DiretoriaPage() {
               </div>
               
               <button
-                onClick={() => window.open('http://localhost:3000/supervisor/diretoria/planilha', '_blank')}
+                onClick={() => router.push('/supervisor/diretoria/planilha')}
                 className="inline-flex items-center gap-3 px-8 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-lg hover:shadow-xl"
               >
                 <span className="text-xl">📊</span>
                 <span>Abrir Planilha de Diárias</span>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </button>
             </div>

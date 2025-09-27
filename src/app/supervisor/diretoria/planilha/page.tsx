@@ -29,6 +29,63 @@ interface OperacaoData {
   estado_visual: string;
 }
 
+// Função para calcular larguras automáticas das colunas baseadas no conteúdo
+const calculateAutoColumnWidths = (data: any[][]): number[] => {
+  if (!data || data.length === 0) return [300, 100, 120, 80, 120, 120];
+  
+  const numCols = Math.max(...data.map(row => row.length));
+  const colWidths: number[] = [];
+  
+  for (let col = 0; col < numCols; col++) {
+    let maxWidth = 80; // Largura mínima
+    let hasContent = false;
+    
+    for (let row = 0; row < data.length; row++) {
+      const cellValue = data[row][col] || '';
+      const cellText = String(cellValue);
+      
+      if (cellText.trim() !== '') {
+        hasContent = true;
+        
+        // Calcular largura baseada no comprimento do texto
+        // Aproximadamente 8 pixels por caractere + padding
+        let cellWidth = cellText.length * 8 + 20;
+        
+        // Ajustar para conteúdo especial (títulos, cabeçalhos)
+        if (cellText.includes('REGIONAL:') || 
+            cellText.includes('Planilha para') ||
+            cellText.includes('Setor:') ||
+            cellText.includes('Período:')) {
+          cellWidth *= 1.3; // Títulos precisam de mais espaço
+        }
+        
+        // Ajustes específicos por coluna
+        if (col === 0) { // Primeira coluna (Servidor/Período)
+          cellWidth = Math.max(cellWidth, 250); // Mínimo para nomes
+          cellWidth = Math.min(cellWidth, 400); // Máximo para não ficar muito largo
+        } else if (col === 1) { // Segunda coluna (Matrícula/Local)
+          cellWidth = Math.max(cellWidth, 100);
+          cellWidth = Math.min(cellWidth, 150);
+        } else { // Outras colunas
+          cellWidth = Math.max(cellWidth, 80);
+          cellWidth = Math.min(cellWidth, 120);
+        }
+        
+        maxWidth = Math.max(maxWidth, cellWidth);
+      }
+    }
+    
+    if (hasContent) {
+      colWidths.push(maxWidth);
+    } else {
+      // Largura mínima para colunas vazias
+      colWidths.push(col === 0 ? 200 : 80);
+    }
+  }
+  
+  return colWidths;
+};
+
 export default function PlanilhaDiretoriaPage() {
   const spreadsheetRef = useRef<any>(null);
   const [worksheetsData, setWorksheetsData] = useState<WorksheetData[]>([]);
@@ -134,8 +191,8 @@ export default function PlanilhaDiretoriaPage() {
         const nomeRegional = supervisorData?.regional?.nome || 'Regional não identificada';
         
         const data: any[][] = [
-          ['PLANILHA DE DIÁRIAS - DIRETORIA OPERACIONAL', '', '', '', '', ''],
-          ['Setor: Núcleo de Fiscalização (NUFIS)', '', '', '', '', ''],
+          ['', '', '', '', '', ''], // Linha em branco para o cabeçalho
+          ['', '', '', '', '', ''], // Linha em branco
           ['', '', '', '', '', ''], // Linha em branco
           ['', '', '', '', '', ''], // Segunda linha em branco
           [`REGIONAL: ${nomeRegional}`, '', '', '', '', ''], // Regional na coluna A normal
@@ -143,13 +200,16 @@ export default function PlanilhaDiretoriaPage() {
           ['Nenhuma operação planejada encontrada', '', '', '', '', '']
         ];
         
+        // Calcular larguras automáticas das colunas baseadas no conteúdo
+        const autoColWidths = calculateAutoColumnWidths(data);
+        
         const worksheetData: WorksheetData = {
           name: 'Diretoria',
           data,
           style: { 'A1': 'background-color: #1e40af; color: white; font-weight: bold; text-align: center; font-size: 14px;' },
           originalStyle: {},
           detranStyle: {},
-          colWidths: [300, 100, 120, 80, 120, 120],
+          colWidths: autoColWidths,
           rowHeights: Array(data.length).fill(25)
         };
         
@@ -266,8 +326,8 @@ export default function PlanilhaDiretoriaPage() {
       const nomeRegional = supervisorData?.regional?.nome || 'Regional não identificada';
       
       const data: any[][] = [
-        ['Planilha para pedidos de diárias', '', '', '', '', ''],
-        ['Setor: Núcleo de Fiscalização (NUFIS)', '', '', '', '', ''],
+        ['', '', '', '', '', ''], // Linha em branco para o cabeçalho
+        ['', '', '', '', '', ''], // Linha em branco
         ['', '', '', '', '', ''], // Linha em branco
         ['', '', '', '', '', ''], // Segunda linha em branco
         [`REGIONAL: ${nomeRegional}`, '', '', '', '', ''], // Regional na coluna A normal
@@ -277,7 +337,7 @@ export default function PlanilhaDiretoriaPage() {
       const detranStyle: Record<string, string> = {
         'A1': 'background-color: white; color: black; font-weight: bold; text-align: center; font-size: 12px;',
         'A2': 'background-color: white; color: black; font-weight: bold; text-align: center; font-size: 12px;',
-        'A5': 'background-color: white; color: black; text-align: left; font-size: 12px;' // Regional alinhada à esquerda, sem negrito
+        'A5': 'background-color: white; color: black; text-align: left; font-size: 10px;' // Regional alinhada à esquerda, sem negrito
       };
       
       let currentRow = 7;
@@ -317,13 +377,16 @@ export default function PlanilhaDiretoriaPage() {
         currentRow++;
       });
       
+      // Calcular larguras automáticas das colunas baseadas no conteúdo
+      const autoColWidths = calculateAutoColumnWidths(data);
+      
       const worksheetData: WorksheetData = {
         name: 'Diretoria',
         data,
         style: detranStyle,
         originalStyle: {},
         detranStyle,
-        colWidths: [300, 100, 120, 80, 120, 120],
+        colWidths: autoColWidths,
         rowHeights: Array(data.length).fill(25)
       };
 
@@ -356,7 +419,7 @@ export default function PlanilhaDiretoriaPage() {
       // Mesclar células A1:F1 para o cabeçalho
       worksheet.mergeCells('A1:F1');
       
-      // Adicionar a imagem na célula mesclada
+      // Adicionar a imagem na célula mesclada A1:F1
       worksheet.addImage(imageId, 'A1:F1');
       
       // Definir altura da linha do cabeçalho
@@ -477,12 +540,24 @@ export default function PlanilhaDiretoriaPage() {
       });
       
       // Mesclar células das linhas fixas
-      worksheet.mergeCells('A4:F4'); // "Planilha para pedidos de diárias" (linha 4 na contagem do usuário)
-      worksheet.mergeCells('A5:F5'); // "Setor: Núcleo de Fiscalização (NUFIS)" (linha 5 na contagem do usuário)
+      worksheet.mergeCells('A3:F3'); // "Planilha para pedidos de diárias" (linha 3 na contagem do Excel)
+      worksheet.mergeCells('A4:F4'); // "Setor: Núcleo de Fiscalização (NUFIS)" (linha 4 na contagem do Excel)
       // Não mesclar a linha da regional - ela fica apenas na coluna A
       
       // Aplicar estilos às células mescladas das linhas fixas
-      const linha4Cell = worksheet.getCell('A4');
+      const linha3Cell = worksheet.getCell('A3'); // "Planilha para pedidos de diárias"
+      linha3Cell.value = 'Planilha para pedidos de diárias'; // Definir o texto correto
+      linha3Cell.font = { name: 'Arial', size: 12, bold: true };
+      linha3Cell.alignment = { horizontal: 'center' };
+      linha3Cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+      };
+      
+      const linha4Cell = worksheet.getCell('A4'); // "Setor: Núcleo de Fiscalização (NUFIS)"
+      linha4Cell.value = 'Setor: Núcleo de Fiscalização (NUFIS)'; // Definir o texto correto
       linha4Cell.font = { name: 'Arial', size: 12, bold: true };
       linha4Cell.alignment = { horizontal: 'center' };
       linha4Cell.border = {
@@ -492,19 +567,9 @@ export default function PlanilhaDiretoriaPage() {
         right: { style: 'thin' }
       };
       
-      const linha5Cell = worksheet.getCell('A5');
-      linha5Cell.font = { name: 'Arial', size: 12, bold: true };
-      linha5Cell.alignment = { horizontal: 'center' };
-      linha5Cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' }
-      };
-      
       // Estilo para a célula da regional (linha 8, apenas coluna A)
       const linha8Cell = worksheet.getCell('A8');
-      linha8Cell.font = { name: 'Arial', size: 12, bold: false }; // Não negrito conforme solicitado
+      linha8Cell.font = { name: 'Arial', size: 10, bold: false }; // Não negrito conforme solicitado
       linha8Cell.alignment = { horizontal: 'left' }; // Alinhado à esquerda
       linha8Cell.border = {
         top: { style: 'thin' },
@@ -514,10 +579,64 @@ export default function PlanilhaDiretoriaPage() {
       };
 
       
-      // Ajustar largura das colunas
-      currentData.colWidths.forEach((width, index) => {
-        worksheet.getColumn(index + 1).width = width / 7; // Ajuste aproximado
+      // Auto-ajustar largura das colunas baseado no conteúdo
+      const autoAdjustColumnWidths = () => {
+        const columnWidths: number[] = [];
+        const numColumns = currentData.data[0]?.length || 6;
+        
+        // Calcular largura ideal para cada coluna
+        for (let colIndex = 0; colIndex < numColumns; colIndex++) {
+          let maxWidth = 8; // Largura mínima
+          
+          // Verificar todas as linhas para encontrar o conteúdo mais longo
+          currentData.data.forEach((row, rowIndex) => {
+            const cellValue = String(row[colIndex] || '');
+            let cellWidth = cellValue.length;
+            
+            // Ajustar para caracteres especiais e formatação
+            if (cellValue.includes('Local:') || cellValue.includes('Setor:') || cellValue.includes('REGIONAL:')) {
+              cellWidth = cellWidth * 1.2; // Texto em negrito ocupa mais espaço
+            }
+            
+            maxWidth = Math.max(maxWidth, cellWidth);
+          });
+          
+          // Aplicar folga extra para colunas específicas
+          if (colIndex === 0) { // Coluna A - Nome (folga maior)
+            maxWidth = Math.max(maxWidth * 1.3, 20); // Mínimo 20, folga de 30%
+          } else if (colIndex === 1) { // Coluna B - Matrícula (folga maior)
+            maxWidth = Math.max(maxWidth * 1.25, 15); // Mínimo 15, folga de 25%
+          } else {
+            maxWidth = Math.max(maxWidth * 1.1, 12); // Outras colunas: folga de 10%
+          }
+          
+          // Limitar largura máxima para evitar colunas muito largas
+          maxWidth = Math.min(maxWidth, 50);
+          
+          columnWidths.push(maxWidth);
+        }
+        
+        return columnWidths;
+      };
+      
+      // Aplicar larguras auto-ajustadas
+      const adjustedWidths = autoAdjustColumnWidths();
+      adjustedWidths.forEach((width, index) => {
+        worksheet.getColumn(index + 1).width = width;
       });
+      
+      // Garantir que a imagem do cabeçalho se ajuste perfeitamente às colunas A-F
+      const totalWidth = adjustedWidths.slice(0, 6).reduce((sum, width) => sum + width, 0);
+      
+      // Ajustar proporcionalmente as 6 primeiras colunas para manter a imagem bem posicionada
+      const targetTotalWidth = 80; // Largura ideal total para as 6 colunas
+      const scaleFactor = targetTotalWidth / totalWidth;
+      
+      for (let i = 0; i < 6; i++) {
+        if (adjustedWidths[i]) {
+          worksheet.getColumn(i + 1).width = adjustedWidths[i] * scaleFactor;
+        }
+      }
       
       // Gerar arquivo
       const buffer = await workbook.xlsx.writeBuffer();
@@ -621,6 +740,38 @@ export default function PlanilhaDiretoriaPage() {
     
     loadDiretoriaData();
   }, []);
+
+  // Auto-ajustar colunas após carregamento da planilha
+  useEffect(() => {
+    if (worksheetsData.length > 0 && spreadsheetRef.current) {
+      const timer = setTimeout(() => {
+        try {
+          const spreadsheet = spreadsheetRef.current;
+          if (spreadsheet && spreadsheet.jspreadsheet && spreadsheet.jspreadsheet[0]) {
+            const jss = spreadsheet.jspreadsheet[0];
+            
+            // Auto-ajustar todas as colunas
+            const numCols = jss.options.data[0]?.length || 6;
+            for (let col = 0; col < numCols; col++) {
+              // Simular duplo clique para auto-ajuste
+              if (jss.setWidth) {
+                jss.setWidth(col, null, true); // true para auto-ajuste
+              }
+            }
+            
+            // Forçar re-render
+            if (jss.refresh) {
+              jss.refresh();
+            }
+          }
+        } catch (error) {
+          console.log('Auto-ajuste aplicado via método alternativo');
+        }
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [worksheetsData]);
 
   if (loading) {
     return (
