@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import TabelaOperacoesDiretoria from '@/components/supervisor/TabelaOperacoesDiretoria';
 import ExcelViewer from '@/components/supervisor/ExcelViewer';
-import { getSupervisorHeaders } from '@/lib/auth-utils';
+import { getSupervisorHeaders, getSupervisorData, isSupervisorAuthenticated } from '@/lib/auth-utils';
 
 interface Participante {
   id: number;
@@ -74,14 +74,29 @@ export default function DiretoriaPage() {
     mensagem: string;
   } | null>(null);
 
+  // 🔒 VERIFICAÇÃO DE AUTENTICAÇÃO
   useEffect(() => {
+    if (!isSupervisorAuthenticated()) {
+      console.error('❌ Supervisor não autenticado - redirecionando...');
+      window.location.href = '/';
+      return;
+    }
+    
+    const supervisorData = getSupervisorData();
+    if (!supervisorData) {
+      console.error('❌ Dados do supervisor não encontrados - redirecionando...');
+      window.location.href = '/';
+      return;
+    }
+    
+    console.log('✅ Supervisor autenticado:', supervisorData.nome);
     carregarOperacoes();
     carregarJanelasDisponiveis();
   }, []);
 
   // Carregar operações quando a janela selecionada mudar
   useEffect(() => {
-    if (janelaSelecionada) {
+    if (janelaSelecionada && isSupervisorAuthenticated()) {
       carregarOperacoesPlanejadas();
     }
   }, [janelaSelecionada]);
@@ -476,12 +491,39 @@ export default function DiretoriaPage() {
   const carregarOperacoesPlanejadas = async () => {
     if (!janelaSelecionada) return;
     
+    // 🔒 VERIFICAR AUTENTICAÇÃO ANTES DE FAZER REQUISIÇÕES
+    if (!isSupervisorAuthenticated()) {
+      console.error('❌ Supervisor não autenticado - não é possível carregar operações planejadas');
+      setAvisoElegante({
+        tipo: 'erro',
+        titulo: 'Erro de Autenticação',
+        mensagem: 'Você precisa estar logado para acessar esta funcionalidade.'
+      });
+      return;
+    }
+
+    const headers = getSupervisorHeaders();
+    if (!headers || Object.keys(headers).length === 0) {
+      console.error('❌ Headers de supervisor não disponíveis - não é possível carregar operações planejadas');
+      setAvisoElegante({
+        tipo: 'erro',
+        titulo: 'Erro de Configuração',
+        mensagem: 'Dados de autenticação não encontrados. Faça login novamente.'
+      });
+      return;
+    }
+    
     try {
       // 🚨 FORÇAR ATUALIZAÇÃO - Adicionar timestamp para evitar cache
       const timestamp = new Date().getTime();
       const responseOp = await fetch(`/api/unified/operacoes?janela_id=${janelaSelecionada}&tipo=PLANEJADA&_t=${timestamp}`, {
-        headers: getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
+        headers // ✅ ISOLAMENTO POR REGIONAL
       });
+      
+      if (!responseOp.ok) {
+        throw new Error(`HTTP ${responseOp.status}: ${responseOp.statusText}`);
+      }
+      
       const dataOp = await responseOp.json();
       
       if (dataOp.success) {
@@ -541,16 +583,42 @@ export default function DiretoriaPage() {
   };
 
   const executarAcao = async (operacaoId: number, acao: string, params?: any) => {
+    // 🔒 VERIFICAR AUTENTICAÇÃO ANTES DE EXECUTAR AÇÕES
+    if (!isSupervisorAuthenticated()) {
+      console.error('❌ Supervisor não autenticado - não é possível executar ação');
+      setAvisoElegante({
+        tipo: 'erro',
+        titulo: 'Erro de Autenticação',
+        mensagem: 'Você precisa estar logado para executar esta ação.'
+      });
+      return;
+    }
+
+    const headers = getSupervisorHeaders();
+    if (!headers || Object.keys(headers).length === 0) {
+      console.error('❌ Headers de supervisor não disponíveis - não é possível executar ação');
+      setAvisoElegante({
+        tipo: 'erro',
+        titulo: 'Erro de Configuração',
+        mensagem: 'Dados de autenticação não encontrados. Faça login novamente.'
+      });
+      return;
+    }
+
     try {
       setProcessando(operacaoId);
       const response = await fetch(`/api/supervisor/operacoes/${operacaoId}/${acao}`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          ...getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
+          ...headers // ✅ ISOLAMENTO POR REGIONAL
         },
         body: JSON.stringify(params || {})
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
 
       const data = await response.json();
 
@@ -698,7 +766,7 @@ export default function DiretoriaPage() {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              📊 Planilha de Diárias
+              📊
             </button>
           </nav>
         </div>
@@ -707,10 +775,25 @@ export default function DiretoriaPage() {
       {/* Conteúdo da Aba Planilha */}
       {abaAtiva === 'planilha' && (
         <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-8 py-6 overflow-x-hidden">
-          <ExcelViewer 
-            filePath="/Pedido+Diária+Padrao+(3)+(8)+(1).xlsx"
-            fileName="Pedido de Diária Padrão"
-          />
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">📊 Planilha de Diárias</h2>
+                <p className="text-gray-600">Acesse a planilha interativa de diárias</p>
+              </div>
+              
+              <button
+                onClick={() => window.open('http://localhost:3000/supervisor/diretoria/planilha', '_blank')}
+                className="inline-flex items-center gap-3 px-8 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-lg hover:shadow-xl"
+              >
+                <span className="text-xl">📊</span>
+                <span>Abrir Planilha de Diárias</span>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

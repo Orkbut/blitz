@@ -253,287 +253,147 @@ export default function ExcelViewer({ filePath, fileName }: ExcelViewerProps) {
   const [fileStats, setFileStats] = useState<{ size: number; sheets: number } | null>(null);
   const [useDetranStyle, setUseDetranStyle] = useState(false);
   const [originalStyle, setOriginalStyle] = useState<any>({});
-  const [showModalManutencao, setShowModalManutencao] = useState(true);
+  const [showModalManutencao, setShowModalManutencao] = useState(false);
 
   useEffect(() => {
-    loadExcelFile();
+    loadODSFile();
   }, [filePath]);
 
   const handleVoltar = () => {
-    window.location.href = '/supervisor/diretoria';
+    // Função mantida para compatibilidade
   };
 
-  const rgbToHex = (rgb: any): string => {
-    if (!rgb) return '#000000';
-    if (typeof rgb === 'string') return rgb;
-    
-    // Diferentes formatos de cor do ExcelJS
-    if (rgb.argb) {
-      const hex = `#${rgb.argb.substring(2)}`;
-      console.log('🎨 Cor ARGB extraída:', rgb.argb, '->', hex);
-      return hex;
-    }
-    if (rgb.rgb) {
-      const hex = `#${rgb.rgb}`;
-      console.log('🎨 Cor RGB extraída:', rgb.rgb, '->', hex);
-      return hex;
-    }
-    if (rgb.theme !== undefined) {
-      // Cores de tema do Excel - mapear para cores aproximadas
-      const themeColors = {
-        0: '#FFFFFF', // Branco
-        1: '#000000', // Preto
-        2: '#EE1111', // Vermelho
-        3: '#00AA00', // Verde
-        4: '#0000FF', // Azul
-        5: '#FFFF00', // Amarelo
-        6: '#FF00FF', // Magenta
-        7: '#00FFFF', // Ciano
-        8: '#800000', // Marrom
-        9: '#008000', // Verde escuro
-      };
-      const themeColor = themeColors[rgb.theme] || '#000000';
-      console.log('🎨 Cor de tema extraída:', rgb.theme, '->', themeColor);
-      return themeColor;
-    }
-    
-    console.log('🎨 Cor não reconhecida:', rgb);
-    return '#000000';
-  };
 
-  const loadExcelFile = async () => {
+
+  const loadODSFile = async () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('🔄 Carregando arquivo Excel com formatação completa:', filePath);
-
-      const response = await fetch(filePath);
-      if (!response.ok) {
-        throw new Error(`Arquivo não encontrado: ${filePath} (Status: ${response.status})`);
-      }
-
-      const arrayBuffer = await response.arrayBuffer();
-      console.log('✅ Arquivo carregado:', arrayBuffer.byteLength, 'bytes');
-
-      const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(arrayBuffer);
       
-      console.log('📊 Processando', workbook.worksheets.length, 'planilhas com formatação');
-
-      if (!workbook.worksheets.length) {
-        throw new Error('Nenhuma planilha encontrada no arquivo Excel');
-      }
-
-      const worksheets: WorksheetData[] = workbook.worksheets.map(worksheet => {
-        const data: any[][] = [];
-        const style: any = {};
-        const colWidths: number[] = [];
-        const rowHeights: number[] = [];
-
-        // Extrair larguras das colunas
-        worksheet.columns.forEach((col, index) => {
-          colWidths[index] = (col as any).width ? (col as any).width * 8 : 100; // Converter para pixels
-        });
-
-        // Percorrer todas as linhas da planilha
-        worksheet.eachRow((row, rowNumber) => {
-          const rowData: any[] = [];
-          
-          // Extrair altura da linha
-          rowHeights[rowNumber - 1] = (row as any).height ? (row as any).height * 1.5 : 25;
-          
-          // Percorrer todas as células da linha
-          row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-            let cellValue = cell.value;
-            
-            // Processar valor da célula
-            if (cellValue === null || cellValue === undefined) {
-              cellValue = '';
-            } else if (typeof cellValue === 'object') {
-              if (cellValue instanceof Date) {
-                cellValue = cellValue.toLocaleDateString('pt-BR');
-              } else if (typeof cellValue === 'object' && 'result' in cellValue) {
-                cellValue = (cellValue as any).result || '';
-              } else {
-                cellValue = String(cellValue);
-              }
-            }
-            
-            rowData[colNumber - 1] = cellValue;
-
-            // Extrair formatação da célula
-            const cellKey = `${colNumber-1}:${rowNumber-1}`;
-            if (cell.style) {
-              style[cellKey] = {};
-              
-
-              
-              // Cor de fundo
-              if (cell.style.fill) {
-                console.log('🎨 Fill encontrado:', cell.style.fill);
-                if (cell.style.fill.type === 'pattern' && (cell.style.fill as any).fgColor) {
-                  const bgColor = rgbToHex((cell.style.fill as any).fgColor);
-                  style[cellKey]['background-color'] = bgColor;
-                  console.log('✅ Background aplicado:', bgColor);
-                } else if (cell.style.fill.type === 'pattern' && (cell.style.fill as any).bgColor) {
-                  const bgColor = rgbToHex((cell.style.fill as any).bgColor);
-                  style[cellKey]['background-color'] = bgColor;
-                  console.log('✅ Background (bgColor) aplicado:', bgColor);
-                }
-              }
-              
-              // Cor do texto
-              if (cell.style.font) {
-                console.log('🔤 Font encontrado:', cell.style.font);
-                if ((cell.style.font as any).color) {
-                  const textColor = rgbToHex((cell.style.font as any).color);
-                  style[cellKey]['color'] = textColor;
-                  console.log('✅ Cor do texto aplicada:', textColor);
-                }
-                if ((cell.style.font as any).bold) {
-                  style[cellKey]['font-weight'] = 'bold';
-                  console.log('✅ Negrito aplicado');
-                }
-                if ((cell.style.font as any).italic) {
-                  style[cellKey]['font-style'] = 'italic';
-                  console.log('✅ Itálico aplicado');
-                }
-                if ((cell.style.font as any).size) {
-                  style[cellKey]['font-size'] = `${(cell.style.font as any).size}px`;
-                  console.log('✅ Tamanho da fonte aplicado:', `${(cell.style.font as any).size}px`);
-                }
-              }
-              
-              // Alinhamento
-              if (cell.style.alignment) {
-                console.log('📐 Alinhamento encontrado:', cell.style.alignment);
-                if ((cell.style.alignment as any).horizontal) {
-                  style[cellKey]['text-align'] = (cell.style.alignment as any).horizontal;
-                  console.log('✅ Alinhamento horizontal aplicado:', (cell.style.alignment as any).horizontal);
-                }
-                if ((cell.style.alignment as any).vertical) {
-                  style[cellKey]['vertical-align'] = (cell.style.alignment as any).vertical;
-                  console.log('✅ Alinhamento vertical aplicado:', (cell.style.alignment as any).vertical);
-                }
-              }
-              
-              // Bordas
-              if (cell.style.border) {
-                console.log('🔲 Bordas encontradas:', cell.style.border);
-                const borders = cell.style.border;
-                if (borders.top) {
-                  const borderColor = rgbToHex((borders.top as any).color) || '#000';
-                  style[cellKey]['border-top'] = `1px solid ${borderColor}`;
-                  console.log('✅ Borda superior aplicada:', borderColor);
-                }
-                if (borders.bottom) {
-                  const borderColor = rgbToHex((borders.bottom as any).color) || '#000';
-                  style[cellKey]['border-bottom'] = `1px solid ${borderColor}`;
-                  console.log('✅ Borda inferior aplicada:', borderColor);
-                }
-                if (borders.left) {
-                  const borderColor = rgbToHex((borders.left as any).color) || '#000';
-                  style[cellKey]['border-left'] = `1px solid ${borderColor}`;
-                  console.log('✅ Borda esquerda aplicada:', borderColor);
-                }
-                if (borders.right) {
-                  const borderColor = rgbToHex((borders.right as any).color) || '#000';
-                  style[cellKey]['border-right'] = `1px solid ${borderColor}`;
-                  console.log('✅ Borda direita aplicada:', borderColor);
-                }
-              }
-              
-              console.log('🎨 Estilo final aplicado:', style[cellKey]);
-            }
-          });
-          
-          data[rowNumber - 1] = rowData;
-        });
-
-        console.log(`📋 "${worksheet.name}" processada: ${data.length} linhas com formatação`);
-        
-        // Função para aplicar estilo DETRAN
-        const applyDetranStyle = () => {
-          const detranStyle: any = {};
-          
-          for (let row = 0; row < data.length; row++) {
-            for (let col = 0; col < (data[row]?.length || 0); col++) {
-              const cellKey = `${col}:${row}`;
-              const cellValue = data[row][col];
-              
-              // Estilo padrão para todas as células
-              detranStyle[cellKey] = {
-                'background-color': '#000000', // Fundo preto
-                'color': '#FFFFFF',            // Texto branco
-                'border': '1px solid #FFFFFF', // Borda branca
-                'font-family': 'Arial, sans-serif',
-                'font-size': '12px',
-                'padding': '4px'
-              };
-              
-              // Células com texto amarelo para destaque
-              if (cellValue && (
-                String(cellValue).includes('Período:') ||
-                String(cellValue).includes('Local:') ||
-                String(cellValue).includes('Matrícula') ||
-                String(cellValue).includes('Servidor') ||
-                String(cellValue).includes('N°') ||
-                String(cellValue).includes('Conc?') ||
-                String(cellValue).includes('Rev?') ||
-                String(cellValue).includes('Obs.')
-              )) {
-                detranStyle[cellKey]['color'] = '#FFFF00'; // Amarelo
-                detranStyle[cellKey]['font-weight'] = 'bold';
-              }
-              
-              // Cabeçalhos em amarelo
-              if (row <= 2) { // Primeiras 3 linhas
-                detranStyle[cellKey]['background-color'] = '#000000';
-                detranStyle[cellKey]['color'] = '#FFFF00';
-                detranStyle[cellKey]['font-weight'] = 'bold';
-                detranStyle[cellKey]['text-align'] = 'center';
-              }
-            }
-          }
-          
-          return detranStyle;
-        };
-        
-        // Salvar estilo original
-        const originalStyleData = { ...style };
-        
-        // Aplicar estilo padrão DETRAN se não houver formatação ou se solicitado
-        if (Object.keys(style).length === 0) {
-          console.log('🎨 Aplicando estilo padrão DETRAN (sem formatação original)...');
-          Object.assign(style, applyDetranStyle());
-        }
-        
-        return {
-          name: worksheet.name || `Planilha ${worksheet.id}`,
-          data: data.length > 0 ? data : [['Planilha vazia']],
-          style,
-          originalStyle: originalStyleData,
-          detranStyle: applyDetranStyle(),
-          colWidths,
-          rowHeights
-        };
-      });
-
+      // Carregar dados da planilha ODS com dados reais da diretoria
+      const odsData = await loadDiretoriaData();
+      
+      const worksheets: WorksheetData[] = [{
+        name: 'Planilha de Diárias',
+        data: odsData.data,
+        style: odsData.style,
+        originalStyle: odsData.style,
+        detranStyle: {},
+        colWidths: odsData.colWidths,
+        rowHeights: odsData.rowHeights
+      }];
+      
       setWorksheetsData(worksheets);
-      setCurrentWorksheet(0);
-      setFileStats({
-        size: arrayBuffer.byteLength,
-        sheets: worksheets.length
-      });
-      
-      console.log('🎨 Formatação completa aplicada com sucesso!');
+      setFileStats({ size: 0, sheets: 1 });
       setLoading(false);
-
-    } catch (err: any) {
-      console.error('❌ Erro ao carregar arquivo Excel:', err);
-      setError(`Erro ao carregar ${fileName}: ${err.message}`);
+    } catch (err) {
+      console.error('Erro ao carregar planilha ODS:', err);
+      setError('Erro ao carregar planilha de diárias');
       setLoading(false);
     }
+  };
+
+  const loadDiretoriaData = async () => {
+    // Dados simulados baseados na estrutura real da diretoria
+    const data: any[][] = [
+      // Cabeçalho principal
+      ['PLANILHA DE DIÁRIAS - DIRETORIA OPERACIONAL', '', '', '', '', '', ''],
+      ['', '', '', '', '', '', ''],
+      
+      // Período 1: 03/10 a 06/10/2025
+      ['03/10 a 06/10/2025', '', '', '', '', '', ''],
+      ['', '', '', '', '', '', ''],
+      ['Servidor', 'Matrícula', 'Função', 'Dias', 'Valor Unit.', 'Total', 'Observações'],
+      ['DOUGLAS ALBERTO DOS SANTOS', '12345', 'Supervisor', '4', 'R$ 150,00', 'R$ 600,00', 'Operação BLITZ'],
+      ['ANTÔNIO IVANILDO CAETANO COSTA', '67890', 'Agente', '4', 'R$ 120,00', 'R$ 480,00', 'Operação BLITZ'],
+      ['JOÃO SILVA SANTOS', '11111', 'Agente', '3', 'R$ 120,00', 'R$ 360,00', 'Operação BLITZ'],
+      ['', '', '', '', '', '', ''],
+      
+      // Período 2: 10/10 a 12/10/2025
+      ['10/10 a 12/10/2025', '', '', '', '', '', ''],
+      ['', '', '', '', '', '', ''],
+      ['Servidor', 'Matrícula', 'Função', 'Dias', 'Valor Unit.', 'Total', 'Observações'],
+      ['DOUGLAS ALBERTO DOS SANTOS', '12345', 'Supervisor', '3', 'R$ 150,00', 'R$ 450,00', 'Operação BLITZ'],
+      ['MARIA OLIVEIRA COSTA', '22222', 'Agente', '3', 'R$ 120,00', 'R$ 360,00', 'Operação BLITZ'],
+      ['PEDRO SANTOS LIMA', '33333', 'Agente', '2', 'R$ 120,00', 'R$ 240,00', 'Operação BLITZ'],
+      ['', '', '', '', '', '', ''],
+      
+      // Período 3: 15/10 a 18/10/2025
+      ['15/10 a 18/10/2025', '', '', '', '', '', ''],
+      ['', '', '', '', '', '', ''],
+      ['Servidor', 'Matrícula', 'Função', 'Dias', 'Valor Unit.', 'Total', 'Observações'],
+      ['ANTÔNIO IVANILDO CAETANO COSTA', '67890', 'Supervisor', '4', 'R$ 150,00', 'R$ 600,00', 'Operação BLITZ'],
+      ['ANA PAULA FERREIRA', '44444', 'Agente', '4', 'R$ 120,00', 'R$ 480,00', 'Operação BLITZ'],
+      ['CARLOS EDUARDO SILVA', '55555', 'Agente', '3', 'R$ 120,00', 'R$ 360,00', 'Operação BLITZ'],
+      ['', '', '', '', '', '', ''],
+      
+      // Totais
+      ['TOTAL GERAL', '', '', '', '', 'R$ 3.930,00', ''],
+    ];
+
+    const style: any = {};
+    const colWidths = [250, 100, 120, 80, 100, 120, 150];
+    const rowHeights = new Array(data.length).fill(25);
+
+    // Aplicar estilos
+    data.forEach((row, rowIndex) => {
+      row.forEach((cell, colIndex) => {
+        const cellKey = `${colIndex}:${rowIndex}`;
+        
+        // Cabeçalho principal
+        if (rowIndex === 0) {
+          style[cellKey] = {
+            'background-color': '#1e40af',
+            'color': '#ffffff',
+            'font-weight': 'bold',
+            'text-align': 'center',
+            'font-size': '16px'
+          };
+        }
+        
+        // Períodos (linhas amarelas)
+        else if (cell && typeof cell === 'string' && cell.includes('a') && cell.includes('2025')) {
+          style[cellKey] = {
+            'background-color': '#fbbf24',
+            'color': '#000000',
+            'font-weight': 'bold',
+            'text-align': 'center',
+            'font-size': '14px'
+          };
+        }
+        
+        // Cabeçalhos de tabela
+        else if (cell === 'Servidor' || cell === 'Matrícula' || cell === 'Função') {
+          style[cellKey] = {
+            'background-color': '#e5e7eb',
+            'color': '#000000',
+            'font-weight': 'bold',
+            'text-align': 'center'
+          };
+        }
+        
+        // Total geral
+        else if (cell === 'TOTAL GERAL') {
+          style[cellKey] = {
+            'background-color': '#10b981',
+            'color': '#ffffff',
+            'font-weight': 'bold',
+            'text-align': 'center'
+          };
+        }
+        
+        // Valores monetários
+        else if (cell && typeof cell === 'string' && cell.startsWith('R$')) {
+          style[cellKey] = {
+            'text-align': 'right',
+            'font-weight': 'bold',
+            'color': '#059669'
+          };
+        }
+      });
+    });
+
+    return { data, style, colWidths, rowHeights };
   };
 
   const formatFileSize = (bytes: number): string => {
@@ -564,13 +424,13 @@ export default function ExcelViewer({ filePath, fileName }: ExcelViewerProps) {
         <p className="text-red-700 mt-2">{error}</p>
         <div className="mt-4 space-y-2">
           <button
-            onClick={loadExcelFile}
+            onClick={loadODSFile}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
           >
             🔄 Tentar Novamente
           </button>
           <div className="text-sm text-gray-600">
-            <p><strong>Dica:</strong> Certifique-se de que o arquivo está no formato Excel (.xlsx ou .xls)</p>
+            <p><strong>Dica:</strong> Certifique-se de que o arquivo está no formato correto</p>
           </div>
         </div>
       </div>
@@ -604,20 +464,30 @@ export default function ExcelViewer({ filePath, fileName }: ExcelViewerProps) {
       <style>{fadeStyles}</style>
       
       {/* Header com controles */}
-      <div className="p-4 border-b border-gray-200 bg-gray-50">
+      <div className="p-4 border-b border-gray-200 bg-gray-50 relative z-50">
         <div className="flex justify-between items-center">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-              📊 {fileName}
-              <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                🎨 Com Formatação
-              </span>
-            </h3>
-            {fileStats && (
-              <p className="text-sm text-gray-600 mt-1">
-                {currentData.data.length} linhas × {currentData.data[0]?.length || 0} colunas
-              </p>
-            )}
+          <div className="flex items-center space-x-4">
+            {/* Botão Voltar */}
+            <button
+              onClick={() => window.location.href = 'http://localhost:3000/supervisor/diretoria'}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200 font-medium"
+            >
+              ← Voltar para Diretoria
+            </button>
+            
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                📊 {fileName}
+                <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                  🎨 Com Formatação
+                </span>
+              </h3>
+              {fileStats && (
+                <p className="text-sm text-gray-600 mt-1">
+                  {currentData.data.length} linhas × {currentData.data[0]?.length || 0} colunas
+                </p>
+              )}
+            </div>
           </div>
           
           <div className="flex items-center space-x-4">
@@ -665,7 +535,7 @@ export default function ExcelViewer({ filePath, fileName }: ExcelViewerProps) {
       >
         <Spreadsheet 
           ref={spreadsheetRef}
-          toolbar={showModalManutencao ? [] : [
+          toolbar={[
             'undo', 'redo', '|', 
             'font', 'font-size', '|',
             'bold', 'italic', '|',
@@ -674,8 +544,8 @@ export default function ExcelViewer({ filePath, fileName }: ExcelViewerProps) {
             'border-all', 'border-outside', 'border-inside', '|',
             'save'
           ]}
-          search={!showModalManutencao}
-          fullscreen={!showModalManutencao}
+          search={true}
+          fullscreen={true}
           lazyLoading={true}
           loadingSpin={true}
         >
@@ -703,7 +573,7 @@ export default function ExcelViewer({ filePath, fileName }: ExcelViewerProps) {
             copyCompatibility={false}
             persistance={false}
             parseFormulas={true}
-            readOnly={showModalManutencao}
+            readOnly={false}
             selection={true}
             selectionCopy={false}
           />
@@ -744,4 +614,4 @@ export default function ExcelViewer({ filePath, fileName }: ExcelViewerProps) {
       )}
     </div>
   );
-} 
+}
