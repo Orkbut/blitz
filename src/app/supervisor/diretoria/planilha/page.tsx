@@ -3,6 +3,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Spreadsheet, Worksheet } from "@jspreadsheet-ce/react";
 import * as ExcelJS from 'exceljs';
+import * as XLSX from 'xlsx-js-style';
 import "jspreadsheet-ce/dist/jspreadsheet.css";
 import "jsuites/dist/jsuites.css";
 import Link from 'next/link';
@@ -660,6 +661,70 @@ export default function PlanilhaDiretoriaPage() {
     }
   };
 
+  const exportToODS = async () => {
+    try {
+      if (worksheetsData.length === 0) return;
+      
+      const currentData = worksheetsData[currentWorksheet];
+      
+      // Criar dados para ODS com linhas fixas
+      const odsData = [
+        ['', '', '', '', '', ''], // Linha em branco para o cabeçalho
+        ['', '', '', '', '', ''], // Linha em branco
+        ['Planilha para pedidos de diárias', '', '', '', '', ''], // Linha 3
+        ['Setor: Núcleo de Fiscalização (NUFIS)', '', '', '', '', ''], // Linha 4
+        ...currentData.data // Dados a partir da linha 5
+      ];
+      
+      const fileName = `diretoria_${new Date().toISOString().split('T')[0]}.ods`;
+      console.log('🔧 Gerando arquivo ODS:', fileName);
+      
+      // 🎯 USAR NOVA API QUE GERA E FORMATA NO SERVIDOR
+      try {
+        console.log('🎨 Enviando dados para formatação no servidor...');
+        
+        const response = await fetch('/api/generate-ods', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            data: odsData,
+            fileName: fileName
+          })
+        });
+        
+        if (response.ok) {
+          console.log('✅ Arquivo gerado e formatado com sucesso!');
+          
+          // Fazer download do arquivo
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+          
+          console.log('✅ Arquivo ODS exportado e formatado com sucesso!');
+        } else {
+          const errorResult = await response.json();
+          console.error('❌ Erro na geração:', errorResult);
+          console.error('❌ Erro ao gerar arquivo ODS formatado.');
+        }
+      } catch (apiError) {
+        console.error('❌ Erro na API:', apiError);
+        console.error('❌ Erro ao conectar com o servidor.');
+      }
+      
+    } catch (error) {
+      console.error('Erro ao exportar ODS:', error);
+      alert('❌ Erro ao exportar arquivo ODS. Tente usar a exportação Excel para formatação completa.');
+    }
+  };
+
   const printSpreadsheet = () => {
     try {
       const printWindow = window.open('', '_blank');
@@ -867,16 +932,28 @@ export default function PlanilhaDiretoriaPage() {
         {/* Título discreto */}
         <h1 className="text-white text-2xl font-bold mb-8">📊 Planilha de Diárias</h1>
         
-        {/* Container dos dois botões principais */}
+        {/* Container dos botões principais */}
         <div className="flex flex-col gap-6">
-          {/* Botão Principal - Exportar Excel */}
-          <button
-            onClick={exportToExcel}
-            className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 font-medium text-lg flex items-center gap-3 shadow-lg"
-            title="Baixar planilha em Excel"
-          >
-            📊 Baixar Planilha Excel
-          </button>
+          {/* Botões de Exportação */}
+          <div className="flex flex-col gap-4">
+            {/* Botão Principal - Exportar Excel */}
+            <button
+              onClick={exportToExcel}
+              className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 font-medium text-lg flex items-center gap-3 shadow-lg"
+              title="Baixar planilha em Excel (XLSX)"
+            >
+              📊 Baixar Planilha Excel (.xlsx)
+            </button>
+            
+            {/* Botão Alternativo - Exportar ODS */}
+            <button
+              onClick={exportToODS}
+              className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 font-medium text-lg flex items-center gap-3 shadow-lg"
+              title="Baixar planilha em LibreOffice Calc (ODS)"
+            >
+              📋 Baixar Planilha ODS (.ods)
+            </button>
+          </div>
           
           {/* Botão Secundário - Voltar */}
           <Link 
