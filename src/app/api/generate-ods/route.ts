@@ -521,6 +521,29 @@ async function applyCompleteFormatting(filePath: string): Promise<void> {
             return cellValue.includes('período') || cellValue.includes('servidor');
           });
           
+          // Verificar se é linha com "Local:" na coluna B (índice 1)
+          const hasLocalInColumnB = row['table:table-cell'].length > 1 && 
+            row['table:table-cell'][1] && 
+            row['table:table-cell'][1]['text:p'] && 
+            String(row['table:table-cell'][1]['text:p'][0] || '').includes('Local:');
+          
+          // Aplicar mesclagem para linhas com "Local:" na coluna B
+          if (hasLocalInColumnB) {
+            console.log(`🔗 Aplicando mesclagem na linha ${rowIndex + 1} (contém "Local:" na coluna B)`);
+            
+            // Mesclar células B até F (índices 1 a 5)
+            const cellB = row['table:table-cell'][1];
+            if (cellB) {
+              cellB['$'] = cellB['$'] || {};
+              cellB['$']['table:number-columns-spanned'] = '5'; // Mesclar B até F (5 colunas)
+              cellB['$']['table:style-name'] = 'YellowCell';
+              
+              // Manter apenas células A e B, removendo C, D, E, F
+              const cellA = row['table:table-cell'][0];
+              row['table:table-cell'] = [cellA, cellB];
+            }
+          }
+          
           // Aplicar formatação apropriada para TODAS as células
           row['table:table-cell'].forEach((cell: any, cellIndex: number) => {
             // Garantir que a célula tenha estrutura adequada
@@ -531,7 +554,7 @@ async function applyCompleteFormatting(filePath: string): Promise<void> {
                 cell['$']['table:style-name'] = 'HeaderCell';
               } else if (isYellowRow) {
                 cell['$']['table:style-name'] = 'YellowCell';
-              } else {
+              } else if (!cell['$']['table:style-name']) { // Não sobrescrever se já tem estilo (como células mescladas)
                 cell['$']['table:style-name'] = 'DefaultCell';
               }
               totalCellsFormatted++;
