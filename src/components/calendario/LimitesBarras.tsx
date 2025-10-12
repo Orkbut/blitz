@@ -20,7 +20,7 @@ interface LimitesBarrasProps {
  * Componente de barras de limites para o calendário
  * Exibe 3 barras informativas conforme especificação da tarefa
  */
-export const LimitesBarras: React.FC<LimitesBarrasProps> = ({
+export const LimitesBarras: React.FC<LimitesBarrasProps> = React.memo(({
   membroId,
   currentDate,
   compact = false,
@@ -265,4 +265,13 @@ export const LimitesBarras: React.FC<LimitesBarrasProps> = ({
       </div>
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  // Comparação personalizada para evitar re-renderizações desnecessárias
+  return (
+    prevProps.membroId === nextProps.membroId &&
+    prevProps.currentDate.getTime() === nextProps.currentDate.getTime() &&
+    prevProps.compact === nextProps.compact &&
+    prevProps.debug === nextProps.debug &&
+    prevProps.onCircleClick === nextProps.onCircleClick
+  );
+});

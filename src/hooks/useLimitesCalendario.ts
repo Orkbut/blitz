@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { format, startOfMonth, endOfMonth, getMonth, getYear, addMonths, subMonths } from 'date-fns';
 import { useRealtimeUnified } from './useRealtimeUnified';
 
@@ -87,6 +87,15 @@ export function useLimitesCalendario({
   currentDate,
   debug = false
 }: UseLimitesCalendarioProps): LimitesData {
+  
+  // Log para debug de re-criações
+  if (debug) {
+    console.log('[useLimitesCalendario] Hook executado', { 
+      membroId, 
+      currentDate: currentDate.toISOString(), 
+      timestamp: Date.now() 
+    });
+  }
 
 
   const [limitesData, setLimitesData] = useState<LimitesData>({
@@ -96,6 +105,9 @@ export function useLimitesCalendario({
     loading: true,
     error: null
   });
+
+  // Evitar piscar: após primeira carga, não alternar para loading em recarregamentos
+  const hasLoadedOnceRef = useRef(false);
 
   // Calcular períodos baseado na data atual
   const periodos = useMemo(() => {
@@ -132,16 +144,16 @@ export function useLimitesCalendario({
     };
   }, [currentDate]);
 
+  // Extrair strings dos períodos para estabilizar dependências
+  const dataInicio = periodos.cicloAnterior.inicio;
+  const dataFim = periodos.cicloCorrente.fim;
+
   // Buscar participações do membro
   const fetchParticipacoes = useCallback(async () => {
     if (!membroId) return;
 
     try {
-      setLimitesData(prev => ({ ...prev, loading: true, error: null }));
-
-      // Buscar participações em um período amplo para cobrir ambos os ciclos
-      const dataInicio = periodos.cicloAnterior.inicio;
-      const dataFim = periodos.cicloCorrente.fim;
+      setLimitesData(prev => ({ ...prev, loading: hasLoadedOnceRef.current ? false : true, error: null }));
 
       const params = new URLSearchParams({
         membroId,
@@ -162,8 +174,6 @@ export function useLimitesCalendario({
       if (data.success) {
         const participacoes: Participacao[] = data.data || [];
 
-
-
         // Calcular limites
         const limites = calcularLimites(participacoes, periodos, debug);
 
@@ -172,6 +182,11 @@ export function useLimitesCalendario({
           ...limites,
           loading: false
         }));
+
+        // Marcar que já carregou ao menos uma vez
+        if (!hasLoadedOnceRef.current) {
+          hasLoadedOnceRef.current = true;
+        }
       } else {
         throw new Error(data.error || 'Erro ao buscar participações');
       }
@@ -183,30 +198,58 @@ export function useLimitesCalendario({
         error: (error as Error).message
       }));
     }
-  }, [membroId, periodos]);
+  }, [membroId, dataInicio, dataFim, periodos, debug]);
+
+  // Ref para manter uma referência estável da função de recarregamento
+  const fetchParticipacaoesRef = useRef(fetchParticipacoes);
+  fetchParticipacaoesRef.current = fetchParticipacoes;
+
+  // Callback estável para recarregamento
+  const reloadData = useCallback(() => {
+    fetchParticipacaoesRef.current();
+  }, []);
 
   // Carregar dados inicialmente
   useEffect(() => {
     fetchParticipacoes();
   }, [fetchParticipacoes]);
 
-  // Realtime: recarregar quando houver mudanças nas participações
+  // Realtime: recarregar quando houver mudanças nas participações ou operações
   useRealtimeUnified({
     channelId: `limites-calendario-${membroId}`,
-    tables: ['participacao'],
+    tables: ['participacao', 'operacao'],
     enableRealtime: true,
     enablePolling: false,
     enableFetch: false,
     filters: {
       participacao: `membro_id.eq.${membroId}`
+      // Não filtrar operacao para capturar todas as mudanças que podem afetar os limites
     },
     onDatabaseChange: useCallback((event: any) => {
-      // Recarregar apenas se for do membro atual
-      if (event.new?.membro_id?.toString() === membroId ||
-        event.old?.membro_id?.toString() === membroId) {
-        fetchParticipacoes();
+      const { table, eventType } = event;
+      
+      if (debug) {
+        console.log(`[useLimitesCalendario] Realtime event:`, { table, eventType, event });
       }
-    }, [fetchParticipacoes, membroId])
+      
+      if (table === 'participacao') {
+        // Recarregar apenas se for do membro atual
+        if (event.new?.membro_id?.toString() === membroId ||
+          event.old?.membro_id?.toString() === membroId) {
+          if (debug) {
+            console.log(`[useLimitesCalendario] Recarregando por mudança em participacao do membro ${membroId}`);
+          }
+          reloadData();
+        }
+      } else if (table === 'operacao') {
+        // Para operações, sempre recarregar pois pode afetar os cálculos
+        // (ex: operação sendo arquivada, status mudando, etc.)
+        if (debug) {
+          console.log(`[useLimitesCalendario] Recarregando por mudança em operacao`);
+        }
+        reloadData();
+      }
+    }, [reloadData, membroId])
   });
 
   return limitesData;

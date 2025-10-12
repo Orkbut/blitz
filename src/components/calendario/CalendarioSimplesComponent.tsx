@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, startOfWeek, endOfWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Calendar, Loader2, MessageCircle } from 'lucide-react';
@@ -49,6 +49,9 @@ interface Operacao {
 }
 
 export const CalendarioSimplesComponent: React.FC = () => {
+  // Log para debug de re-renderizações
+  console.log('[CalendarioSimplesComponent] Componente renderizado', { timestamp: Date.now() });
+  
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [tipoDestaque, setTipoDestaque] = useState<'anterior' | 'corrente' | 'diarias' | null>(null);
@@ -713,13 +716,22 @@ export const CalendarioSimplesComponent: React.FC = () => {
 
   // Carregar operações quando mudar mês ou membro
   useEffect(() => {
-    fetchOperacoes();
-  }, [fetchOperacoes]);
+    fetchOperacoesRef.current();
+  }, [currentDate, membroAtual]);
+
+  // Ref para manter uma referência estável da função de recarregamento
+  const fetchOperacoesRef = useRef(fetchOperacoes);
+  fetchOperacoesRef.current = fetchOperacoes;
+
+  // Callback estável para recarregamento
+  const reloadOperacoes = useCallback(() => {
+    fetchOperacoesRef.current();
+  }, []);
 
   // Função de reload para compatibilidade
   const reloadDados = useCallback(() => {
-    fetchOperacoes();
-  }, [fetchOperacoes]);
+    reloadOperacoes();
+  }, [reloadOperacoes]);
 
   // 🚀 REALTIME SIMPLES E DIRETO: Mudou no banco = atualiza na tela
   useRealtimeUnified({
@@ -733,8 +745,8 @@ export const CalendarioSimplesComponent: React.FC = () => {
       const { table, eventType } = event;
       
       // SIMPLES: Qualquer mudança = recarrega os dados
-      fetchOperacoes();
-    }, [fetchOperacoes])
+      reloadOperacoes();
+    }, [reloadOperacoes])
   });
 
   // Tratamento de teclado para fechar modal
