@@ -621,8 +621,10 @@ export default function SupervisorPage() {
   const handleGerenciarModalClose = useCallback(() => {
     setOperacaoParaGerenciar(null);
     setOperacaoSelecionadaModal(null);
+    // Recarregar de forma discreta os dados ao fechar o modal
     carregarOperacoesMemoizado();
-  }, [carregarOperacoesMemoizado]); // ✅ Dependência estável
+    carregarSolicitacoesMemoizado();
+  }, [carregarOperacoesMemoizado, carregarSolicitacoesMemoizado]); // ✅ Dependências estáveis
 
   const handleGerenciarModalUpdate = useCallback(() => {
     // ✅ Função estável para atualização da timeline
