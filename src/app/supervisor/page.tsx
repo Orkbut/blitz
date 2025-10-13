@@ -121,6 +121,8 @@ export default function SupervisorPage() {
   const [janelaParaEditar, setJanelaParaEditar] = useState<any>(null);
   const [operacaoSelecionadaModal, setOperacaoSelecionadaModal] = useState<any>(null);
   const [operacoesSelecionadasTimeline, setOperacoesSelecionadasTimeline] = useState<Operacao[]>([]);
+  // ✅ Sinal para forçar refresh discreto do calendário ao fechar/atualizar modal
+  const [calendarioRefreshSignal, setCalendarioRefreshSignal] = useState(0);
 
   // ✅ NOVO: STATE PARA MENU DROPDOWN (compatível com mobile)
   const [showDropdownMenu, setShowDropdownMenu] = useState(false);
@@ -624,12 +626,16 @@ export default function SupervisorPage() {
     // Recarregar de forma discreta os dados ao fechar o modal
     carregarOperacoesMemoizado();
     carregarSolicitacoesMemoizado();
+    // Sinalizar ao CalendarioSupervisor para recarregar silenciosamente
+    setCalendarioRefreshSignal(prev => prev + 1);
   }, [carregarOperacoesMemoizado, carregarSolicitacoesMemoizado]); // ✅ Dependências estáveis
 
   const handleGerenciarModalUpdate = useCallback(() => {
     // ✅ Função estável para atualização da timeline
     carregarOperacoesMemoizado();
     carregarSolicitacoesMemoizado();
+    // Sinalizar ao CalendarioSupervisor para recarregar silenciosamente
+    setCalendarioRefreshSignal(prev => prev + 1);
   }, [carregarOperacoesMemoizado, carregarSolicitacoesMemoizado]); // ✅ Dependências estáveis
 
   // ✅ NOVO: Contador de solicitações pendentes do período carregado
@@ -1210,6 +1216,7 @@ export default function SupervisorPage() {
             onNovaOperacao={() => setShowCriarOperacaoModal(true)}
             onRefresh={carregarDados}
             loading={loading}
+            refreshSignal={calendarioRefreshSignal}
           />
         )}
 

@@ -52,6 +52,7 @@ interface CalendarioSupervisorProps {
   onNovaOperacao?: () => void;
   onRefresh?: () => void;
   loading?: boolean;
+  refreshSignal?: number;
 }
 
 export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
@@ -59,7 +60,8 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
   onNovaJanela,
   onNovaOperacao,
   onRefresh,
-  loading: externalLoading = false
+  loading: externalLoading = false,
+  refreshSignal
 }) => {
 
   // Efeito de scroll para o header interativo
@@ -317,6 +319,13 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
   const reloadDados = useCallback(() => {
     carregarOperacoesSilencioso();
   }, [carregarOperacoesSilencioso]);
+
+  // 🔄 Refresh silencioso quando página sinaliza atualização (fechamento do modal)
+  useEffect(() => {
+    if (typeof refreshSignal === 'number') {
+      carregarOperacoesSilencioso();
+    }
+  }, [refreshSignal, carregarOperacoesSilencioso]);
 
   const calcularPeriodoVisualizacao = () => {
     if (!janelaSelecionada) {
