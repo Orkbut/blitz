@@ -1028,8 +1028,21 @@ export const CalendarioSimplesComponent: React.FC = () => {
     }
   };
 
+  // Formatação compacta de horário (ex.: 13hs ou 08h30)
+  function formatHorario(h?: string) {
+    if (!h) return '';
+    const match = h.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+    if (!match) return h; // Caso venha em formato inesperado
+    const hh = match[1].padStart(2, '0');
+    const mm = match[2];
+    const ss = match[3] || '00';
+    if (mm === '00' && ss === '00') return `${hh}hs`;
+    return `${hh}h${mm}`;
+  }
+
   // Renderizar operação única
   const renderSingleOperation = (operacao: Operacao) => {
+
     const confirmados = operacao.participantes_confirmados || 0;
     const limite = operacao.limite_participantes;
     const pendentes = operacao.total_solicitacoes || operacao.pessoas_na_fila || 0;
@@ -1092,7 +1105,9 @@ export const CalendarioSimplesComponent: React.FC = () => {
           
           return (
             <div key={idx} className={`${styles.operationItem} ${styles[op.modalidade.toLowerCase()]} ${isInativa ? styles.operacaoInativa : ''}`}>
-              <span className={styles.modalidadeCompact}>{modalidadeAbrev}</span>
+              <span className={styles.modalidadeCompact}>
+                {modalidadeAbrev}
+              </span>
               <span className={styles.participantesCompact}>
                 {infoParticipantes}
                 {infoFila && <span className={styles.filaCompact}>{infoFila}</span>}
@@ -1222,6 +1237,12 @@ export const CalendarioSimplesComponent: React.FC = () => {
               <div className={styles.dayNumber}>
                 {format(day, 'd')}
               </div>
+
+              {hasUniqueOperation && operacoesDia[0]?.horario && (
+                <span className={styles.dayTimeBadge}>
+                  {formatHorario(operacoesDia[0].horario)}
+                </span>
+              )}
 
               {operacoesDia.length > 0 && (
                 <div className={styles.operacaoInfo}>

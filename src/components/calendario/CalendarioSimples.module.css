@@ -603,6 +603,33 @@
   letter-spacing: -0.01em;
 }
 
+/* Chip de horário ao lado do número do dia */
+.dayTimeBadge {
+  position: absolute;
+  top: clamp(2px, 0.5vw, 4px);
+  right: clamp(4px, 1vw, 8px);
+  height: clamp(14px, 3vw, 18px);
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: clamp(0.55rem, 1.6vw, 0.65rem);
+  line-height: 1;
+  border-radius: 999px;
+  color: #374151;
+  background: rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  z-index: 11;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Evitar conflito com selo ARQUIVO no topo direito */
+.dayCell:has(.operacaoInativa) .dayTimeBadge {
+  right: clamp(24px, 3.5vw, 28px);
+}
+
 .dayNumber:hover {
   color: #1f2937;
   background: rgba(255, 255, 255, 0.95);
@@ -618,6 +645,12 @@
     top: 3px;
     left: 3px;
   }
+  .dayTimeBadge {
+    right: 6px;
+    height: 16px;
+    font-size: 0.6rem;
+    padding: 0 4px;
+  }
 }
 
 @container calendar (max-width: 320px) {
@@ -627,6 +660,61 @@
     height: 14px;
     top: 2px;
     left: 2px;
+  }
+  .dayTimeBadge {
+    right: 4px;
+    height: 14px;
+    font-size: 0.5rem;
+    padding: 0 3px;
+  }
+}
+
+/* Resoluções verticalizadas - horário próximo ao número do dia */
+@media (max-width: 480px) and (orientation: portrait) {
+  .dayTimeBadge {
+    top: 18px !important;
+    right: auto !important;
+    left: 2px !important;
+    height: 11px !important;
+    font-size: 0.4rem !important;
+    padding: 0 2px !important;
+    background: rgba(59, 130, 246, 0.85) !important;
+    color: white !important;
+    border: 1px solid rgba(59, 130, 246, 0.2) !important;
+    border-radius: 3px !important;
+    line-height: 1 !important;
+  }
+  
+  .dayCell:has(.operacaoInativa) .dayTimeBadge {
+    left: 2px !important;
+    right: auto !important;
+    top: 20px !important;
+  }
+
+  /* Ajustar espaçamento do conteúdo das operações para dar mais espaço */
+  .operacaoInfo {
+    margin-top: 28px !important;
+    height: calc(100% - 28px) !important;
+  }
+
+  /* Reduzir espaçamento interno do participantStats em resoluções verticais */
+  .participantStats {
+    margin-top: 0px !important;
+    font-size: 0.5rem !important;
+    gap: 1px !important;
+  }
+
+  /* Ajustar operationHeader para melhor distribuição */
+  .operationHeader {
+    gap: 1px !important;
+    align-items: center !important;
+  }
+
+  /* Modalidade mais compacta em vertical */
+  .modalidadeName {
+    font-size: 0.5rem !important;
+    line-height: 1 !important;
+    margin-bottom: 1px !important;
   }
 }
 
@@ -773,8 +861,12 @@
   margin: 0;
   line-height: 1.1;
   text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  overflow: visible;
+  text-overflow: clip;
   white-space: nowrap;
 }
 
@@ -1553,7 +1645,8 @@
   text-transform: uppercase;
   letter-spacing: clamp(0.2px, 0.3vw, 0.4px);
   margin-right: clamp(2px, 0.5vw, 4px);
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .participantesCompact {
@@ -1808,6 +1901,29 @@
   margin-bottom: clamp(2px, 0.5vw, 4px);
 }
 
+/* Estilo compacto e elegante para horários das operações */
+.operationTime {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 4px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: 700;
+  font-size: clamp(0.48rem, 1.3vw, 0.62rem);
+  line-height: 1;
+  color: inherit; /* herda a cor da modalidade */
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Garantir que modalidade compacta acomode horário sem quebrar layout */
+.modalidadeCompact {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 /* Otimizações de performance para dispositivos móveis */
 @media (hover: none) and (pointer: coarse) {
 
@@ -1827,6 +1943,25 @@
   /* Aumenta área de toque em dispositivos móveis */
   .quickActionButton {
     min-height: 44px;
+  }
+}
+
+/* ✅ Garantia de visibilidade do horário em telas pequenas */
+@media (max-width: 480px) {
+  .operacaoInfo,
+  .singleOperationInfo,
+  .operationHeader,
+  .multipleOperations {
+    overflow: visible !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .operacaoInfo,
+  .singleOperationInfo,
+  .operationHeader,
+  .multipleOperations {
+    overflow: visible !important;
   }
 }
 
@@ -1902,7 +2037,7 @@
 .operacaoInativa::after {
   content: "ARQUIVO" !important;
   position: absolute !important;
-  top: 2px !important;
+  top: -2px !important;
   right: -8px !important;
   background: linear-gradient(45deg, #6b7280, #4b5563) !important;
   color: white !important;
@@ -1957,18 +2092,18 @@
 
 /* Ajustes de posicionamento para operações inativas */
 .operacaoInativa .operationHeader {
-  margin-top: 8px !important;
-  transform: translateY(4px) !important;
+  margin-top: 12px !important;
+  transform: translateY(6px) !important;
 }
 
 .operacaoInativa .singleOperationInfo {
   justify-content: center !important;
-  padding-top: 12px !important;
+  padding-top: 16px !important;
 }
 
 .operacaoInativa .operationItem {
-  margin-top: 6px !important;
-  transform: translateY(3px) !important;
+  margin-top: 8px !important;
+  transform: translateY(4px) !important;
 }
 
 /* Ajustes responsivos para operações inativas */
