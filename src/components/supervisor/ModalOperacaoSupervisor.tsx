@@ -17,7 +17,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { Operacao } from '@/shared/types';
-import { useRealtimeUnified } from '@/hooks/useRealtimeUnified';
+import { useRealtime } from '@/hooks/useRealtime';
 import { getSupervisorHeaders, formatarDataBR } from '@/lib/auth-utils';
 import styles from './TimelineOperacoes.module.css';
 
@@ -65,18 +65,10 @@ export const ModalOperacaoSupervisor: React.FC<ModalOperacaoSupervisorProps> = (
     }
   }, []);
 
-  // ✅ HOOK REALTIME UNIFICADO: Migrado para useRealtimeUnified - Específico para esta operação
-  useRealtimeUnified({
-    channelId: `modal-operacao-${operacao.id}`,
+  // ✅ HOOK REALTIME UNIFICADO: Migrado para useRealtime - Específico para esta operação
+  useRealtime({
+    channelId: `modal-operacao-supervisor-${operacao.id}`,
     tables: ['operacao', 'participacao'],
-    filters: {
-      operacao: `id.eq.${operacao.id}`,
-      participacao: `operacao_id.eq.${operacao.id}`
-    },
-    enableRealtime: true,
-    enablePolling: false,
-    enableFetch: false,
-    debug: false,
     onDatabaseChange: useCallback((event: any) => {
       const { table, eventType, payload } = event;
       

@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useRealtimeUnified } from '../useRealtimeUnified';
+import { useRealtime } from '../useRealtime';
 import {
   debugLogger,
   performanceMonitor,
@@ -21,45 +21,28 @@ export const DebugMonitoringExample: React.FC = () => {
   const [showDebugInfo, setShowDebugInfo] = useState(false);
   const [debugReport, setDebugReport] = useState<string>('');
 
-  // Hook com debug habilitado
-  const {
-    data,
-    loading,
-    error,
-    isConnected,
-    connectionStatus,
-    eventsReceived,
-    reconnectCount,
-    refetch,
-    debugInfo
-  } = useRealtimeUnified({
+  // Migrado para useRealtime - WebSocket apenas
+  useRealtime({
+    channelId: 'debug-monitoring-example',
     tables: ['operacao', 'participacao'],
-    enableRealtime: true,
-    enablePolling: true,
-    enableFetch: true,
-    apiEndpoint: '/api/operacoes',
-    debug: debugEnabled,
-    activeInterval: 5000,
-    inactiveInterval: 30000,
     onDatabaseChange: (event) => {
       console.log('Database change:', event);
-    },
-    onConnectionChange: (status) => {
-      console.log('Connection status:', status);
-    },
-    onError: (error) => {
-      console.error('Hook error:', error);
     }
   });
 
+  // Simulando dados para o exemplo (já que useRealtime não retorna dados diretamente)
+  const data = [];
+  const loading = false;
+  const error = null;
+  const isConnected = true;
+  const connectionStatus = 'connected';
+  const eventsReceived = 0;
+  const reconnectCount = 0;
+  const refetch = () => console.log('Reload triggered');
+
   // Gerar relatório de debug
   const generateDebugReport = () => {
-    if (typeof debugInfo === 'object' && 'performance' in debugInfo) {
-      const report = debugInfoCollector.generateReport(debugInfo);
-      setDebugReport(report);
-    } else {
-      setDebugReport('Debug info not available (debug mode disabled)');
-    }
+    setDebugReport('Debug info not available (migrated to useRealtime - WebSocket only)');
   };
 
   // Exportar logs
@@ -145,7 +128,7 @@ export const DebugMonitoringExample: React.FC = () => {
         </label>
 
         <button 
-          onClick={() => refetch('manual_test')}
+          onClick={() => refetch()}
           style={{ margin: '5px', padding: '8px 16px' }}
         >
           Manual Refetch
@@ -208,14 +191,14 @@ export const DebugMonitoringExample: React.FC = () => {
         
         {showDebugInfo && (
           <pre style={{ 
-            backgroundColor: '#f8f9fa', 
+            backgroundColor: '#f5f5f5', 
             padding: '15px', 
             borderRadius: '4px',
             overflow: 'auto',
             maxHeight: '400px',
             fontSize: '12px'
           }}>
-            {JSON.stringify(debugInfo, null, 2)}
+            {JSON.stringify({ message: "Debug info not available (migrated to useRealtime - WebSocket only)" }, null, 2)}
           </pre>
         )}
       </div>

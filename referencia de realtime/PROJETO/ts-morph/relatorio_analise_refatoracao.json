@@ -1,0 +1,403 @@
+{
+  "timestamp": "2025-07-08T02:03:48.031Z",
+  "totalComponentes": 13,
+  "componentesPorTipo": {
+    "API": 3,
+    "Service": 3,
+    "Repository": 2,
+    "Hook": 2,
+    "Component": 2,
+    "Type": 1
+  },
+  "componentesAltoRisco": [
+    {
+      "arquivo": "src/app/api/eu-vou/route.ts",
+      "tipo": "API",
+      "funcoes": [
+        "POST",
+        "GET"
+      ],
+      "dependencias": [
+        "@/core/domain/services/EuVouOrchestrator"
+      ],
+      "exportacoes": [
+        "POST",
+        "GET"
+      ],
+      "chamadoPor": [],
+      "contratoPublico": true,
+      "impactoUsuario": "ALTO"
+    },
+    {
+      "arquivo": "src/app/api/agendamento/operacoes/[id]/eu-vou/route.ts",
+      "tipo": "API",
+      "funcoes": [
+        "POST",
+        "GET"
+      ],
+      "dependencias": [
+        "@/core/domain/services/EuVouOrchestrator"
+      ],
+      "exportacoes": [
+        "POST",
+        "GET"
+      ],
+      "chamadoPor": [],
+      "contratoPublico": true,
+      "impactoUsuario": "ALTO"
+    },
+    {
+      "arquivo": "src/app/api/agendamento/cancelar/route.ts",
+      "tipo": "API",
+      "funcoes": [
+        "POST",
+        "GET"
+      ],
+      "dependencias": [
+        "@/core/domain/services/EuVouOrchestrator",
+        "@/lib/supabase"
+      ],
+      "exportacoes": [
+        "POST",
+        "GET"
+      ],
+      "chamadoPor": [],
+      "contratoPublico": true,
+      "impactoUsuario": "ALTO"
+    },
+    {
+      "arquivo": "src/components/calendario/CalendarioMembro.tsx",
+      "tipo": "Component",
+      "funcoes": [],
+      "dependencias": [
+        "@/hooks/useOperacoes",
+        "@/hooks/useRealtimeCentralized",
+        "./OperacaoDialog",
+        "@/lib/supabase",
+        "./Calendario.module.css"
+      ],
+      "exportacoes": [
+        "CalendarioMembro"
+      ],
+      "chamadoPor": [],
+      "contratoPublico": true,
+      "impactoUsuario": "ALTO"
+    },
+    {
+      "arquivo": "src/components/supervisor/CalendarioSupervisor.tsx",
+      "tipo": "Component",
+      "funcoes": [],
+      "dependencias": [
+        "@/shared/types",
+        "@/hooks/useRealtimeCentralized",
+        "./TooltipOperacaoIsolado",
+        "@/shared/types",
+        "../calendario/Calendario.module.css"
+      ],
+      "exportacoes": [
+        "CalendarioSupervisor"
+      ],
+      "chamadoPor": [],
+      "contratoPublico": true,
+      "impactoUsuario": "ALTO"
+    }
+  ],
+  "mapeamentoCompleto": {
+    "componentes": [
+      {
+        "arquivo": "src/app/api/eu-vou/route.ts",
+        "tipo": "API",
+        "funcoes": [
+          "POST",
+          "GET"
+        ],
+        "dependencias": [
+          "@/core/domain/services/EuVouOrchestrator"
+        ],
+        "exportacoes": [
+          "POST",
+          "GET"
+        ],
+        "chamadoPor": [],
+        "contratoPublico": true,
+        "impactoUsuario": "ALTO"
+      },
+      {
+        "arquivo": "src/app/api/agendamento/operacoes/[id]/eu-vou/route.ts",
+        "tipo": "API",
+        "funcoes": [
+          "POST",
+          "GET"
+        ],
+        "dependencias": [
+          "@/core/domain/services/EuVouOrchestrator"
+        ],
+        "exportacoes": [
+          "POST",
+          "GET"
+        ],
+        "chamadoPor": [],
+        "contratoPublico": true,
+        "impactoUsuario": "ALTO"
+      },
+      {
+        "arquivo": "src/app/api/agendamento/cancelar/route.ts",
+        "tipo": "API",
+        "funcoes": [
+          "POST",
+          "GET"
+        ],
+        "dependencias": [
+          "@/core/domain/services/EuVouOrchestrator",
+          "@/lib/supabase"
+        ],
+        "exportacoes": [
+          "POST",
+          "GET"
+        ],
+        "chamadoPor": [],
+        "contratoPublico": true,
+        "impactoUsuario": "ALTO"
+      },
+      {
+        "arquivo": "src/core/domain/services/EuVouOrchestrator.ts",
+        "tipo": "Service",
+        "funcoes": [
+          "EuVouOrchestrator.executar",
+          "EuVouOrchestrator.confirmarParticipacao",
+          "EuVouOrchestrator.verificarStatusOperacao",
+          "EuVouOrchestrator.recalcularValidacoesServidor",
+          "EuVouOrchestrator.calcularPosicaoFila",
+          "EuVouOrchestrator.adicionarNaFila",
+          "EuVouOrchestrator.executarComandoEuVou",
+          "EuVouOrchestrator.verificarDisponibilidade",
+          "EuVouOrchestrator.processarLote",
+          "EuVouOrchestrator.buscarParticipacoesMembro",
+          "EuVouOrchestrator.cancelarParticipacao",
+          "EuVouOrchestrator.promoverProximoDaFila",
+          "EuVouOrchestrator.atualizarPosicoesNaFila"
+        ],
+        "dependencias": [
+          "./ValidadorParticipacao",
+          "./CalculadoraDiaria",
+          "../../infrastructure/services/ParametrizacaoService",
+          "../../infrastructure/repositories/SupabaseOperacaoRepository",
+          "../../infrastructure/repositories/SupabaseServidorRepository",
+          "@/lib/supabase",
+          "@/lib/logger"
+        ],
+        "exportacoes": [
+          "StatusParticipacao",
+          "ComandoEuVou",
+          "ResultadoEuVou",
+          "EuVouOrchestrator"
+        ],
+        "chamadoPor": [],
+        "contratoPublico": false,
+        "impactoUsuario": "BAIXO"
+      },
+      {
+        "arquivo": "src/core/domain/services/ValidadorParticipacao.ts",
+        "tipo": "Service",
+        "funcoes": [
+          "ValidadorParticipacao.validar",
+          "ValidadorParticipacao.validarParaSolicitacao",
+          "ValidadorParticipacao.validarParaConfirmacao",
+          "ValidadorParticipacao.validacaoRapida",
+          "ValidadorParticipacao.carregarOperacao",
+          "ValidadorParticipacao.carregarServidor",
+          "ValidadorParticipacao.contarParticipacoes",
+          "ValidadorParticipacao.temConflitoPorData",
+          "ValidadorParticipacao.validarLimiteCicloFuncional",
+          "ValidadorParticipacao.validarLimiteMensalDiarias"
+        ],
+        "dependencias": [
+          "../../infrastructure/services/ParametrizacaoService",
+          "../../infrastructure/repositories/SupabaseOperacaoRepository",
+          "../../infrastructure/repositories/SupabaseServidorRepository",
+          "@/lib/supabase"
+        ],
+        "exportacoes": [
+          "ContextoValidacao",
+          "ResultadoValidacao",
+          "ValidadorParticipacao"
+        ],
+        "chamadoPor": [],
+        "contratoPublico": false,
+        "impactoUsuario": "BAIXO"
+      },
+      {
+        "arquivo": "src/core/domain/services/CalculadoraDiaria.ts",
+        "tipo": "Service",
+        "funcoes": [
+          "CalculadoraDiaria.calcularValorDiaria",
+          "CalculadoraDiaria.simularCalculoOperacao"
+        ],
+        "dependencias": [
+          "../../infrastructure/services/ParametrizacaoService"
+        ],
+        "exportacoes": [
+          "CalculadoraDiaria"
+        ],
+        "chamadoPor": [],
+        "contratoPublico": false,
+        "impactoUsuario": "BAIXO"
+      },
+      {
+        "arquivo": "src/core/infrastructure/repositories/SupabaseOperacaoRepository.ts",
+        "tipo": "Repository",
+        "funcoes": [
+          "SupabaseOperacaoRepository.buscarOperacoesAtivas",
+          "SupabaseOperacaoRepository.buscarPorId",
+          "SupabaseOperacaoRepository.contarParticipantesConfirmados",
+          "SupabaseOperacaoRepository.verificarParticipacaoExistente"
+        ],
+        "dependencias": [],
+        "exportacoes": [
+          "SupabaseOperacaoRepository"
+        ],
+        "chamadoPor": [],
+        "contratoPublico": false,
+        "impactoUsuario": "BAIXO"
+      },
+      {
+        "arquivo": "src/core/infrastructure/repositories/SupabaseServidorRepository.ts",
+        "tipo": "Repository",
+        "funcoes": [
+          "SupabaseServidorRepository.buscarPorId",
+          "SupabaseServidorRepository.buscarPorMatricula",
+          "SupabaseServidorRepository.contarDiariasNoMes",
+          "SupabaseServidorRepository.verificarRestricaoTemporal"
+        ],
+        "dependencias": [],
+        "exportacoes": [
+          "SupabaseServidorRepository"
+        ],
+        "chamadoPor": [],
+        "contratoPublico": false,
+        "impactoUsuario": "BAIXO"
+      },
+      {
+        "arquivo": "src/hooks/useOperacoes.ts",
+        "tipo": "Hook",
+        "funcoes": [],
+        "dependencias": [],
+        "exportacoes": [
+          "useOperacoes"
+        ],
+        "chamadoPor": [],
+        "contratoPublico": true,
+        "impactoUsuario": "MEDIO"
+      },
+      {
+        "arquivo": "src/hooks/useRealtimeOperacoes.ts",
+        "tipo": "Hook",
+        "funcoes": [],
+        "dependencias": [
+          "@/lib/supabase"
+        ],
+        "exportacoes": [
+          "useRealtimeOperacoes",
+          "triggerRealtimeRefresh"
+        ],
+        "chamadoPor": [],
+        "contratoPublico": true,
+        "impactoUsuario": "MEDIO"
+      },
+      {
+        "arquivo": "src/components/calendario/CalendarioMembro.tsx",
+        "tipo": "Component",
+        "funcoes": [],
+        "dependencias": [
+          "@/hooks/useOperacoes",
+          "@/hooks/useRealtimeCentralized",
+          "./OperacaoDialog",
+          "@/lib/supabase",
+          "./Calendario.module.css"
+        ],
+        "exportacoes": [
+          "CalendarioMembro"
+        ],
+        "chamadoPor": [],
+        "contratoPublico": true,
+        "impactoUsuario": "ALTO"
+      },
+      {
+        "arquivo": "src/components/supervisor/CalendarioSupervisor.tsx",
+        "tipo": "Component",
+        "funcoes": [],
+        "dependencias": [
+          "@/shared/types",
+          "@/hooks/useRealtimeCentralized",
+          "./TooltipOperacaoIsolado",
+          "@/shared/types",
+          "../calendario/Calendario.module.css"
+        ],
+        "exportacoes": [
+          "CalendarioSupervisor"
+        ],
+        "chamadoPor": [],
+        "contratoPublico": true,
+        "impactoUsuario": "ALTO"
+      },
+      {
+        "arquivo": "src/shared/types/index.ts",
+        "tipo": "Type",
+        "funcoes": [],
+        "dependencias": [],
+        "exportacoes": [
+          "Operacao",
+          "JanelaOperacional",
+          "Solicitacao",
+          "Servidor",
+          "EstadoVisual",
+          "StatusParticipacao",
+          "Modalidade",
+          "Turno"
+        ],
+        "chamadoPor": [],
+        "contratoPublico": true,
+        "impactoUsuario": "BAIXO"
+      }
+    ],
+    "fluxoEuVou": [
+      "CalendarioMembro.tsx → botão \"Eu Vou\"",
+      "Hook useOperacoes → chama API",
+      "API /api/agendamento/operacoes/[id]/eu-vou",
+      "EuVouOrchestrator.executar()",
+      "ValidadorParticipacao.validar()",
+      "SupabaseOperacaoRepository + SupabaseServidorRepository",
+      "Banco de dados (insert/update)",
+      "Real-time trigger",
+      "CalendarioSupervisor.tsx + CalendarioMembro.tsx (atualização)"
+    ],
+    "fluxoCancelar": [
+      "CalendarioMembro.tsx → botão \"Cancelar\"",
+      "API /api/agendamento/cancelar",
+      "EuVouOrchestrator.cancelarParticipacao()",
+      "Banco de dados (soft delete)",
+      "Real-time trigger",
+      "Interfaces atualizadas"
+    ],
+    "apisPublicas": [
+      "src/app/api/eu-vou/route.ts",
+      "src/app/api/agendamento/operacoes/[id]/eu-vou/route.ts"
+    ],
+    "tiposExportados": [],
+    "pontosDeRisco": [
+      "API PÚBLICA: src/app/api/eu-vou/route.ts - Mudanças podem quebrar o frontend",
+      "API PÚBLICA: src/app/api/agendamento/operacoes/[id]/eu-vou/route.ts - Mudanças podem quebrar o frontend",
+      "RISCO ALTO: Mudança em /api/eu-vou pode quebrar CalendarioMembro",
+      "RISCO ALTO: Mudança em EuVouOrchestrator pode afetar múltiplas APIs",
+      "RISCO MÉDIO: Alteração em ValidadorParticipacao pode afetar fluxo de aprovação supervisor",
+      "RISCO MÉDIO: Mudanças em repositories podem afetar outras funcionalidades",
+      "RISCO BAIXO: Real-time precisa continuar funcionando após refatoração"
+    ],
+    "dependenciasExternas": [
+      "Banco Supabase - estrutura da tabela participacao",
+      "Real-time Supabase - triggers automáticos",
+      "Frontend - contratos de API",
+      "Supervisor - dependente das mesmas APIs"
+    ]
+  }
+}

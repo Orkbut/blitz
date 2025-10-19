@@ -1,0 +1,108 @@
+# Add directories or file patterns to ignore during indexing (e.g. foo/ or *.csv)
+
+# === PASTAS PRINCIPAIS A IGNORAR ===
+# Git e Cursor
+.git/
+.cursor/
+
+# Ferramentas de desenvolvimento e temporários
+ts-morph/
+-p/
+
+# IDEs e configurações
+.vscode/
+
+# Backups e dados externos
+#backupsupabase/
+
+# Documentação principal (não crítica para desenvolvimento)
+docs/
+
+# === OUTROS ARQUIVOS E PASTAS ===
+# Dependências
+node_modules/
+venv/
+env/
+.venv/
+REFERENCIA BACKUP/
+
+# Build e Cache
+.next/
+out/
+build/
+dist/
+coverage/
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Logs e Temporários
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*.bak
+*.backup
+
+# Sistema Operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# IDEs adicionais
+.idea/
+*.iws
+*.iml
+*.ipr
+*.sublime-workspace
+
+# Deploy
+.vercel/
+.netlify/
+.firebase/
+
+# Arquivos específicos
+.gitignore
+teste-logger.cjs
+test_response.json
+Conversa do WhatsApp*.txt
+
+# Documentação menos crítica
+radar-detran/docs/RELATORIO_EXECUTIVO_REALTIME_V2.md
+radar-detran/docs/INSTRUMENTACAO_DEBUGGING.md
+radar-detran/docs/BUG_DEPENDENCIA_DEBUG_REALTIME.md
+radar-detran/docs/GUIA_MIGRACAO_REALTIME_V2.md
+INSTRUMENTACAO_DEBUGGING.md
+
+# Testes menos importantes (manter alguns para contexto)
+radar-detran/src/tests/test-simple-validation.ts
+radar-detran/src/tests/test-realtime-concurrency.ts
+
+# Configurações menos críticas
+radar-detran/postcss.config.mjs
+radar-detran/eslint.config.mjs
+
+# Arquivos específicos do projeto
+teste-api.html
+REMOVER*.md
+INCONSISTENCIAS.md
+LIÇÃO_DE_MORAL_HARDCODE.md
+mcps.txt
+AMBIENTE_VIRTUAL.md
+package-lock.json
+next-env.d.ts
+
+# Calendário antigo
+CALENDÁRIO/

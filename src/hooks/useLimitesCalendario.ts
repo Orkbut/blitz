@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { format, startOfMonth, endOfMonth, getMonth, getYear, addMonths, subMonths } from 'date-fns';
-import { useRealtimeUnified } from './useRealtimeUnified';
+import { useRealtime } from './useRealtime';
 
 // Estados considerados para contagem
 const ESTADOS_INCLUIDOS = [
@@ -88,14 +88,7 @@ export function useLimitesCalendario({
   debug = false
 }: UseLimitesCalendarioProps): LimitesData {
   
-  // Log para debug de re-criações
-  if (debug) {
-    console.log('[useLimitesCalendario] Hook executado', { 
-      membroId, 
-      currentDate: currentDate.toISOString(), 
-      timestamp: Date.now() 
-    });
-  }
+  // Log para debug de re-criações (removido para evitar re-renders desnecessários)
 
 
   const [limitesData, setLimitesData] = useState<LimitesData>({
@@ -108,6 +101,9 @@ export function useLimitesCalendario({
 
   // Evitar piscar: após primeira carga, não alternar para loading em recarregamentos
   const hasLoadedOnceRef = useRef(false);
+  
+  // Debounce para evitar múltiplos recarregamentos
+  const reloadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Calcular períodos baseado na data atual
   const periodos = useMemo(() => {
@@ -204,9 +200,17 @@ export function useLimitesCalendario({
   const fetchParticipacaoesRef = useRef(fetchParticipacoes);
   fetchParticipacaoesRef.current = fetchParticipacoes;
 
-  // Callback estável para recarregamento
+  // Callback estável para recarregamento com debounce
   const reloadData = useCallback(() => {
-    fetchParticipacaoesRef.current();
+    // Cancelar timeout anterior se existir
+    if (reloadTimeoutRef.current) {
+      clearTimeout(reloadTimeoutRef.current);
+    }
+    
+    // Agendar novo recarregamento com debounce de 100ms
+    reloadTimeoutRef.current = setTimeout(() => {
+      fetchParticipacaoesRef.current();
+    }, 100);
   }, []);
 
   // Carregar dados inicialmente
@@ -215,16 +219,9 @@ export function useLimitesCalendario({
   }, [fetchParticipacoes]);
 
   // Realtime: recarregar quando houver mudanças nas participações ou operações
-  useRealtimeUnified({
+  useRealtime({
     channelId: `limites-calendario-${membroId}`,
     tables: ['participacao', 'operacao'],
-    enableRealtime: true,
-    enablePolling: false,
-    enableFetch: false,
-    filters: {
-      participacao: `membro_id.eq.${membroId}`
-      // Não filtrar operacao para capturar todas as mudanças que podem afetar os limites
-    },
     onDatabaseChange: useCallback((event: any) => {
       const { table, eventType } = event;
       
@@ -233,9 +230,13 @@ export function useLimitesCalendario({
       }
       
       if (table === 'participacao') {
+        // Acessar os dados do evento através do payload
+        const newMembroId = event.payload?.new?.membro_id;
+        const oldMembroId = event.payload?.old?.membro_id;
+        
         // Recarregar apenas se for do membro atual
-        if (event.new?.membro_id?.toString() === membroId ||
-          event.old?.membro_id?.toString() === membroId) {
+        if (newMembroId?.toString() === membroId ||
+          oldMembroId?.toString() === membroId) {
           if (debug) {
             console.log(`[useLimitesCalendario] Recarregando por mudança em participacao do membro ${membroId}`);
           }
@@ -251,6 +252,15 @@ export function useLimitesCalendario({
       }
     }, [reloadData, membroId])
   });
+
+  // Cleanup do timeout quando o componente for desmontado
+  useEffect(() => {
+    return () => {
+      if (reloadTimeoutRef.current) {
+        clearTimeout(reloadTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return limitesData;
 }

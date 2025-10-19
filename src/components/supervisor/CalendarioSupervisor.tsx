@@ -6,7 +6,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, startOfWe
 import { ptBR } from 'date-fns/locale';
 
 import { JanelaOperacional } from '@/shared/types';
-import { useRealtimeUnified } from '@/hooks/useRealtimeUnified';
+import { useRealtime } from '@/hooks/useRealtime';
 import { getSupervisorHeaders, formatarDataBR, formatarPeriodoJanela, obterDataAtualIguatu } from '@/lib/auth-utils';
 import { ModalInativacaoOperacoes } from './ModalInativacaoOperacoes';
 
@@ -353,13 +353,9 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
     };
   };
 
-  useRealtimeUnified({
-    channelId: `calendario-supervisor-${janelaSelecionada}`,
+  useRealtime({
+    channelId: 'calendario-supervisor-global',
     tables: ['operacao', 'participacao'],
-    enableRealtime: true,
-    enablePolling: false,
-    enableFetch: false,
-    debug: false,
     onDatabaseChange: useCallback((event: any) => {
       const { table, eventType, payload } = event;
       console.log(`[CalendarioSupervisor] 📡 ${table} ${eventType} - Recarregando dados...`);

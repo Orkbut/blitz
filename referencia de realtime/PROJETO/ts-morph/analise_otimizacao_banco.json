@@ -1,0 +1,841 @@
+{
+  "apiEndpoints": [
+    {
+      "filePath": "radar-detran/src/app/api/operations/route.ts",
+      "queries": [
+        {
+          "type": "SELECT",
+          "query": ".from('operacao')",
+          "tablesInvolved": [
+            "operacao"
+          ],
+          "frequency": "LOW",
+          "context": "handleListOperations",
+          "lineNumber": 131,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".select(`",
+          "tablesInvolved": [],
+          "frequency": "LOW",
+          "context": "handleListOperations",
+          "lineNumber": 132,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".from('participacao')",
+          "tablesInvolved": [
+            "participacao"
+          ],
+          "frequency": "LOW",
+          "context": "handleListOperations",
+          "lineNumber": 164,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".select('*')",
+          "tablesInvolved": [],
+          "frequency": "LOW",
+          "context": "handleListOperations",
+          "lineNumber": 181,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".from('evento_operacao')",
+          "tablesInvolved": [
+            "evento_operacao"
+          ],
+          "frequency": "HIGH",
+          "context": "handleGetHistory",
+          "lineNumber": 233,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".select('data_participacao')",
+          "tablesInvolved": [],
+          "frequency": "HIGH",
+          "context": "handleGetHistory",
+          "lineNumber": 265,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "INSERT",
+          "query": ".insert({",
+          "tablesInvolved": [],
+          "frequency": "LOW",
+          "context": "handleCreateOperation",
+          "lineNumber": 330,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".select()",
+          "tablesInvolved": [],
+          "frequency": "LOW",
+          "context": "handleCreateOperation",
+          "lineNumber": 341,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "UPDATE",
+          "query": ".update(data)",
+          "tablesInvolved": [],
+          "frequency": "LOW",
+          "context": "handleUpdateOperation",
+          "lineNumber": 363,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "UPDATE",
+          "query": ".update({ ativa: false })",
+          "tablesInvolved": [],
+          "frequency": "LOW",
+          "context": "handleDeleteOperation",
+          "lineNumber": 391,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "DELETE",
+          "query": ".delete()",
+          "tablesInvolved": [],
+          "frequency": "LOW",
+          "context": "handleDeleteOperation",
+          "lineNumber": 410,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        }
+      ]
+    },
+    {
+      "filePath": "radar-detran/src/app/api/participations/route.ts",
+      "queries": [
+        {
+          "type": "SELECT",
+          "query": ".from('participacao')",
+          "tablesInvolved": [
+            "participacao"
+          ],
+          "frequency": "LOW",
+          "context": "handleCancelParticipation",
+          "lineNumber": 214,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".select('id')",
+          "tablesInvolved": [],
+          "frequency": "LOW",
+          "context": "handleCancelParticipation",
+          "lineNumber": 215,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "UPDATE",
+          "query": ".update({",
+          "tablesInvolved": [],
+          "frequency": "LOW",
+          "context": "handleCancelParticipation",
+          "lineNumber": 235,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".select(`",
+          "tablesInvolved": [],
+          "frequency": "LOW",
+          "context": "handleCancelParticipation",
+          "lineNumber": 241,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".from('evento_operacao')",
+          "tablesInvolved": [
+            "evento_operacao"
+          ],
+          "frequency": "LOW",
+          "context": "handleCancelParticipation",
+          "lineNumber": 255,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "INSERT",
+          "query": ".insert({",
+          "tablesInvolved": [],
+          "frequency": "LOW",
+          "context": "handleCancelParticipation",
+          "lineNumber": 256,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".select('*')",
+          "tablesInvolved": [],
+          "frequency": "HIGH",
+          "context": "handleGetPosition",
+          "lineNumber": 293,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".select('id, data_participacao, estado_visual, servidor(nome)')",
+          "tablesInvolved": [],
+          "frequency": "HIGH",
+          "context": "handleGetPosition",
+          "lineNumber": 309,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        }
+      ]
+    },
+    {
+      "filePath": "radar-detran/src/app/api/supervisor-actions/route.ts",
+      "queries": [
+        {
+          "type": "SELECT",
+          "query": ".from('janela_operacional')",
+          "tablesInvolved": [
+            "janela_operacional"
+          ],
+          "frequency": "LOW",
+          "context": "handleManageWindows",
+          "lineNumber": 159,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".select(`",
+          "tablesInvolved": [],
+          "frequency": "LOW",
+          "context": "handleManageWindows",
+          "lineNumber": 160,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".from('servidor')",
+          "tablesInvolved": [
+            "servidor"
+          ],
+          "frequency": "HIGH",
+          "context": "handleManageMembers",
+          "lineNumber": 223,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".from('participacao')",
+          "tablesInvolved": [
+            "participacao"
+          ],
+          "frequency": "LOW",
+          "context": "handleManageRequests",
+          "lineNumber": 296,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".select('id')",
+          "tablesInvolved": [],
+          "frequency": "LOW",
+          "context": "handleManageRequests",
+          "lineNumber": 322,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".from('operacao')",
+          "tablesInvolved": [
+            "operacao"
+          ],
+          "frequency": "LOW",
+          "context": "handleDiretoriaView",
+          "lineNumber": 373,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": "query = query.select(`",
+          "tablesInvolved": [],
+          "frequency": "LOW",
+          "context": "handleDiretoriaView",
+          "lineNumber": 391,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "UPDATE",
+          "query": ".update({",
+          "tablesInvolved": [],
+          "frequency": "LOW",
+          "context": "handleCreateOrUpdateWindow",
+          "lineNumber": 455,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".select()",
+          "tablesInvolved": [],
+          "frequency": "LOW",
+          "context": "handleCreateOrUpdateWindow",
+          "lineNumber": 464,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "INSERT",
+          "query": ".insert({",
+          "tablesInvolved": [],
+          "frequency": "LOW",
+          "context": "handleCreateOrUpdateWindow",
+          "lineNumber": 482,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "UPDATE",
+          "query": ".update({ ativa: false })",
+          "tablesInvolved": [],
+          "frequency": "LOW",
+          "context": "handleDeleteWindow",
+          "lineNumber": 524,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".from('evento_operacao')",
+          "tablesInvolved": [
+            "evento_operacao"
+          ],
+          "frequency": "LOW",
+          "context": "handleScheduleOperation",
+          "lineNumber": 573,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        }
+      ]
+    },
+    {
+      "filePath": "radar-detran/src/app/api/admin/route.ts",
+      "queries": [
+        {
+          "type": "SELECT",
+          "query": ".from('operacao')",
+          "tablesInvolved": [
+            "operacao"
+          ],
+          "frequency": "HIGH",
+          "context": "getSystemStats",
+          "lineNumber": 131,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".select('id, data_operacao, status, ativa, modalidade')",
+          "tablesInvolved": [],
+          "frequency": "HIGH",
+          "context": "getSystemStats",
+          "lineNumber": 132,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".from('participacao')",
+          "tablesInvolved": [
+            "participacao"
+          ],
+          "frequency": "HIGH",
+          "context": "getSystemStats",
+          "lineNumber": 138,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".select('id, estado_visual, data_participacao, membro_id')",
+          "tablesInvolved": [],
+          "frequency": "HIGH",
+          "context": "getSystemStats",
+          "lineNumber": 139,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".from('servidor')",
+          "tablesInvolved": [
+            "servidor"
+          ],
+          "frequency": "HIGH",
+          "context": "getSystemStats",
+          "lineNumber": 146,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".select('id, ativo, regional, perfil')",
+          "tablesInvolved": [],
+          "frequency": "HIGH",
+          "context": "getSystemStats",
+          "lineNumber": 147,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".from('janela_operacional')",
+          "tablesInvolved": [
+            "janela_operacional"
+          ],
+          "frequency": "HIGH",
+          "context": "getSystemStats",
+          "lineNumber": 152,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".select('id, ativa')",
+          "tablesInvolved": [],
+          "frequency": "HIGH",
+          "context": "getSystemStats",
+          "lineNumber": 153,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".select('id, status, participacao(id, estado_visual)')",
+          "tablesInvolved": [],
+          "frequency": "HIGH",
+          "context": "getDashboardStats",
+          "lineNumber": 224,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".select('id, data_participacao, estado_visual')",
+          "tablesInvolved": [],
+          "frequency": "HIGH",
+          "context": "getDashboardStats",
+          "lineNumber": 234,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".select('id, data_operacao')",
+          "tablesInvolved": [],
+          "frequency": "LOW",
+          "context": "cleanupExpiredOperations",
+          "lineNumber": 406,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".from('evento_operacao')",
+          "tablesInvolved": [
+            "evento_operacao"
+          ],
+          "frequency": "LOW",
+          "context": "cleanupOldLogs",
+          "lineNumber": 432,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".select('id')",
+          "tablesInvolved": [],
+          "frequency": "LOW",
+          "context": "cleanupOldLogs",
+          "lineNumber": 433,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".select(`",
+          "tablesInvolved": [],
+          "frequency": "LOW",
+          "context": "debugCalculoDiarias",
+          "lineNumber": 500,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".select('id, operacao_id')",
+          "tablesInvolved": [],
+          "frequency": "LOW",
+          "context": "debugValidacaoDados",
+          "lineNumber": 540,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".select('id, janela_id')",
+          "tablesInvolved": [],
+          "frequency": "LOW",
+          "context": "debugValidacaoDados",
+          "lineNumber": 547,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        }
+      ]
+    },
+    {
+      "filePath": "radar-detran/src/app/api/real-time/route.ts",
+      "queries": [
+        {
+          "type": "SELECT",
+          "query": ".from('operacao')",
+          "tablesInvolved": [
+            "operacao"
+          ],
+          "frequency": "HIGH",
+          "context": "handleGetEvents",
+          "lineNumber": 124,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".select(`",
+          "tablesInvolved": [],
+          "frequency": "HIGH",
+          "context": "handleGetEvents",
+          "lineNumber": 125,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".from('evento_operacao')",
+          "tablesInvolved": [
+            "evento_operacao"
+          ],
+          "frequency": "HIGH",
+          "context": "handleGetMessages",
+          "lineNumber": 225,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "SELECT",
+          "query": ".select('id')",
+          "tablesInvolved": [],
+          "frequency": "LOW",
+          "context": "handleHeartbeat",
+          "lineNumber": 310,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        },
+        {
+          "type": "INSERT",
+          "query": ".insert({",
+          "tablesInvolved": [],
+          "frequency": "LOW",
+          "context": "handleSendEvent",
+          "lineNumber": 396,
+          "performance": {
+            "hasIndexes": false,
+            "needsOptimization": false,
+            "recommendations": []
+          }
+        }
+      ]
+    }
+  ],
+  "recommendedIndexes": [
+    {
+      "table": "operacoes",
+      "columns": [
+        "regional_id",
+        "data_operacao"
+      ],
+      "type": "BTREE",
+      "reason": "Filtros frequentes por regional e data nas APIs unificadas",
+      "priority": "HIGH"
+    },
+    {
+      "table": "operacoes",
+      "columns": [
+        "status"
+      ],
+      "type": "BTREE",
+      "reason": "Filtro por status muito usado na API operations",
+      "priority": "HIGH"
+    },
+    {
+      "table": "participacoes_operacao",
+      "columns": [
+        "operacao_id",
+        "servidor_id"
+      ],
+      "type": "BTREE",
+      "reason": "JOINs frequentes entre operações e participações",
+      "priority": "HIGH"
+    },
+    {
+      "table": "participacoes_operacao",
+      "columns": [
+        "status"
+      ],
+      "type": "BTREE",
+      "reason": "Filtro por status de participação",
+      "priority": "MEDIUM"
+    },
+    {
+      "table": "servidores",
+      "columns": [
+        "regional_id",
+        "ativo"
+      ],
+      "type": "BTREE",
+      "reason": "Filtros por regional e status ativo",
+      "priority": "MEDIUM"
+    },
+    {
+      "table": "operacoes",
+      "columns": [
+        "data_operacao"
+      ],
+      "type": "BTREE",
+      "reason": "Ordenação cronológica frequente",
+      "priority": "MEDIUM"
+    },
+    {
+      "table": "operacoes",
+      "columns": [
+        "created_at"
+      ],
+      "type": "BTREE",
+      "reason": "Real-time subscriptions frequentes",
+      "priority": "HIGH"
+    },
+    {
+      "table": "participacoes_operacao",
+      "columns": [
+        "created_at"
+      ],
+      "type": "BTREE",
+      "reason": "Real-time subscriptions para participações",
+      "priority": "HIGH"
+    }
+  ],
+  "queryOptimizations": [
+    {
+      "currentQuery": "SELECT * FROM operacoes WHERE regional_id = ? ORDER BY data_operacao",
+      "optimizedQuery": "SELECT id, titulo, data_operacao, status FROM operacoes WHERE regional_id = ? ORDER BY data_operacao LIMIT 100",
+      "improvement": "Evitar SELECT *, adicionar LIMIT e especificar colunas",
+      "impact": "Redução de 70% no tráfego de dados"
+    },
+    {
+      "currentQuery": "SELECT COUNT(*) FROM participacoes_operacao WHERE status = 'ativa'",
+      "optimizedQuery": "Usar cached count ou partial index",
+      "improvement": "Cache de contagens frequentes",
+      "impact": "Redução de 90% no tempo de consulta"
+    }
+  ],
+  "tableAnalysis": [
+    {
+      "table": "evento_operacao",
+      "issues": [
+        "Tabela evento_operacao usada 5 vezes - alta carga"
+      ],
+      "solutions": [
+        "Considerar particionamento ou índices especializados"
+      ]
+    }
+  ]
+}

@@ -92,7 +92,9 @@ describe('🧪 Comprehensive Test Suite - useRealtimeUnified', () => {
   });
 
   afterEach(() => {
-    vi.runOnlyPendingTimers();
+    act(() => {
+      vi.runOnlyPendingTimers();
+    });
   });
 
   // 🎯 SEÇÃO 1: TESTES UNITÁRIOS DE FUNCIONALIDADE DO HOOK

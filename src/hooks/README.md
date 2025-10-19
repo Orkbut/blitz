@@ -65,7 +65,7 @@ const config: UseRealtimeUnifiedConfig = {
   // Fetch de dados
   startDate: new Date('2024-01-01'),
   endDate: new Date('2024-12-31'),
-  apiEndpoint: '/api/operacoes',
+  // apiEndpoint removido - agora usa WebSocket diretamente
   
   // Callbacks
   onDatabaseChange: (event) => console.log('DB change:', event),

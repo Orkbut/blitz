@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, startOfWeek, endOfWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Calendar, Loader2, MessageCircle } from 'lucide-react';
-import { useRealtimeUnified } from '@/hooks/useRealtimeUnified';
+import { useRealtime } from '@/hooks/useRealtime';
 import { OperacaoDialog } from './OperacaoDialog';
 import { LimitesBarras } from './LimitesBarras';
 
@@ -734,13 +734,9 @@ export const CalendarioSimplesComponent: React.FC = () => {
   }, [reloadOperacoes]);
 
   // 🚀 REALTIME SIMPLES E DIRETO: Mudou no banco = atualiza na tela
-  useRealtimeUnified({
-    channelId: `calendario-realtime-global`,
+  useRealtime({
+    channelId: 'calendario-simples-global',
     tables: ['operacao', 'participacao'],
-    enableRealtime: true,
-    enablePolling: false,
-    enableFetch: false,
-    debug: false,
     onDatabaseChange: useCallback((event: any) => {
       const { table, eventType } = event;
       
@@ -1199,7 +1195,7 @@ export const CalendarioSimplesComponent: React.FC = () => {
         membroId={membroAtual}
         currentDate={currentDate}
         compact={false}
-        debug={process.env.NODE_ENV === 'development'}
+        debug={true}
         onCircleClick={handleCircleClick}
       />
 

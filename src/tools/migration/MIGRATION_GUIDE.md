@@ -284,7 +284,7 @@ function ComplexComponent() {
     tables: ['operacao', 'participacao', 'eventos_operacao'],
     startDate: startOfMonth(new Date()),
     endDate: endOfMonth(new Date()),
-    apiEndpoint: '/api/operacoes/calendario',
+    // apiEndpoint removido - agora usa WebSocket diretamente
     pollingInterval: 5000,
     onDatabaseChange: handleDatabaseChange,
     onDataUpdate: handleDataUpdate,
@@ -315,7 +315,7 @@ function ComplexComponent() {
     enableFetch: true,
     startDate: startOfMonth(new Date()),
     endDate: endOfMonth(new Date()),
-    apiEndpoint: '/api/operacoes/calendario',
+    // apiEndpoint removido - agora usa WebSocket diretamente
     activeInterval: 5000,
     inactiveInterval: 30000,
     onDatabaseChange: handleDatabaseChange,

@@ -19,7 +19,7 @@
 import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { X, Plus, Trash2, Search, Users, Calendar, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useRealtimeUnified } from '@/hooks/useRealtimeUnified';
+import { useRealtime } from '@/hooks/useRealtime';
 import { useModal } from '@/hooks/useModal';
 import { UniversalModal } from '@/shared/components/ui';
 import styles from './GerenciarMembrosModal.module.css';
@@ -418,14 +418,10 @@ const GerenciarMembrosModalComponent: React.FC<GerenciarMembrosModalProps> = ({ 
     onUpdate();
   }, [atualizarOperacoes, onUpdate]);
 
-  // 🚀 REALTIME UNIFICADO: Migrado para useRealtimeUnified - Hook para atualizações automáticas
-  const realtimeHook = useRealtimeUnified({
+  // 🚀 REALTIME WEBSOCKET: Migrado para useRealtime - Hook para atualizações automáticas
+  const realtimeHook = useRealtime({
     channelId: `gerenciar-membros-${operacaoIds.join('-')}`,
     tables: ['operacao', 'participacao'],
-    enableRealtime: operacaoIds.length > 0 && !loadingInicial,
-    enablePolling: false,
-    enableFetch: false,
-    debug: false,
     onDatabaseChange: useCallback((event: any) => {
       const { table, eventType, payload } = event;
 

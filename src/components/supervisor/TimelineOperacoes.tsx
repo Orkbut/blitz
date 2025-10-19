@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { Operacao } from '@/shared/types';
-import { useRealtimeUnified } from '@/hooks/useRealtimeUnified';
+import { useRealtime } from '@/hooks/useRealtime';
 import { ElegantInlineLoader } from '@/shared/components/ui/LoadingSpinner';
 import styles from './TimelineOperacoes.module.css';
 
@@ -35,11 +35,16 @@ const TimelineOperacoes: React.FC<TimelineOperacoesProps> = ({
 }) => {
   const [dataSelecionada, setDataSelecionada] = useState<string | null>(null);
   const [showModalDetalhes, setShowModalDetalhes] = useState(false);
-  const { isConnected } = useRealtimeUnified({
+  
+  // Conectar ao realtime para atualizações automáticas
+  const { isConnected } = useRealtime({
     tables: ['operacao'],
-    enableRealtime: false,
-    enablePolling: false,
-    enableFetch: false
+    onDatabaseChange: (event) => {
+      // Quando houver mudanças nas operações, chamar onRefresh se disponível
+      if (onRefresh) {
+        onRefresh();
+      }
+    }
   });
 
   // Agrupar operações por data

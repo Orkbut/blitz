@@ -1,0 +1,275 @@
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.diaria (
+  id integer NOT NULL DEFAULT nextval('diaria_id_seq'::regclass),
+  participacao_id integer NOT NULL,
+  valor numeric NOT NULL,
+  tipo character varying NOT NULL CHECK (tipo::text = ANY (ARRAY['DIARIA'::character varying, 'MEIA_DIARIA'::character varying]::text[])),
+  processada boolean DEFAULT false,
+  criada_em timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT diaria_pkey PRIMARY KEY (id),
+  CONSTRAINT diaria_participacao_id_fkey FOREIGN KEY (participacao_id) REFERENCES public.participacao(id)
+);
+CREATE TABLE public.estado_visual_membro (
+  id integer NOT NULL DEFAULT nextval('estado_visual_membro_id_seq'::regclass),
+  membro_id integer NOT NULL,
+  operacao_id integer NOT NULL,
+  estado character varying NOT NULL CHECK (estado::text = ANY (ARRAY['DISPONIVEL'::character varying, 'NA_FILA'::character varying, 'CONFIRMADO'::character varying]::text[])),
+  cor character varying,
+  atualizado_em timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT estado_visual_membro_pkey PRIMARY KEY (id),
+  CONSTRAINT estado_visual_membro_membro_id_fkey FOREIGN KEY (membro_id) REFERENCES public.servidor(id),
+  CONSTRAINT estado_visual_membro_operacao_id_fkey FOREIGN KEY (operacao_id) REFERENCES public.operacao(id)
+);
+CREATE TABLE public.evento_calendario (
+  id integer NOT NULL DEFAULT nextval('evento_calendario_id_seq'::regclass),
+  supervisor_id integer NOT NULL,
+  operacao_id integer NOT NULL,
+  tipo_evento character varying NOT NULL CHECK (tipo_evento::text = ANY (ARRAY['APROVADO'::character varying, 'MODIFICADO'::character varying, 'CONVOCADO'::character varying, 'CANCELADO'::character varying]::text[])),
+  cor_evento character varying NOT NULL CHECK (cor_evento::text = ANY (ARRAY['#28a745'::character varying, '#ffc107'::character varying, '#007bff'::character varying, '#dc3545'::character varying]::text[])),
+  criado_em timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  ativo boolean DEFAULT true,
+  CONSTRAINT evento_calendario_pkey PRIMARY KEY (id),
+  CONSTRAINT evento_calendario_operacao_id_fkey FOREIGN KEY (operacao_id) REFERENCES public.operacao(id),
+  CONSTRAINT evento_calendario_supervisor_id_fkey FOREIGN KEY (supervisor_id) REFERENCES public.servidor(id)
+);
+CREATE TABLE public.eventos_operacao (
+  id bigint NOT NULL DEFAULT nextval('eventos_operacao_id_seq'::regclass),
+  operacao_id integer NOT NULL,
+  tipo_evento character varying NOT NULL CHECK (tipo_evento::text = ANY (ARRAY['SOLICITACAO'::character varying, 'APROVACAO'::character varying, 'CANCELAMENTO'::character varying, 'ADICAO_SUPERVISOR'::character varying, 'REMOCAO_SUPERVISOR'::character varying, 'REJEICAO'::character varying, 'ENTRADA_FILA'::character varying, 'PROMOCAO_FILA'::character varying, 'LIMITE_EXPANDIDO'::character varying, 'OPERACAO_EXCLUIDA'::character varying, 'OPERACAO_REATIVADA'::character varying]::text[])),
+  servidor_id integer NOT NULL,
+  servidor_nome character varying NOT NULL,
+  servidor_matricula character varying NOT NULL,
+  data_evento timestamp with time zone NOT NULL DEFAULT now(),
+  detalhes text,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  icone character varying,
+  cor character varying,
+  criado_por integer,
+  ip_origem character varying,
+  user_agent text,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT eventos_operacao_pkey PRIMARY KEY (id),
+  CONSTRAINT eventos_operacao_criado_por_fkey FOREIGN KEY (criado_por) REFERENCES public.servidor(id),
+  CONSTRAINT eventos_operacao_servidor_id_fkey FOREIGN KEY (servidor_id) REFERENCES public.servidor(id),
+  CONSTRAINT eventos_operacao_operacao_id_fkey FOREIGN KEY (operacao_id) REFERENCES public.operacao(id)
+);
+CREATE TABLE public.execucao_operacao (
+  id integer NOT NULL DEFAULT nextval('execucao_operacao_id_seq'::regclass),
+  operacao_id integer NOT NULL,
+  supervisor_id integer NOT NULL,
+  data_execucao date,
+  foi_realizada boolean,
+  motivo_nao_realizacao text,
+  registrado_em timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  fechado_em timestamp without time zone,
+  finalizada boolean DEFAULT false,
+  CONSTRAINT execucao_operacao_pkey PRIMARY KEY (id),
+  CONSTRAINT execucao_operacao_operacao_id_fkey FOREIGN KEY (operacao_id) REFERENCES public.operacao(id),
+  CONSTRAINT execucao_operacao_supervisor_id_fkey FOREIGN KEY (supervisor_id) REFERENCES public.servidor(id)
+);
+CREATE TABLE public.historico_modificacao (
+  id integer NOT NULL DEFAULT nextval('historico_modificacao_id_seq'::regclass),
+  entidade character varying NOT NULL,
+  entidade_id integer NOT NULL,
+  acao character varying NOT NULL,
+  dados_anteriores jsonb,
+  dados_novos jsonb,
+  usuario_id integer NOT NULL,
+  data_modificacao timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT historico_modificacao_pkey PRIMARY KEY (id),
+  CONSTRAINT historico_modificacao_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES public.servidor(id)
+);
+CREATE TABLE public.historico_parametros (
+  id integer NOT NULL DEFAULT nextval('historico_parametros_id_seq'::regclass),
+  parametro_id integer,
+  valor_anterior character varying,
+  valor_novo character varying,
+  motivo_alteracao text NOT NULL,
+  alterado_por integer NOT NULL,
+  data_alteracao timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT historico_parametros_pkey PRIMARY KEY (id),
+  CONSTRAINT historico_parametros_alterado_por_fkey FOREIGN KEY (alterado_por) REFERENCES public.servidor(id),
+  CONSTRAINT historico_parametros_parametro_id_fkey FOREIGN KEY (parametro_id) REFERENCES public.parametros_sistema(id)
+);
+CREATE TABLE public.janela_operacional (
+  id integer NOT NULL DEFAULT nextval('janela_operacional_id_seq'::regclass),
+  regional_id integer NOT NULL,
+  supervisor_id integer NOT NULL,
+  data_inicio date NOT NULL,
+  data_fim date NOT NULL,
+  modalidades character varying NOT NULL,
+  limite_min integer DEFAULT 2,
+  limite_max integer DEFAULT 30,
+  ativa boolean DEFAULT true,
+  criado_em timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT janela_operacional_pkey PRIMARY KEY (id),
+  CONSTRAINT janela_operacional_regional_id_fkey FOREIGN KEY (regional_id) REFERENCES public.regional(id),
+  CONSTRAINT janela_operacional_supervisor_id_fkey FOREIGN KEY (supervisor_id) REFERENCES public.servidor(id)
+);
+CREATE TABLE public.justificativa_obrigatoria (
+  id integer NOT NULL DEFAULT nextval('justificativa_obrigatoria_id_seq'::regclass),
+  contexto character varying NOT NULL,
+  referencia_id integer NOT NULL,
+  justificativa text NOT NULL,
+  usuario_id integer NOT NULL,
+  data_criacao timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT justificativa_obrigatoria_pkey PRIMARY KEY (id),
+  CONSTRAINT justificativa_obrigatoria_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES public.servidor(id)
+);
+CREATE TABLE public.limite_temporario (
+  id integer NOT NULL DEFAULT nextval('limite_temporario_id_seq'::regclass),
+  operacao_id integer UNIQUE,
+  limite_original integer NOT NULL,
+  limite_expandido integer NOT NULL,
+  justificativa text NOT NULL,
+  supervisor_id integer NOT NULL,
+  criado_em timestamp without time zone DEFAULT now(),
+  CONSTRAINT limite_temporario_pkey PRIMARY KEY (id),
+  CONSTRAINT limite_temporario_operacao_id_fkey FOREIGN KEY (operacao_id) REFERENCES public.operacao(id)
+);
+CREATE TABLE public.mensagem_regional (
+  id integer NOT NULL DEFAULT nextval('mensagem_regional_id_seq'::regclass),
+  regional_id integer NOT NULL,
+  supervisor_id integer NOT NULL,
+  conteudo text NOT NULL,
+  data_criacao timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  data_expiracao date,
+  ativa boolean DEFAULT true,
+  CONSTRAINT mensagem_regional_pkey PRIMARY KEY (id),
+  CONSTRAINT mensagem_regional_regional_id_fkey FOREIGN KEY (regional_id) REFERENCES public.regional(id),
+  CONSTRAINT mensagem_regional_supervisor_id_fkey FOREIGN KEY (supervisor_id) REFERENCES public.servidor(id)
+);
+CREATE TABLE public.notificacao_exclusao_operacao (
+  id integer NOT NULL DEFAULT nextval('notificacao_exclusao_operacao_id_seq'::regclass),
+  operacao_id integer NOT NULL,
+  membro_id integer NOT NULL,
+  tipo_notificacao character varying NOT NULL CHECK (tipo_notificacao::text = ANY (ARRAY['EXCLUSAO'::character varying, 'REATIVACAO'::character varying]::text[])),
+  visualizada boolean DEFAULT false,
+  data_criacao timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  data_visualizacao timestamp without time zone,
+  ativa boolean DEFAULT true,
+  CONSTRAINT notificacao_exclusao_operacao_pkey PRIMARY KEY (id),
+  CONSTRAINT notificacao_exclusao_operacao_membro_id_fkey FOREIGN KEY (membro_id) REFERENCES public.servidor(id),
+  CONSTRAINT notificacao_exclusao_operacao_operacao_id_fkey FOREIGN KEY (operacao_id) REFERENCES public.operacao(id)
+);
+CREATE TABLE public.operacao (
+  id integer NOT NULL DEFAULT nextval('operacao_id_seq'::regclass),
+  janela_id integer NOT NULL,
+  data_operacao date NOT NULL,
+  turno character varying NOT NULL,
+  modalidade character varying NOT NULL CHECK (modalidade::text = ANY (ARRAY['BLITZ'::character varying, 'BALANCA'::character varying]::text[])),
+  tipo character varying NOT NULL CHECK (tipo::text = ANY (ARRAY['PLANEJADA'::character varying, 'VOLUNTARIA'::character varying]::text[])),
+  limite_participantes integer NOT NULL CHECK (limite_participantes >= 2 AND limite_participantes <= 30),
+  status character varying,
+  ativa boolean DEFAULT true,
+  criado_em timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  encaminhado_diretoria_em timestamp with time zone,
+  retorno_diretoria_em timestamp with time zone,
+  decisao_diretoria character varying,
+  motivo_diretoria text,
+  documentacao_gerada jsonb,
+  valor_total_diarias numeric,
+  portaria_gerada jsonb,
+  excluida_temporariamente boolean DEFAULT false,
+  data_exclusao timestamp without time zone,
+  motivo_exclusao text,
+  supervisor_exclusao_id integer,
+  pode_reativar_ate timestamp without time zone,
+  visivel_ate timestamp without time zone,
+  finalizando_solicitacoes boolean DEFAULT false,
+  data_finalizacao timestamp without time zone,
+  horario time without time zone,
+  atualizacao_forcada timestamp without time zone,
+  updated_at timestamp without time zone DEFAULT now(),
+  CONSTRAINT operacao_pkey PRIMARY KEY (id),
+  CONSTRAINT operacao_janela_id_fkey FOREIGN KEY (janela_id) REFERENCES public.janela_operacional(id),
+  CONSTRAINT fk_operacao_supervisor_exclusao FOREIGN KEY (supervisor_exclusao_id) REFERENCES public.servidor(id)
+);
+CREATE TABLE public.parametros_sistema (
+  id integer NOT NULL DEFAULT nextval('parametros_sistema_id_seq'::regclass),
+  nome_parametro character varying NOT NULL UNIQUE,
+  valor_atual character varying NOT NULL,
+  tipo_valor character varying NOT NULL CHECK (tipo_valor::text = ANY (ARRAY['INTEGER'::character varying, 'DECIMAL'::character varying, 'STRING'::character varying, 'BOOLEAN'::character varying]::text[])),
+  descricao text,
+  categoria character varying,
+  pode_alterar_runtime boolean DEFAULT true,
+  valido_apartir date NOT NULL DEFAULT CURRENT_DATE,
+  criado_em timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  atualizado_em timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT parametros_sistema_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.participacao (
+  id integer NOT NULL DEFAULT nextval('participacao_id_seq'::regclass),
+  membro_id integer NOT NULL,
+  operacao_id integer NOT NULL,
+  data_participacao timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  status_interno character varying NOT NULL,
+  estado_visual character varying CHECK (estado_visual::text = ANY (ARRAY['CONFIRMADO'::character varying, 'NA_FILA'::character varying, 'DISPONIVEL'::character varying, 'AGUARDANDO_SUPERVISOR'::character varying, 'CANCELADO'::character varying, 'PENDENTE'::character varying, 'ADICIONADO_SUP'::character varying]::text[])),
+  posicao_fila integer,
+  ativa boolean DEFAULT true,
+  bloqueado_diretoria boolean DEFAULT false,
+  updated_at timestamp without time zone DEFAULT now(),
+  CONSTRAINT participacao_pkey PRIMARY KEY (id),
+  CONSTRAINT participacao_operacao_id_fkey FOREIGN KEY (operacao_id) REFERENCES public.operacao(id),
+  CONSTRAINT participacao_membro_id_fkey FOREIGN KEY (membro_id) REFERENCES public.servidor(id)
+);
+CREATE TABLE public.portaria (
+  id integer NOT NULL DEFAULT nextval('portaria_id_seq'::regclass),
+  operacao_id integer NOT NULL,
+  numero_portaria character varying NOT NULL UNIQUE,
+  data_emissao date NOT NULL,
+  valor_diaria numeric NOT NULL,
+  valor_meia_diaria numeric NOT NULL,
+  ativa boolean DEFAULT true,
+  emitida_em timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT portaria_pkey PRIMARY KEY (id),
+  CONSTRAINT portaria_operacao_id_fkey FOREIGN KEY (operacao_id) REFERENCES public.operacao(id)
+);
+CREATE TABLE public.processo_externo (
+  id integer NOT NULL DEFAULT nextval('processo_externo_id_seq'::regclass),
+  operacao_id integer NOT NULL,
+  tipo_processo character varying NOT NULL DEFAULT 'DIRETORIA'::character varying,
+  status character varying NOT NULL CHECK (status::text = ANY (ARRAY['PENDENTE'::character varying, 'APROVADO'::character varying, 'REJEITADO'::character varying]::text[])),
+  data_envio timestamp without time zone,
+  data_retorno timestamp without time zone,
+  observacoes text,
+  criado_em timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT processo_externo_pkey PRIMARY KEY (id),
+  CONSTRAINT processo_externo_operacao_id_fkey FOREIGN KEY (operacao_id) REFERENCES public.operacao(id)
+);
+CREATE TABLE public.regional (
+  id integer NOT NULL DEFAULT nextval('regional_id_seq'::regclass),
+  nome character varying NOT NULL UNIQUE,
+  codigo character varying NOT NULL UNIQUE,
+  ativo boolean DEFAULT true,
+  criado_em timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT regional_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.registro_presenca (
+  id integer NOT NULL DEFAULT nextval('registro_presenca_id_seq'::regclass),
+  execucao_operacao_id integer NOT NULL,
+  servidor_id integer NOT NULL,
+  status_presenca character varying NOT NULL CHECK (status_presenca::text = ANY (ARRAY['PRESENTE'::character varying, 'AUSENTE'::character varying, 'AUSENCIA_JUSTIFICADA'::character varying]::text[])),
+  justificativa_ausencia text,
+  registrado_em timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT registro_presenca_pkey PRIMARY KEY (id),
+  CONSTRAINT registro_presenca_execucao_operacao_id_fkey FOREIGN KEY (execucao_operacao_id) REFERENCES public.execucao_operacao(id),
+  CONSTRAINT registro_presenca_servidor_id_fkey FOREIGN KEY (servidor_id) REFERENCES public.servidor(id)
+);
+CREATE TABLE public.servidor (
+  id integer NOT NULL DEFAULT nextval('servidor_id_seq'::regclass),
+  matricula character varying NOT NULL UNIQUE,
+  nome character varying NOT NULL,
+  email character varying,
+  perfil character varying NOT NULL CHECK (perfil::text = ANY (ARRAY['Membro'::character varying, 'Supervisor'::character varying]::text[])),
+  regional_id integer NOT NULL,
+  ativo boolean DEFAULT true,
+  criado_em timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  auth_user_id uuid,
+  senha_hash text,
+  CONSTRAINT servidor_pkey PRIMARY KEY (id),
+  CONSTRAINT servidor_auth_user_id_fkey FOREIGN KEY (auth_user_id) REFERENCES auth.users(id),
+  CONSTRAINT servidor_regional_id_fkey FOREIGN KEY (regional_id) REFERENCES public.regional(id)
+);

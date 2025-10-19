@@ -24,7 +24,7 @@ import { X, Users, Clock, AlertCircle, RefreshCw } from 'lucide-react';
 // @ts-ignore - react-hot-toast será instalado
 import { toast } from 'react-hot-toast';
 import styles from './OperacaoDialog.module.css';
-import { useRealtimeUnified } from '@/hooks/useRealtimeUnified';
+import { useRealtime } from '@/hooks/useRealtime';
 
 interface Operacao {
   id: number;
@@ -238,16 +238,9 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
   // ✅ SIMPLIFICADO: Hook agora recebe parâmetros diretamente
 
   // ✅ MIGRADO: Hook realtime unificado para eventos/histórico
-  const { isConnected } = useRealtimeUnified({
+  useRealtime({
     channelId: `eventos-operacoes-${operacaoIds.join('-')}`,
     tables: ['eventos_operacao'],
-    filters: operacaoIds.length > 0 ? {
-      eventos_operacao: `operacao_id.in.(${operacaoIds.join(',')})`
-    } : undefined,
-    enableRealtime: operacaoIds.length > 0,
-    enablePolling: false,
-    enableFetch: false,
-    debug: false,
     onDatabaseChange: useCallback((event: any) => {
       const { table, eventType, payload } = event;
       
