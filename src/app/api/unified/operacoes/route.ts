@@ -120,6 +120,29 @@ export async function GET(request: NextRequest) {
       query = query.in('status', ['APROVADA', 'AGUARDANDO_DIRETORIA', 'APROVADA_DIRETORIA', 'REJEITADA_DIRETORIA']);
     }
 
+    // ✅ MEMBRO: Filtrar operações com visibilidade restrita, exceto aquelas em que está participando
+    if (portal === 'membro' || (membroId && portal !== 'supervisor' && portal !== 'diretoria')) {
+      if (membroId) {
+        // Get operations where member is participating
+        const { data: participacoes } = await supabase
+          .from('participacao')
+          .select('operacao_id')
+          .eq('membro_id', membroId)
+          .eq('ativa', true);
+        
+        const operacoesParticipando = participacoes?.map(p => p.operacao_id) || [];
+        
+        // Show non-restricted operations OR restricted operations where member is participating
+        if (operacoesParticipando.length > 0) {
+          query = query.or(`visibilidade_restrita.eq.false,and(visibilidade_restrita.eq.true,id.in.(${operacoesParticipando.join(',')}))`);
+        } else {
+          query = query.eq('visibilidade_restrita', false);
+        }
+      } else {
+        query = query.eq('visibilidade_restrita', false);
+      }
+    }
+
     // ✅ ISOLAMENTO POR REGIONAL: Filtrar operações apenas da regional do membro
     if (membroId && portal !== 'supervisor' && portal !== 'diretoria') {
       // Buscar regional do membro primeiro com nome da regional

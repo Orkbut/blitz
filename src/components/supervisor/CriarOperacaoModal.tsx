@@ -28,7 +28,8 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
     modalidade: '',
     tipo: 'PLANEJADA',
     turno: '',
-    limite: 15
+    limite: 15,
+    visibilidadeRestrita: false
   });
 
   const [limitesJanela, setLimitesJanela] = useState<{
@@ -199,7 +200,8 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
         modalidade: '',
         tipo: 'PLANEJADA',
         turno: '',
-        limite: 15
+        limite: 15,
+        visibilidadeRestrita: false
       });
       
       onSuccess();
@@ -538,10 +540,16 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
                   >
                     <option value="">{isJanelaSelecionada ? "Selecione a modalidade" : "Selecione uma janela primeiro"}</option>
                     {(!limitesJanela.modalidadesPermitidas || limitesJanela.modalidadesPermitidas.includes('BLITZ')) && (
-                      <option value="BLITZ">RADAR</option>
+                      <option value="BLITZ">BLITZ</option>
                     )}
                     {(!limitesJanela.modalidadesPermitidas || limitesJanela.modalidadesPermitidas.includes('BALANCA')) && (
                       <option value="BALANCA">BALANÇA</option>
+                    )}
+                    {(!limitesJanela.modalidadesPermitidas || limitesJanela.modalidadesPermitidas.includes('RADAR')) && (
+                      <option value="RADAR">EXCLUSIVA</option>
+                    )}
+                    {(!limitesJanela.modalidadesPermitidas || limitesJanela.modalidadesPermitidas.includes('EXCLUSIVA')) && (
+                      <option value="EXCLUSIVA">EXCLUSIVA</option>
                     )}
                   </select>
                   {limitesJanela.modalidadesPermitidas && (
@@ -556,6 +564,8 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
                     </p>
                   )}
                 </div>
+
+
               </div>
 
               {/* Grid com 3 colunas - campos secundários */}

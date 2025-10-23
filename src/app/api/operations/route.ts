@@ -150,9 +150,27 @@ async function handleListOperations(filters: any) {
     // Supervisor sees all operations
     query = query.eq('ativa', true);
   } else if (filters.portal === 'membro') {
-    // Members see only active operations
-    query = query.eq('ativa', true)
-                 .in('status', ['ATIVA', 'AGUARDANDO_SOLICITACOES']);
+    // Members see active operations without restricted visibility OR restricted operations they're participating in
+    if (filters.membroId) {
+      // Get operations where member is participating
+      const { data: participacoes } = await supabase
+        .from('participacao')
+        .select('operacao_id')
+        .eq('membro_id', filters.membroId)
+        .eq('ativa', true);
+      
+      const operacoesParticipando = participacoes?.map(p => p.operacao_id) || [];
+      
+      // Show non-restricted operations OR restricted operations where member is participating
+      query = query.eq('ativa', true)
+                   .in('status', ['ATIVA', 'AGUARDANDO_SOLICITACOES'])
+                   .or(`visibilidade_restrita.eq.false,and(visibilidade_restrita.eq.true,id.in.(${operacoesParticipando.join(',') || '0'}))`);
+    } else {
+      // If no membroId, only show non-restricted operations
+      query = query.eq('ativa', true)
+                   .in('status', ['ATIVA', 'AGUARDANDO_SOLICITACOES'])
+                   .eq('visibilidade_restrita', false);
+    }
   }
 
   const { data: operacoes, error } = await query.order('data_operacao', { ascending: true });
@@ -442,4 +460,4 @@ async function handleDeleteOperation(operationId: string, data: any) {
       timestamp: new Date().toISOString()
     });
   }
-} 
+}

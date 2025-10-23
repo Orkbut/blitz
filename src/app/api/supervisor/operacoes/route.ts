@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { janelaId, data, modalidade, tipo, turno, limite } = body;
+    const { janelaId, data, modalidade, tipo, turno, limite, visibilidadeRestrita } = body;
 
     // ✅ VALIDAÇÕES DE ENTRADA
     if (!janelaId || !data || !modalidade) {
@@ -168,6 +168,7 @@ export async function POST(request: NextRequest) {
         limite_participantes: limiteParticipantes,
         status: 'AGUARDANDO_SOLICITACOES', // ✅ STATUS CORRETO
         ativa: true,
+        visibilidade_restrita: modalidade === 'RADAR', // ✅ EXCLUSIVA: Automaticamente restrita quando RADAR
         criado_em: new Date().toISOString()
       })
       .select('*')
@@ -200,4 +201,4 @@ export async function POST(request: NextRequest) {
       boundedContext: 'supervisor'
     }, { status: 500 });
   }
-} 
+}
