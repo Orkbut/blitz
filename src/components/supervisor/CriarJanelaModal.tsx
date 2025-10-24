@@ -402,7 +402,7 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
               Modalidades *
             </label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(0.375rem, 1vw, 0.5rem)' }}>
-              {['BLITZ', 'BALANCA'].map((modalidade) => (
+              {['BLITZ', 'BALANCA', 'RADAR'].map((modalidade) => (
                 <label key={modalidade} style={{ 
                   display: 'flex', 
                   alignItems: 'center', 
@@ -452,7 +452,7 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
                     checked={novaJanela.modalidades.includes(modalidade)}
                     onChange={() => handleModalidadeChange(modalidade)}
                     disabled={loading}
-                    aria-label={`Modalidade ${modalidade === 'BLITZ' ? 'Blitz' : 'Balança'}`}
+                    aria-label={`Modalidade ${modalidade === 'BLITZ' ? 'Blitz' : modalidade === 'BALANCA' ? 'Balança' : 'Exclusiva'}`}
                     style={{ 
                       marginRight: 'clamp(0.375rem, 1vw, 0.5rem)', 
                       width: 'clamp(14px, 2.5vw, 16px)', 
@@ -467,14 +467,14 @@ export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onS
                       fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
                       color: 'inherit'
                     }}>
-                      {modalidade === 'BLITZ' ? 'RADAR' : 'BALANÇA'}
+                      {modalidade === 'BLITZ' ? 'BLITZ' : modalidade === 'BALANCA' ? 'BALANÇA' : 'EXCLUSIVA'}
                     </span>
                     <span style={{
                       fontSize: 'clamp(0.7rem, 1.5vw, 0.8rem)',
                       opacity: 0.8,
                       fontWeight: 400
                     }}>
-                      {modalidade === 'BLITZ' ? 'Operações de fiscalização' : 'Operações de pesagem'}
+                      {modalidade === 'BLITZ' ? 'Operações de fiscalização' : modalidade === 'BALANCA' ? 'Operações de pesagem' : 'Operações com visibilidade restrita'}
                     </span>
                   </div>
                 </label>
