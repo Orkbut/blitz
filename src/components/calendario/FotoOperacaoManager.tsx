@@ -57,44 +57,64 @@ const FotoOperacaoManager: React.FC<FotoOperacaoManagerProps> = ({
   const handleUpload = async (file: File) => {
     if (!file) return;
 
+    console.log('🔍 [DEBUG] Iniciando upload:', {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+      operacaoId,
+      membroId
+    });
+
     // Validações
     if (file.size > 18 * 1024 * 1024) {
+      console.log('❌ [DEBUG] Arquivo muito grande:', file.size);
       toast.error('Arquivo muito grande. Máximo 18MB.');
       return;
     }
 
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
+      console.log('❌ [DEBUG] Tipo não suportado:', file.type);
       toast.error('Tipo de arquivo não suportado. Use JPEG, PNG ou WebP.');
       return;
     }
 
     try {
       setUploading(true);
+      console.log('📤 [DEBUG] Preparando FormData...');
       
       const formData = new FormData();
       formData.append('file', file);
       formData.append('operacao_id', operacaoId.toString());
       formData.append('membro_id', membroId.toString());
 
-      const response = await fetch('/api/fotos-operacao/upload', {
+      console.log('🌐 [DEBUG] Enviando para API: /api/fotos-operacao');
+      const response = await fetch('/api/fotos-operacao', {
         method: 'POST',
         body: formData,
       });
 
+      console.log('📡 [DEBUG] Resposta da API:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
+
       if (!response.ok) {
         const errorData = await response.json();
+        console.log('❌ [DEBUG] Erro da API:', errorData);
         throw new Error(errorData.error || 'Erro no upload');
       }
 
       const data = await response.json();
+      console.log('✅ [DEBUG] Upload bem-sucedido:', data);
       toast.success('Foto enviada com sucesso!');
       
       // Recarregar fotos
       await carregarFotos();
       
     } catch (error: any) {
-      console.error('Erro no upload:', error);
+      console.error('❌ [DEBUG] Erro no upload:', error);
       toast.error(error.message || 'Erro ao enviar foto');
     } finally {
       setUploading(false);
