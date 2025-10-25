@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { MultiDateCalendar } from './MultiDateCalendar';
 import { getSupervisorHeaders, formatarDataBR } from '@/lib/auth-utils';
+import { useModalBackButton } from '@/hooks/useNativeBackButton';
 
 interface JanelaOperacional {
   id: string;
@@ -19,6 +20,9 @@ interface CriarOperacaoModalProps {
 
 export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
+  
+  // ✅ HOOK PARA BOTÃO VOLTAR NATIVO
+  useModalBackButton('criar-operacao-modal', true, onClose, 10);
   const [loadingJanelas, setLoadingJanelas] = useState(true);
   const [janelas, setJanelas] = useState<JanelaOperacional[]>([]);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
@@ -88,15 +92,7 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
       const result = await response.json();
       
       if (result.success) {
-        console.log('🔍 DEBUG - Janelas recebidas da API:', result.data);
-        result.data.forEach((janela: any) => {
-          console.log(`🔍 Janela #${janela.id}:`, {
-            dataInicio_raw: janela.dataInicio,
-            dataFim_raw: janela.dataFim,
-            dataInicio_formatada: formatarDataBR(janela.dataInicio),
-            dataFim_formatada: formatarDataBR(janela.dataFim)
-          });
-        });
+
         setJanelas(result.data || []);
       } else {
         alert(`Erro ao carregar janelas: ${result.error}`);
@@ -132,7 +128,7 @@ export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose,
           limite: result.data.limitesParticipantes?.padrao || prev.limite
         }));
         
-        console.log('✅ Limites da janela carregados:', result.data);
+
       } else {
         console.error('❌ Erro ao carregar limites:', result.error);
         setLimitesJanela({});

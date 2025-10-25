@@ -1359,23 +1359,20 @@ TODO FUTURO: Analisar uso destes estilos em:
   transform: translateY(0);
 }
 
-/* Botão de Fotos */
-.fotoButton {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-  border: none;
-  color: white;
+/* Ícone de Fotos */
+.fotoIcon {
+  width: 2.8rem;
+  height: 2.8rem;
   cursor: pointer;
-  padding: 0.5rem 0.75rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
-  position: relative;
-  overflow: hidden;
+  border-radius: 8px;
+  padding: 0.4rem;
+  box-sizing: border-box;
+}
+
+.fotoIcon:hover {
+  transform: scale(1.1);
+  filter: brightness(1.2);
 }
 
 .fotoButton::before {

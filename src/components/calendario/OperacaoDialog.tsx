@@ -26,6 +26,7 @@ import { toast } from 'react-hot-toast';
 import styles from './OperacaoDialog.module.css';
 import { useRealtime } from '@/hooks/useRealtime';
 import FotoOperacaoManager from './FotoOperacaoManager';
+import { useModalBackButton } from '@/hooks/useNativeBackButton';
 
 interface Operacao {
   id: number;
@@ -132,6 +133,8 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
   onClose,
   onOperacaoUpdate
 }) => {
+   // ✅ HOOK: Botão voltar nativo
+   useModalBackButton('operacao-dialog', true, onClose, 10);
   // ✅ DEBUG: Rastrear re-renders
   const renderCount = useRef(0);
   const lastPropsRef = useRef({ operacoesLength: 0, dateString: '' });
@@ -637,6 +640,9 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
     posicaoCronologica?: number, 
     totalNaFila?: number 
   }) => {
+    // ✅ HOOK: Botão voltar nativo para modal de histórico
+    useModalBackButton('historico-modal', true, fecharHistoricoModal, 20);
+    
     // ✅ OTIMIZADO: Logs de modal histórico removidos (performance)
     
     const historico = historicoOperacao[operacaoId];
@@ -927,16 +933,17 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                         </button>
                       )}
 
-                      {/* ✅ NOVO: Botão para gerenciar fotos da operação */}
+                      {/* ✅ NOVO: Ícone para gerenciar fotos da operação */}
                       {operacao.minha_participacao && 
-                       ['CONFIRMADO', 'ADICIONADO_SUP'].includes(operacao.minha_participacao.estado_visual) && (
-                        <button
+                       ['CONFIRMADO', 'ADICIONADO_SUP'].includes(operacao.minha_participacao.estado_visual) &&
+                       new Date(operacao.data_operacao) <= new Date() && (
+                        <img 
+                          src="/CAMERA.png" 
+                          alt="Câmera" 
+                          className={styles.fotoIcon}
                           onClick={() => setFotoModalAberto(operacao.id)}
-                          className={styles.fotoButton}
                           title="Gerenciar fotos da operação"
-                        >
-                          📷
-                        </button>
+                        />
                       )}
 
                       {estadoInfo.showButton && (

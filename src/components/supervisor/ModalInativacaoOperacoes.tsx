@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { X } from 'lucide-react';
 import { Operacao } from '@/shared/types';
 import { getSupervisorHeaders, formatarDataBR } from '@/lib/auth-utils';
+import { useModalBackButton } from '@/hooks/useNativeBackButton';
 
 interface ModalInativacaoOperacoesProps {
   isOpen: boolean;
@@ -23,6 +24,9 @@ export const ModalInativacaoOperacoes: React.FC<ModalInativacaoOperacoesProps> =
   const [loading, setLoading] = useState(false);
   const [loadingOperacoes, setLoadingOperacoes] = useState(false);
   const [motivo, setMotivo] = useState('');
+
+  // ✅ HOOK PARA BOTÃO VOLTAR NATIVO
+  useModalBackButton('modal-inativacao-operacoes', isOpen, onClose, 10);
 
   // Fechar modal com ESC
   useEffect(() => {

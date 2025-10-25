@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { PhotoProvider, PhotoView } from 'react-photo-view';
 import { X, Upload, Camera, Trash2, RotateCw, ZoomIn } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { getMembroHeaders } from '@/lib/auth-utils';
+import { useModalBackButton } from '@/hooks/useNativeBackButton';
 import styles from './FotoOperacaoManager.module.css';
 import 'react-photo-view/dist/react-photo-view.css';
 
@@ -33,11 +35,16 @@ const FotoOperacaoManager: React.FC<FotoOperacaoManagerProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
+  // ✅ HOOK PARA BOTÃO VOLTAR NATIVO
+  useModalBackButton('foto-operacao-manager', true, onClose, 15);
+
   // Carregar fotos da operação
   const carregarFotos = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/fotos-operacao?operacao_id=${operacaoId}`);
+      const response = await fetch(`/api/fotos-operacao?operacao_id=${operacaoId}`, {
+      headers: getMembroHeaders(),
+    });
       
       if (!response.ok) {
         throw new Error('Erro ao carregar fotos');
@@ -57,64 +64,44 @@ const FotoOperacaoManager: React.FC<FotoOperacaoManagerProps> = ({
   const handleUpload = async (file: File) => {
     if (!file) return;
 
-    console.log('🔍 [DEBUG] Iniciando upload:', {
-      fileName: file.name,
-      fileSize: file.size,
-      fileType: file.type,
-      operacaoId,
-      membroId
-    });
-
     // Validações
     if (file.size > 18 * 1024 * 1024) {
-      console.log('❌ [DEBUG] Arquivo muito grande:', file.size);
       toast.error('Arquivo muito grande. Máximo 18MB.');
       return;
     }
 
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-      console.log('❌ [DEBUG] Tipo não suportado:', file.type);
       toast.error('Tipo de arquivo não suportado. Use JPEG, PNG ou WebP.');
       return;
     }
 
     try {
       setUploading(true);
-      console.log('📤 [DEBUG] Preparando FormData...');
       
       const formData = new FormData();
       formData.append('file', file);
       formData.append('operacao_id', operacaoId.toString());
       formData.append('membro_id', membroId.toString());
 
-      console.log('🌐 [DEBUG] Enviando para API: /api/fotos-operacao');
       const response = await fetch('/api/fotos-operacao', {
         method: 'POST',
+        headers: getMembroHeaders(),
         body: formData,
-      });
-
-      console.log('📡 [DEBUG] Resposta da API:', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.log('❌ [DEBUG] Erro da API:', errorData);
         throw new Error(errorData.error || 'Erro no upload');
       }
 
       const data = await response.json();
-      console.log('✅ [DEBUG] Upload bem-sucedido:', data);
       toast.success('Foto enviada com sucesso!');
       
       // Recarregar fotos
       await carregarFotos();
       
     } catch (error: any) {
-      console.error('❌ [DEBUG] Erro no upload:', error);
       toast.error(error.message || 'Erro ao enviar foto');
     } finally {
       setUploading(false);
@@ -130,6 +117,7 @@ const FotoOperacaoManager: React.FC<FotoOperacaoManagerProps> = ({
     try {
       const response = await fetch(`/api/fotos-operacao/${fotoId}`, {
         method: 'DELETE',
+        headers: getMembroHeaders(),
       });
 
       if (!response.ok) {
@@ -235,7 +223,6 @@ const FotoOperacaoManager: React.FC<FotoOperacaoManagerProps> = ({
           ) : (
             <PhotoProvider
               maskOpacity={0.8}
-              bannerVisible={false}
               toolbarRender={({ rotate, onRotate }) => (
                 <div className={styles.photoToolbar}>
                   <button onClick={() => onRotate(rotate + 90)}>

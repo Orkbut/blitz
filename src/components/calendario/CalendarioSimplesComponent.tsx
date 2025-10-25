@@ -50,7 +50,7 @@ interface Operacao {
 
 export const CalendarioSimplesComponent: React.FC = () => {
   // Log para debug de re-renderizações
-  console.log('[CalendarioSimplesComponent] Componente renderizado', { timestamp: Date.now() });
+
   
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -199,7 +199,7 @@ export const CalendarioSimplesComponent: React.FC = () => {
     // Sempre gerar relatório pelo calendário do membro, sem exigir confirmação do supervisor
 
     try {
-      console.log('🔄 Iniciando geração do relatório...');
+
       
       const { createClient } = await import('@supabase/supabase-js');
       const supabase = createClient(
@@ -294,7 +294,7 @@ export const CalendarioSimplesComponent: React.FC = () => {
         throw new Error(`Erro ao buscar participações: ${errorParticipacoes.message}`);
       }
       
-      console.log('📊 Participações encontradas:', participacoes?.length || 0);
+      
       
       if (!participacoes || participacoes.length === 0) {
         return `Nenhuma participação encontrada para ${mesAtual}.`;

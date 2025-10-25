@@ -358,7 +358,7 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
     tables: ['operacao', 'participacao'],
     onDatabaseChange: useCallback((event: any) => {
       const { table, eventType, payload } = event;
-      console.log(`[CalendarioSupervisor] 📡 ${table} ${eventType} - Recarregando dados...`);
+
       reloadDados();
     }, [reloadDados])
   });
@@ -783,18 +783,8 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
                               : '0 1px 3px rgba(0, 0, 0, 0.05)'
                         }}
                         onClick={() => {
-                          console.log('🔍 [CalendarioSupervisor] Clique detectado:', {
-                            dataFormatada,
-                            temOperacoes,
-                            quantidadeOperacoes: operacoesDia.length,
-                            operacoesDia,
-                            onOperacaoClickExists: !!onOperacaoClick
-                          });
                           if (temOperacoes && onOperacaoClick) {
-                            console.log('✅ [CalendarioSupervisor] Chamando onOperacaoClick com:', operacoesDia);
                             onOperacaoClick(operacoesDia);
-                          } else {
-                            console.log('❌ [CalendarioSupervisor] Clique bloqueado - temOperacoes:', temOperacoes, 'onOperacaoClick:', !!onOperacaoClick);
                           }
                         }}
                       >

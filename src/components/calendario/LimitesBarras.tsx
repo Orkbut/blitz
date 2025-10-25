@@ -98,7 +98,7 @@ export const LimitesBarras: React.FC<LimitesBarrasProps> = React.memo(({
       const periodoFechado = fechadoPorData || fechadoPorOperacoes;
 
       if (debug && fechadoPorOperacoes && !fechadoPorData) {
-        console.log(`[getPeriodoLabel] Período anterior fechado por operações arquivadas (data ainda não passou)`);
+
       }
 
       return {
@@ -127,7 +127,7 @@ export const LimitesBarras: React.FC<LimitesBarrasProps> = React.memo(({
       const periodoFechado = fechadoPorData || fechadoPorOperacoes;
 
       if (debug && fechadoPorOperacoes && !fechadoPorData) {
-        console.log(`[getPeriodoLabel] Período corrente fechado por operações arquivadas (data ainda não passou)`);
+
       }
 
       return {

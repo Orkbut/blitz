@@ -92,11 +92,7 @@ export class RealtimeManager {
     this.startHealthMonitoring();
     this.setupGlobalErrorHandling();
     
-    console.log(`[RealtimeManager] 🚀 Instância criada com config:`, {
-      maxChannels: config.maxChannelsPerClient,
-      maxJoins: config.maxJoinsPerSecond,
-      healthInterval: config.healthCheckInterval
-    });
+
   }
 
   /**

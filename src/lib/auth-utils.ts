@@ -83,6 +83,46 @@ export function getSupervisorHeaders(): HeadersInit {
 }
 
 /**
+ * Obtém os dados do membro logado do localStorage
+ */
+export function getMembroData(): SupervisorData | null {
+  try {
+    const membroAuth = localStorage.getItem('membroAuth');
+    if (!membroAuth) {
+      return null;
+    }
+    
+    const userData = JSON.parse(membroAuth);
+    
+    // Validar se tem os campos obrigatórios
+    if (!userData.id || !userData.regionalId) {
+      return null;
+    }
+    
+    return userData;
+  } catch (error) {
+    return null;
+  }
+}
+
+/**
+ * Cria headers com contexto do membro para requisições
+ */
+export function getMembroHeaders(): HeadersInit {
+  const membroData = getMembroData();
+  
+  if (!membroData) {
+    return {};
+  }
+  
+  return {
+    'X-Membro-Id': membroData.id.toString(),
+    'X-Regional-Id': membroData.regionalId.toString(),
+    'X-Membro-Context': 'true'
+  };
+}
+
+/**
  * Cria payload com contexto do supervisor para requisições POST/PUT
  */
 export function getSupervisorContext() {

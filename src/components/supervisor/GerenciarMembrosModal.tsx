@@ -22,6 +22,7 @@ import toast from 'react-hot-toast';
 import { useRealtime } from '@/hooks/useRealtime';
 import { useModal } from '@/hooks/useModal';
 import { UniversalModal } from '@/shared/components/ui';
+import { useModalBackButton } from '@/hooks/useNativeBackButton';
 import styles from './GerenciarMembrosModal.module.css';
 import { format, parseISO } from 'date-fns';
 import { getSupervisorHeaders, formatarDataBR } from '@/lib/auth-utils';
@@ -334,6 +335,9 @@ const GerenciarMembrosModalComponent: React.FC<GerenciarMembrosModalProps> = ({ 
 
   // Hook para modais modernos
   const modal = useModal();
+
+  // ✅ HOOK: Botão voltar nativo
+  useModalBackButton('gerenciar-membros-modal', true, onClose, 10);
 
   // 🚀 FUNÇÃO OTIMIZADA: Definir loading individual
   const setLoadingState = useCallback((key: string, isLoading: boolean) => {

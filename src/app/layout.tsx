@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { RealtimeProvider } from "@/contexts/RealtimeContext";
 import PWAInstaller from "@/components/PWAInstaller";
+import PWAStateManager from "@/components/PWAStateManager";
 
 export const metadata: Metadata = {
   title: "Radar Detran - Sistema EU VOU",
@@ -79,6 +80,7 @@ export default function RootLayout({
       </head>
       <body>
         <RealtimeProvider>
+          <PWAStateManager />
           {children}
           <PWAInstaller />
         </RealtimeProvider>

@@ -226,7 +226,7 @@ export function useLimitesCalendario({
       const { table, eventType } = event;
       
       if (debug) {
-        console.log(`[useLimitesCalendario] Realtime event:`, { table, eventType, event });
+    
       }
       
       if (table === 'participacao') {
@@ -238,7 +238,7 @@ export function useLimitesCalendario({
         if (newMembroId?.toString() === membroId ||
           oldMembroId?.toString() === membroId) {
           if (debug) {
-            console.log(`[useLimitesCalendario] Recarregando por mudança em participacao do membro ${membroId}`);
+  
           }
           reloadData();
         }
@@ -246,7 +246,7 @@ export function useLimitesCalendario({
         // Para operações, sempre recarregar pois pode afetar os cálculos
         // (ex: operação sendo arquivada, status mudando, etc.)
         if (debug) {
-          console.log(`[useLimitesCalendario] Recarregando por mudança em operacao`);
+
         }
         reloadData();
       }
