@@ -25,6 +25,7 @@ import { X, Users, Clock, AlertCircle, RefreshCw } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import styles from './OperacaoDialog.module.css';
 import { useRealtime } from '@/hooks/useRealtime';
+import FotoOperacaoManager from './FotoOperacaoManager';
 
 interface Operacao {
   id: number;
@@ -170,6 +171,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
   const [historicoOperacao, setHistoricoOperacao] = useState<Record<number, HistoricoOperacao>>({});
   const [loadingHistorico, setLoadingHistorico] = useState<Record<number, boolean>>({});
   const [historicoModalAberto, setHistoricoModalAberto] = useState<number | null>(null);
+  const [fotoModalAberto, setFotoModalAberto] = useState<number | null>(null);
   
   // 🚀 REALTIME: IDs das operações no modal (memoizados para estabilidade)
   const operacaoIds = useMemo(() => {
@@ -925,6 +927,18 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                         </button>
                       )}
 
+                      {/* ✅ NOVO: Botão para gerenciar fotos da operação */}
+                      {operacao.minha_participacao && 
+                       ['CONFIRMADO', 'ADICIONADO_SUP'].includes(operacao.minha_participacao.estado_visual) && (
+                        <button
+                          onClick={() => setFotoModalAberto(operacao.id)}
+                          className={styles.fotoButton}
+                          title="Gerenciar fotos da operação"
+                        >
+                          📷
+                        </button>
+                      )}
+
                       {estadoInfo.showButton && (
                         <button
                           onClick={() => {
@@ -1150,6 +1164,15 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
           operacaoId={historicoModalAberto}
           posicaoCronologica={operacoes.find(op => op.id === historicoModalAberto)?.minha_participacao?.posicao_cronologica}
           totalNaFila={operacoes.find(op => op.id === historicoModalAberto)?.minha_participacao?.transparencia?.total_na_fila_cronologica}
+        />
+      )}
+
+      {/* Modal de Fotos */}
+      {fotoModalAberto && (
+        <FotoOperacaoManager
+          operacaoId={fotoModalAberto}
+          membroId={parseInt(membroId)}
+          onClose={() => setFotoModalAberto(null)}
         />
       )}
     </div>
