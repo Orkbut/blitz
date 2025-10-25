@@ -31,7 +31,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Upload do arquivo para o storage
-    const fileName = `${Date.now()}_${file.name}`;
+    // Sanitizar nome do arquivo removendo caracteres especiais
+    const sanitizedFileName = file.name
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+      .replace(/[^a-zA-Z0-9.-]/g, '_') // Substitui caracteres especiais por _
+      .replace(/_{2,}/g, '_'); // Remove múltiplos underscores consecutivos
+    
+    const fileName = `${Date.now()}_${sanitizedFileName}`;
     console.log('📤 [API DEBUG] Fazendo upload para storage:', fileName);
     
     const { data: uploadData, error: uploadError } = await supabase.storage
@@ -48,11 +55,18 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ [API DEBUG] Upload bem-sucedido:', uploadData);
 
+    // Gerar URL pública para a foto
+    const { data: publicUrlData } = supabase.storage
+      .from('fotos-operacao')
+      .getPublicUrl(uploadData.path);
+
+    console.log('🔗 [API DEBUG] URL pública gerada:', publicUrlData.publicUrl);
+
      // Salvar informações da foto no banco
       const fotoData = {
         operacao_id: parseInt(operacaoId),
         membro_id: membroId ? parseInt(membroId) : null,
-        url_foto: uploadData.path,
+        url_foto: publicUrlData.publicUrl,
         nome_arquivo: file.name,
         tamanho_bytes: file.size,
         tipo_mime: file.type,
@@ -113,7 +127,23 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ fotos: fotos || [] });
+    // Garantir que todas as fotos tenham URLs públicas válidas
+    const fotosComUrlPublica = fotos?.map(foto => {
+      // Se a URL não for uma URL completa, gerar URL pública
+      if (foto.url_foto && !foto.url_foto.startsWith('http')) {
+        const { data: publicUrlData } = supabase.storage
+          .from('fotos-operacao')
+          .getPublicUrl(foto.url_foto);
+        
+        return {
+          ...foto,
+          url_foto: publicUrlData.publicUrl
+        };
+      }
+      return foto;
+    }) || [];
+
+    return NextResponse.json({ fotos: fotosComUrlPublica });
   } catch (error) {
     console.error('Erro na API de fotos:', error);
     return NextResponse.json(
