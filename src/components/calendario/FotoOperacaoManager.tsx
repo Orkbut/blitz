@@ -222,6 +222,15 @@ const FotoOperacaoManager: React.FC<FotoOperacaoManagerProps> = ({
                   </button>
                 </div>
               )}
+              overlayRender={({ onClose }) => (
+                <button 
+                  onClick={onClose}
+                  className={styles.photoCloseButton}
+                  title="Fechar visualização"
+                >
+                  <X size={24} />
+                </button>
+              )}
             >
               <div className={styles.photoGrid}>
                 {fotos.map((foto) => (

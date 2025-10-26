@@ -265,6 +265,36 @@
   background: rgba(0, 0, 0, 0.8);
 }
 
+/* Photo Close Button - Botão de fechar na visualização em tela cheia */
+.photoCloseButton {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 12px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 9999;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.photoCloseButton:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.photoCloseButton:active {
+  transform: scale(0.95);
+}
+
 /* Animations */
 @keyframes fadeIn {
   from {
@@ -329,5 +359,14 @@
 
   .photoInfo {
     padding: 0.75rem;
+  }
+
+  /* Botão de fechar responsivo para mobile */
+  .photoCloseButton {
+    top: 15px;
+    right: 15px;
+    padding: 14px;
+    min-width: 48px;
+    min-height: 48px;
   }
 }
