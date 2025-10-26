@@ -1316,47 +1316,12 @@ TODO FUTURO: Analisar uso destes estilos em:
 
 /* ===== NOVO MODAL DO HISTÓRICO ===== */
 
-/* Botão do Histórico */
-.historicoButton {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  color: white;
-  cursor: pointer;
-  padding: 0.5rem 0.75rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
+/* Container para ícones lado a lado */
+.iconesContainer {
   display: flex;
   align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-  position: relative;
-  overflow: hidden;
-}
-
-.historicoButton::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.5s ease;
-}
-
-.historicoButton:hover::before {
-  left: 100%;
-}
-
-.historicoButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-}
-
-.historicoButton:active {
-  transform: translateY(0);
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 /* Ícone de Fotos */
@@ -1577,10 +1542,7 @@ TODO FUTURO: Analisar uso destes estilos em:
     font-size: 1.25rem;
   }
   
-  .historicoButton {
-    padding: 0.4rem 0.6rem;
-    font-size: 0.9rem;
-  }
+
 }
 
 @media (max-width: 480px) {

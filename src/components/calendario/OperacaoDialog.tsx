@@ -487,7 +487,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
         showButton: false,
         buttonText: '',
         buttonAction: '',
-        showTooltipDetalhado: false,
+        showTooltipDetalhado: true, // ✅ CORREÇÃO: Permitir visualização do histórico em operações arquivadas
         operacaoId: operacao.id,
         posicaoCronologica: null,
         totalNaFila: null,
@@ -916,29 +916,32 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                         <span>{estadoInfo.text}</span>
                       </div>
 
-                      {/* ✅ NOVO: Botão dedicado para abrir histórico da operação */}
-                      {estadoInfo.showTooltipDetalhado && estadoInfo.operacaoId && (
-                        <button
-                          onClick={() => abrirHistoricoModal(estadoInfo.operacaoId!)}
-                          className={styles.historicoButton}
-                          title="Ver arquivo completo da operação"
-                        >
-                          📊
-                        </button>
-                      )}
+                      {/* ✅ NOVO: Container para ícones lado a lado */}
+                      <div className={styles.iconesContainer}>
+                        {/* Ícone para abrir histórico da operação */}
+                        {estadoInfo.showTooltipDetalhado && estadoInfo.operacaoId && (
+                          <img 
+                            src="/historico-de-saude.png" 
+                            alt="Histórico" 
+                            className={styles.fotoIcon}
+                            onClick={() => abrirHistoricoModal(estadoInfo.operacaoId!)}
+                            title="Ver arquivo completo da operação"
+                          />
+                        )}
 
-                      {/* ✅ NOVO: Ícone para gerenciar fotos da operação */}
-                      {operacao.minha_participacao && 
-                       ['CONFIRMADO', 'ADICIONADO_SUP'].includes(operacao.minha_participacao.estado_visual) &&
-                       new Date(operacao.data_operacao) <= new Date() && (
-                        <img 
-                          src="/CAMERA.png" 
-                          alt="Câmera" 
-                          className={styles.fotoIcon}
-                          onClick={() => setFotoModalAberto(operacao.id)}
-                          title="Gerenciar fotos da operação"
-                        />
-                      )}
+                        {/* Ícone para gerenciar fotos da operação */}
+                        {operacao.minha_participacao && 
+                         ['CONFIRMADO', 'ADICIONADO_SUP'].includes(operacao.minha_participacao.estado_visual) &&
+                         new Date(operacao.data_operacao) <= new Date() && (
+                          <img 
+                            src="/CAMERA.png" 
+                            alt="Câmera" 
+                            className={styles.fotoIcon}
+                            onClick={() => setFotoModalAberto(operacao.id)}
+                            title="Gerenciar fotos da operação"
+                          />
+                        )}
+                      </div>
 
                       {estadoInfo.showButton && (
                         <button
