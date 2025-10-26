@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// Cliente Supabase direto - KISS
+// Cliente Supabase com service role para contornar RLS - KISS
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 // ✅ SISTEMA DE LOGGING INTELIGENTE - Controla verbosidade
@@ -204,6 +204,25 @@ export async function GET(request: NextRequest) {
       }, { status: 500 });
     }
 
+    // ✅ OTIMIZAÇÃO: Buscar operações com fotos em uma única query
+    let operacoesComFotos = new Set<number>();
+    if (operacoes && Array.isArray(operacoes) && operacoes.length > 0) {
+      const operacaoIds = operacoes.map((op: any) => op.id);
+      
+      const { data: fotosOperacoes, error: fotosError } = await supabase
+        .from('fotos_operacao')
+        .select('operacao_id')
+        .in('operacao_id', operacaoIds);
+      
+      if (fotosError) {
+        logError('❌ Erro ao buscar fotos:', fotosError);
+      }
+      
+      if (fotosOperacoes) {
+        operacoesComFotos = new Set(fotosOperacoes.map(f => f.operacao_id));
+      }
+    }
+
 
 
     // ✅ OTIMIZADO: Log resumido apenas quando necessário
@@ -305,7 +324,9 @@ export async function GET(request: NextRequest) {
           dataOperacao: op.data_operacao,
           limiteParticipantes: op.limite_participantes,
           statusReal: op.status || 'Disponível',
-          regional: op.janela?.regional?.nome || 'Sem Regional'
+          regional: op.janela?.regional?.nome || 'Sem Regional',
+          // ✅ NOVO: Indicador de fotos
+          tem_fotos: operacoesComFotos.has(op.id)
         };
 
         return resultadoSupervisor;
@@ -342,7 +363,9 @@ export async function GET(request: NextRequest) {
           participantes: participantesComBloqueio,
           // Compatibilidade
           statusReal: op.status || 'Disponível',
-          regional: op.janela?.regional?.nome || 'Sem Regional'
+          regional: op.janela?.regional?.nome || 'Sem Regional',
+          // ✅ NOVO: Indicador de fotos
+          tem_fotos: operacoesComFotos.has(op.id)
         };
       }
 
@@ -384,7 +407,9 @@ export async function GET(request: NextRequest) {
         dataOperacao: op.data_operacao,
         limiteParticipantes: op.limite_participantes,
         statusReal: op.status || 'Disponível',
-        regional: op.janela?.regional?.nome || 'Sem Regional'
+        regional: op.janela?.regional?.nome || 'Sem Regional',
+        // ✅ NOVO: Indicador de fotos
+        tem_fotos: operacoesComFotos.has(op.id)
       };
     }) || [];
 

@@ -36,6 +36,8 @@ interface Operacao {
   data_inativacao?: string;
   motivo_inativacao?: string;
   supervisor_inativacao_id?: number;
+  // ✅ NOVO: Indicador de fotos
+  tem_fotos?: boolean;
   janela?: {
     id: number;
     dataInicio: string;
@@ -74,6 +76,7 @@ export const CalendarioSimplesComponent: React.FC = () => {
   });
   const [loadingButtons, setLoadingButtons] = useState<Set<number>>(new Set());
   const [operacoes, setOperacoes] = useState<Operacao[]>([]);
+  const [operacoesComFotos, setOperacoesComFotos] = useState<Set<number>>(new Set());
 
   const [isDarkTheme, setIsDarkTheme] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -1049,7 +1052,7 @@ export const CalendarioSimplesComponent: React.FC = () => {
     // Debug removido para performance
 
     return (
-      <div className={`${styles.singleOperationInfo} ${styles.responsive} ${isInativa ? styles.operacaoInativa : ''}`}>
+      <div className={`${styles.singleOperationInfo} ${styles.responsive} ${isInativa ? styles.operacaoInativa : ''} ${isInativa && operacao.tem_fotos ? styles.comFotos : ''}`}>
         <div className={`${styles.operationHeader} ${styles[operacao.modalidade.toLowerCase()]}`}>
           <div className={`${styles.modalidadeName} ${styles[operacao.modalidade.toLowerCase()]}`}>
             {operacao.modalidade === 'BLITZ' ? 'RADAR' : operacao.modalidade}
@@ -1086,8 +1089,13 @@ export const CalendarioSimplesComponent: React.FC = () => {
     const maxShow = 2;
     const remaining = operacoes.length - maxShow;
 
+    // ✅ Verificar se todas as operações são inativas e se alguma tem fotos
+    const todasInativas = operacoes.every(op => op.inativa_pelo_supervisor);
+    const algumTemFotos = operacoes.some(op => op.inativa_pelo_supervisor && op.tem_fotos);
+    const classeFotos = todasInativas && algumTemFotos ? styles.comFotos : '';
+
     return (
-      <div className={styles.multipleOperations}>
+      <div className={`${styles.multipleOperations} ${classeFotos}`}>
         {operacoes.slice(0, maxShow).map((op, idx) => {
           const confirmados = op.participantes_confirmados || 0;
           const limite = op.limite_participantes;
