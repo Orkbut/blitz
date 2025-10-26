@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { MultiDateCalendar } from './MultiDateCalendar';
 import { getSupervisorContext, getSupervisorHeaders, getSupervisorData, formatarDataBR } from '@/lib/auth-utils';
-import { useModalBackButton } from '@/hooks/useNativeBackButton';
 
 interface CriarJanelaModalProps {
   onClose: () => void;
@@ -13,9 +12,6 @@ interface CriarJanelaModalProps {
 
 export const CriarJanelaModal: React.FC<CriarJanelaModalProps> = ({ onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
-  
-  // ✅ NOVO: Hook para interceptar botão voltar nativo
-  useModalBackButton('criar-janela-modal', true, onClose, 10);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [novaJanela, setNovaJanela] = useState({
     periodo: [] as string[], // Array de datas do intervalo selecionado

@@ -16,11 +16,9 @@
  */
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { X } from 'lucide-react';
 import { Operacao } from '@/shared/types';
 import { useRealtime } from '@/hooks/useRealtime';
 import { getSupervisorHeaders, formatarDataBR } from '@/lib/auth-utils';
-import { useModalBackButton } from '@/hooks/useNativeBackButton';
 import styles from './TimelineOperacoes.module.css';
 
 interface ModalOperacaoSupervisorProps {
@@ -38,9 +36,6 @@ export const ModalOperacaoSupervisor: React.FC<ModalOperacaoSupervisorProps> = (
   onDefinirHorario,
   onExcluirOperacao
 }) => {
-  
-  // ✅ HOOK PARA BOTÃO VOLTAR NATIVO
-  useModalBackButton('modal-operacao-supervisor', true, onClose, 10);
   
   // ✅ ESTADO LOCAL: Operação atualizada via realtime
   const [operacaoAtualizada, setOperacaoAtualizada] = useState(operacao);

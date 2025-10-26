@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { MultiDateCalendar } from './MultiDateCalendar';
 import { getSupervisorHeaders, formatarDataBR } from '@/lib/auth-utils';
-import { useModalBackButton } from '@/hooks/useNativeBackButton';
 
 interface JanelaOperacional {
   id: string;
@@ -20,9 +19,6 @@ interface CriarOperacaoModalProps {
 
 export const CriarOperacaoModal: React.FC<CriarOperacaoModalProps> = ({ onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
-  
-  // ✅ HOOK PARA BOTÃO VOLTAR NATIVO
-  useModalBackButton('criar-operacao-modal', true, onClose, 10);
   const [loadingJanelas, setLoadingJanelas] = useState(true);
   const [janelas, setJanelas] = useState<JanelaOperacional[]>([]);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);

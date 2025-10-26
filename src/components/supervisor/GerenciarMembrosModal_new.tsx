@@ -28,7 +28,6 @@ import { X, Plus, Trash2, Search, Users, CheckSquare, Clock } from 'lucide-react
 import toast from 'react-hot-toast';
 import { useRealtime } from '@/hooks/useRealtime';
 import { useModal } from '@/hooks/useModal';
-import { useModalBackButton } from '@/hooks/useNativeBackButton';
 import { UniversalModal } from '@/shared/components/ui';
 import styles from './GerenciarMembrosModal.module.css';
 import { format, parseISO } from 'date-fns';
@@ -89,9 +88,6 @@ export const GerenciarMembrosModal: React.FC<GerenciarMembrosModalProps> = ({
   
   // Hook para modais modernos
   const modal = useModal();
-
-  // ✅ HOOK PARA BOTÃO VOLTAR NATIVO
-  useModalBackButton('gerenciar-membros-modal-new', true, onClose, 10);
 
   // 🚀 REALTIME: Monitorar mudanças nas operações do modal
   const operacaoIds = useMemo(() => {

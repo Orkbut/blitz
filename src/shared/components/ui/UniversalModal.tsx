@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { ModalConfig } from '../../../hooks/useModal';
-import { useModalBackButton } from '../../../hooks/useNativeBackButton';
 
 interface UniversalModalProps {
   isOpen: boolean;
@@ -10,9 +9,6 @@ interface UniversalModalProps {
 
 const UniversalModal: React.FC<UniversalModalProps> = ({ isOpen, config, onClose }) => {
   const [inputValue, setInputValue] = useState('');
-  
-  // ✅ HOOK PARA BOTÃO VOLTAR NATIVO
-  useModalBackButton('universal-modal', isOpen, onClose, 5);
   
   // Resetar valor do input quando o modal abre
   useEffect(() => {
@@ -307,4 +303,4 @@ const UniversalModal: React.FC<UniversalModalProps> = ({ isOpen, config, onClose
   );
 };
 
-export default UniversalModal;
+export default UniversalModal; 
