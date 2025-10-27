@@ -777,7 +777,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center; /* foi modificado para centralizar a div: CalendarioSimples_singleOperationInfo__cx18X CalendarioSimples_responsive__naFY6 CalendarioSimples_operacaoInativa__r17_s 
   /* Header no topo, botão no final */
   gap: clamp(1px, 0.3vw, 2px);
   /* Gap mínimo para maximizar espaço */
