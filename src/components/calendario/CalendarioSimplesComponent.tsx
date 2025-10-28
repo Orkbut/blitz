@@ -1092,7 +1092,14 @@ export const CalendarioSimplesComponent: React.FC = () => {
     // ✅ Verificar se todas as operações são inativas e se alguma tem fotos
     const todasInativas = operacoes.every(op => op.inativa_pelo_supervisor);
     const algumTemFotos = operacoes.some(op => op.inativa_pelo_supervisor && op.tem_fotos);
-    const classeFotos = todasInativas && algumTemFotos ? styles.comFotos : '';
+    const todasTemFotos = operacoes.length === 2 && operacoes.every(op => op.inativa_pelo_supervisor && op.tem_fotos);
+    
+    let classeFotos = '';
+    if (todasInativas && todasTemFotos) {
+      classeFotos = `${styles.comFotos} ${styles.ambasComFotos}`;
+    } else if (todasInativas && algumTemFotos) {
+      classeFotos = styles.comFotos;
+    }
 
     return (
       <div className={`${styles.multipleOperations} ${classeFotos}`}>

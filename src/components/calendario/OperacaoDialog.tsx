@@ -26,6 +26,7 @@ import { toast } from 'react-hot-toast';
 import styles from './OperacaoDialog.module.css';
 import { useRealtime } from '@/hooks/useRealtime';
 import FotoOperacaoManager from './FotoOperacaoManager';
+import { isSupervisorAuthenticated } from '@/lib/auth-utils';
 
 interface Operacao {
   id: number;
@@ -930,17 +931,29 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                         )}
 
                         {/* Ícone para gerenciar fotos da operação */}
-                        {operacao.minha_participacao && 
-                         ['CONFIRMADO', 'ADICIONADO_SUP'].includes(operacao.minha_participacao.estado_visual) &&
-                         new Date(operacao.data_operacao) <= new Date() && (
-                          <img 
-                            src="/CAMERA.png" 
-                            alt="Câmera" 
-                            className={styles.fotoIcon}
-                            onClick={() => setFotoModalAberto(operacao.id)}
-                            title="Gerenciar fotos da operação"
-                          />
-                        )}
+                        {(() => {
+                          const temParticipacao = operacao.minha_participacao && 
+                            ['CONFIRMADO', 'ADICIONADO_SUP'].includes(operacao.minha_participacao.estado_visual);
+                          
+                          // Verifica se é supervisor através do perfil do membro logado
+                          const membroAuth = localStorage.getItem('membroAuth');
+                          const eSupervisor = membroAuth ? 
+                            JSON.parse(membroAuth).perfil === 'Supervisor' : 
+                            isSupervisorAuthenticated();
+                          
+                          const dataPassou = new Date(operacao.data_operacao) <= new Date();
+                          const mostrarCamera = (temParticipacao || eSupervisor) && dataPassou;
+                          
+                          return mostrarCamera ? (
+                            <img 
+                              src="/CAMERA.png" 
+                              alt="Câmera" 
+                              className={styles.fotoIcon}
+                              onClick={() => setFotoModalAberto(operacao.id)}
+                              title="Gerenciar fotos da operação"
+                            />
+                          ) : null;
+                        })()}
                       </div>
 
                       {estadoInfo.showButton && (

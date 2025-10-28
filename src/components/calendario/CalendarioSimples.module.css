@@ -2096,11 +2096,23 @@
     opacity: 1 !important;
     filter: none !important;
   }
+  
+  /* Remover esmaecimento do ícone de foto quando há fotos presentes */
+  .singleOperationInfo.operacaoInativa.comFotos::before {
+    opacity: 1 !important;
+    filter: none !important;
+    background-size: clamp(20px, 5vw, 26px) !important;
+  }
 }
 
 /* Garantir que o emoticon não interfira com outras divs */
 .singleOperationInfo.operacaoInativa {
   padding-bottom: clamp(2px, 0.5vw, 4px) !important;
+}
+
+/* ✅ AJUSTAR POSICIONAMENTO QUANDO HÁ FOTOS */
+.singleOperationInfo.operacaoInativa.comFotos {
+  padding-bottom: clamp(25px, 6vw, 35px) !important;
 }
 
 /* ✅ OCULTAR ÍCONE QUANDO NÃO HÁ FOTOS */
@@ -2147,6 +2159,31 @@
     display: flex !important;
     opacity: 1 !important;
     filter: none !important;
+  }
+  
+  /* Remover esmaecimento do ícone de foto em múltiplas operações quando há fotos presentes */
+  .multipleOperations.comFotos:has(.operacaoInativa):not(:has(.operationItem:not(.operacaoInativa)))::after {
+    opacity: 1 !important;
+    filter: none !important;
+    background: rgba(255, 255, 255, 0.9) url('/adicionar-foto.png') no-repeat center center !important;
+    background-size: clamp(14px, 3.5vw, 20px) !important;
+  }
+  
+  /* Dois ícones lado a lado quando ambas as operações têm fotos */
+  .multipleOperations.ambasComFotos:has(.operacaoInativa):not(:has(.operationItem:not(.operacaoInativa)))::after {
+    width: clamp(50px, 12vw, 64px) !important;
+    height: clamp(22px, 6vw, 30px) !important;
+    background: 
+      url('/adicionar-foto.png') no-repeat,
+      url('/adicionar-foto.png') no-repeat !important;
+    background-size: 
+      clamp(16px, 4vw, 22px),
+      clamp(16px, 4vw, 22px) !important;
+    background-position: 
+      clamp(8px, 2vw, 12px) center,
+      calc(100% - clamp(8px, 2vw, 12px)) center !important;
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    border-radius: clamp(11px, 3vw, 15px) !important;
   }
 }
 
