@@ -70,6 +70,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Registrar evento de adição de foto
+    try {
+      await supabase.rpc('registrar_evento_operacao', {
+        p_operacao_id: parseInt(operacaoId),
+        p_tipo_evento: 'FOTO_ADICIONADA',
+        p_servidor_id: membroId ? parseInt(membroId) : null,
+        p_detalhes: `Foto adicionada: ${file.name}`,
+        p_metadata: {
+          nome_arquivo: file.name,
+          tamanho_bytes: file.size,
+          tipo_mime: file.type,
+          foto_id: foto.id
+        }
+      });
+    } catch (eventError) {
+      console.error('Erro ao registrar evento de foto:', eventError);
+      // Não falha o upload se o evento não for registrado
+    }
+
     return NextResponse.json({ foto });
   } catch (error) {
     return NextResponse.json(

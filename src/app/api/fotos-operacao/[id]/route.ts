@@ -53,6 +53,25 @@ export async function DELETE(
       // Continuar mesmo com erro no storage para não deixar registro órfão
     }
 
+    // ✅ REGISTRAR EVENTO: Foto removida (antes de excluir)
+    try {
+      await supabase.rpc('registrar_evento_operacao', {
+        p_operacao_id: foto.operacao_id,
+        p_tipo_evento: 'FOTO_REMOVIDA',
+        p_servidor_id: foto.membro_id,
+        p_detalhes: `Removeu foto: ${foto.nome_arquivo}`,
+        p_metadata: {
+          nome_arquivo: foto.nome_arquivo,
+          tamanho_bytes: foto.tamanho_bytes,
+          tipo_mime: foto.tipo_mime,
+          foto_id: foto.id
+        }
+      });
+    } catch (eventoError) {
+      console.error('Erro ao registrar evento de foto removida:', eventoError);
+      // Não falhar a operação por causa do evento
+    }
+
     // Remover registro do banco
     const { error: dbError } = await supabase
       .from('fotos_operacao')
