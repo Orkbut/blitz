@@ -76,7 +76,8 @@
 }
 
 .uploadButton,
-.cameraButton {
+.cameraButton,
+.resetButton {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   border: none;
   color: white;
@@ -97,8 +98,15 @@
   box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
 }
 
+.resetButton {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+  animation: pulse 2s infinite;
+}
+
 .uploadButton:hover,
-.cameraButton:hover {
+.cameraButton:hover,
+.resetButton:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
 }
@@ -107,8 +115,13 @@
   box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
 }
 
+.resetButton:hover {
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+}
+
 .uploadButton:disabled,
-.cameraButton:disabled {
+.cameraButton:disabled,
+.resetButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
@@ -120,6 +133,19 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.errorStatus {
+  color: #dc2626;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fef2f2;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+  animation: slideIn 0.3s ease;
 }
 
 /* Content */
@@ -339,7 +365,8 @@
   }
 
   .uploadButton,
-  .cameraButton {
+  .cameraButton,
+  .resetButton {
     width: 100%;
     justify-content: center;
   }
@@ -349,24 +376,65 @@
   }
 
   .photoGrid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 1rem;
+  }
+
+  .photoCard {
+    padding: 0.75rem;
   }
 
   .photoThumbnail {
     height: 120px;
   }
+}
 
-  .photoInfo {
-    padding: 0.75rem;
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
   }
+  to {
+    opacity: 1;
+  }
+}
 
-  /* Botão de fechar responsivo para mobile */
-  .photoCloseButton {
-    top: 15px;
-    right: 15px;
-    padding: 14px;
-    min-width: 48px;
-    min-height: 48px;
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
   }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Botão de fechar responsivo para mobile */
+.photoCloseButton {
+  top: 15px;
+  right: 15px;
+  padding: 14px;
+  min-width: 48px;
+  min-height: 48px;
 }

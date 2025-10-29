@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { PhotoProvider, PhotoView } from 'react-photo-view';
-import { X, Upload, Camera, Trash2, RotateCw, ZoomIn } from 'lucide-react';
+import { X, Upload, Camera, Trash2, RotateCw, ZoomIn, AlertCircle, RefreshCw } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import styles from './FotoOperacaoManager.module.css';
 import 'react-photo-view/dist/react-photo-view.css';
@@ -22,6 +22,48 @@ interface FotoOperacaoManagerProps {
   onClose: () => void;
 }
 
+// Utility functions for PWA mobile support
+const isPWA = (): boolean => {
+  return window.matchMedia('(display-mode: standalone)').matches || 
+         (window.navigator as any).standalone === true ||
+         document.referrer.includes('android-app://');
+};
+
+const isIOS = (): boolean => {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent);
+};
+
+const isAndroid = (): boolean => {
+  return /Android/.test(navigator.userAgent);
+};
+
+const logUploadAttempt = (type: 'gallery' | 'camera', success: boolean, error?: string) => {
+  const logData = {
+    timestamp: new Date().toISOString(),
+    type,
+    success,
+    error,
+    userAgent: navigator.userAgent,
+    isPWA: isPWA(),
+    isIOS: isIOS(),
+    isAndroid: isAndroid(),
+    url: window.location.href
+  };
+  
+  console.log('📸 Upload Attempt:', logData);
+  
+  // Store in localStorage for debugging
+  try {
+    const logs = JSON.parse(localStorage.getItem('upload_logs') || '[]');
+    logs.push(logData);
+    // Keep only last 50 logs
+    if (logs.length > 50) logs.splice(0, logs.length - 50);
+    localStorage.setItem('upload_logs', JSON.stringify(logs));
+  } catch (e) {
+    console.warn('Could not store upload log:', e);
+  }
+};
+
 const FotoOperacaoManager: React.FC<FotoOperacaoManagerProps> = ({
   operacaoId,
   membroId,
@@ -30,8 +72,77 @@ const FotoOperacaoManager: React.FC<FotoOperacaoManagerProps> = ({
   const [fotos, setFotos] = useState<Foto[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [showResetButton, setShowResetButton] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const resetTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // iOS PWA Context Reset Mechanism
+  const resetPWAContext = () => {
+    if (isIOS() && isPWA()) {
+      // Create a temporary external link to reset PWA context
+      const resetLink = document.createElement('a');
+      resetLink.href = 'https://www.google.com';
+      resetLink.target = '_blank';
+      resetLink.rel = 'noopener noreferrer';
+      resetLink.style.display = 'none';
+      document.body.appendChild(resetLink);
+      
+      // Trigger the external link
+      resetLink.click();
+      
+      // Clean up
+      setTimeout(() => {
+        document.body.removeChild(resetLink);
+        toast.success('Contexto PWA resetado. Tente novamente.');
+      }, 1000);
+      
+      logUploadAttempt('camera', false, 'PWA context reset triggered');
+    }
+  };
+
+  // Enhanced error handling
+  const handleUploadError = (error: any, uploadType: 'gallery' | 'camera') => {
+    let errorMessage = 'Erro desconhecido no upload';
+    let shouldShowReset = false;
+
+    if (error.message) {
+      if (error.message.includes('network') || error.message.includes('fetch')) {
+        errorMessage = 'Erro de conexão. Verifique sua internet.';
+      } else if (error.message.includes('timeout')) {
+        errorMessage = 'Upload demorou muito. Tente novamente.';
+      } else if (error.message.includes('size') || error.message.includes('large')) {
+        errorMessage = 'Arquivo muito grande. Máximo 18MB.';
+      } else if (error.message.includes('type') || error.message.includes('format')) {
+        errorMessage = 'Formato não suportado. Use JPEG, PNG ou WebP.';
+      } else {
+        errorMessage = error.message;
+      }
+    }
+
+    // Show reset button for iOS PWA issues
+    if (isIOS() && isPWA() && (
+      errorMessage.includes('Erro desconhecido') || 
+      errorMessage.includes('network') ||
+      uploadType === 'camera'
+    )) {
+      shouldShowReset = true;
+      setShowResetButton(true);
+      
+      // Auto-hide reset button after 30 seconds
+      if (resetTimeoutRef.current) {
+        clearTimeout(resetTimeoutRef.current);
+      }
+      resetTimeoutRef.current = setTimeout(() => {
+        setShowResetButton(false);
+      }, 30000);
+    }
+
+    setUploadError(errorMessage);
+    toast.error(errorMessage);
+    logUploadAttempt(uploadType, false, errorMessage);
+  };
 
   // Carregar fotos da operação
   const carregarFotos = async () => {
@@ -54,18 +165,24 @@ const FotoOperacaoManager: React.FC<FotoOperacaoManagerProps> = ({
   };
 
   // Upload de foto
-  const handleUpload = async (file: File) => {
+  const handleUpload = async (file: File, uploadType: 'gallery' | 'camera') => {
     if (!file) return;
+
+    // Clear previous errors
+    setUploadError(null);
+    setShowResetButton(false);
 
     // Validações
     if (file.size > 18 * 1024 * 1024) {
-      toast.error('Arquivo muito grande. Máximo 18MB.');
+      const error = new Error('Arquivo muito grande. Máximo 18MB.');
+      handleUploadError(error, uploadType);
       return;
     }
 
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-      toast.error('Tipo de arquivo não suportado. Use JPEG, PNG ou WebP.');
+      const error = new Error('Tipo de arquivo não suportado. Use JPEG, PNG ou WebP.');
+      handleUploadError(error, uploadType);
       return;
     }
 
@@ -89,12 +206,13 @@ const FotoOperacaoManager: React.FC<FotoOperacaoManagerProps> = ({
 
       const data = await response.json();
       toast.success('Foto enviada com sucesso!');
+      logUploadAttempt(uploadType, true);
       
       // Recarregar fotos
       await carregarFotos();
       
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao enviar foto');
+      handleUploadError(error, uploadType);
     } finally {
       setUploading(false);
     }
@@ -127,11 +245,11 @@ const FotoOperacaoManager: React.FC<FotoOperacaoManagerProps> = ({
     }
   };
 
-  // Handlers para upload
+  // Handlers para upload com melhor tratamento
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      handleUpload(file);
+      handleUpload(file, 'gallery');
     }
     // Limpar input
     if (fileInputRef.current) {
@@ -142,12 +260,31 @@ const FotoOperacaoManager: React.FC<FotoOperacaoManagerProps> = ({
   const handleCameraCapture = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      handleUpload(file);
+      handleUpload(file, 'camera');
     }
     // Limpar input
     if (cameraInputRef.current) {
       cameraInputRef.current.value = '';
     }
+  };
+
+  // Enhanced click handlers with PWA-specific logic
+  const handleGalleryClick = () => {
+    logUploadAttempt('gallery', false, 'Gallery button clicked');
+    
+    // Add small delay for PWA stability
+    setTimeout(() => {
+      fileInputRef.current?.click();
+    }, 100);
+  };
+
+  const handleCameraClick = () => {
+    logUploadAttempt('camera', false, 'Camera button clicked');
+    
+    // Add small delay for PWA stability
+    setTimeout(() => {
+      cameraInputRef.current?.click();
+    }, 100);
   };
 
   // Formatação de tamanho de arquivo
@@ -158,6 +295,15 @@ const FotoOperacaoManager: React.FC<FotoOperacaoManagerProps> = ({
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (resetTimeoutRef.current) {
+        clearTimeout(resetTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Carregar fotos ao montar o componente
   useEffect(() => {
@@ -176,7 +322,7 @@ const FotoOperacaoManager: React.FC<FotoOperacaoManagerProps> = ({
 
         <div className={styles.actions}>
           <button
-            onClick={() => fileInputRef.current?.click()}
+            onClick={handleGalleryClick}
             disabled={uploading}
             className={styles.uploadButton}
           >
@@ -185,7 +331,7 @@ const FotoOperacaoManager: React.FC<FotoOperacaoManagerProps> = ({
           </button>
           
           <button
-            onClick={() => cameraInputRef.current?.click()}
+            onClick={handleCameraClick}
             disabled={uploading}
             className={styles.cameraButton}
           >
@@ -193,9 +339,27 @@ const FotoOperacaoManager: React.FC<FotoOperacaoManagerProps> = ({
             Câmera
           </button>
 
+          {showResetButton && (
+            <button
+              onClick={resetPWAContext}
+              className={styles.resetButton}
+              title="Resetar contexto PWA (iOS)"
+            >
+              <RefreshCw size={20} />
+              Reset PWA
+            </button>
+          )}
+
           {uploading && (
             <div className={styles.uploadStatus}>
               Enviando foto...
+            </div>
+          )}
+
+          {uploadError && (
+            <div className={styles.errorStatus}>
+              <AlertCircle size={16} />
+              {uploadError}
             </div>
           )}
         </div>
@@ -210,6 +374,11 @@ const FotoOperacaoManager: React.FC<FotoOperacaoManagerProps> = ({
               <Camera size={48} />
               <p>Nenhuma foto adicionada ainda</p>
               <p>Clique em "Galeria" ou "Câmera" para adicionar fotos</p>
+              {isPWA() && (
+                <p style={{ fontSize: '0.8em', color: '#666', marginTop: '10px' }}>
+                  PWA detectado: {isIOS() ? 'iOS' : isAndroid() ? 'Android' : 'Outro'}
+                </p>
+              )}
             </div>
           ) : (
             <PhotoProvider
@@ -262,7 +431,7 @@ const FotoOperacaoManager: React.FC<FotoOperacaoManagerProps> = ({
           )}
         </div>
 
-        {/* Inputs ocultos para upload */}
+        {/* Inputs ocultos para upload - FIXED: Removed capture from gallery input */}
         <input
           ref={fileInputRef}
           type="file"
