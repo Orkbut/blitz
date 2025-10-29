@@ -200,8 +200,35 @@ const FotoOperacaoManager: React.FC<FotoOperacaoManagerProps> = ({
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Erro no upload');
+        let errorMessage = 'Erro no upload';
+        
+        try {
+          // Verificar se a resposta é JSON
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await response.json();
+            errorMessage = errorData.error || 'Erro no upload';
+          } else {
+            // Se não for JSON, ler como texto
+            const errorText = await response.text();
+            
+            // Mapear erros comuns do servidor
+            if (response.status === 413 || errorText.includes('Request Entity Too Large')) {
+              errorMessage = 'Arquivo muito grande. Máximo 18MB.';
+            } else if (response.status === 400) {
+              errorMessage = 'Dados inválidos. Verifique o arquivo e tente novamente.';
+            } else if (response.status === 500) {
+              errorMessage = 'Erro interno do servidor. Tente novamente.';
+            } else {
+              errorMessage = errorText || `Erro ${response.status}`;
+            }
+          }
+        } catch (parseError) {
+          // Se falhar ao ler a resposta, usar erro genérico
+          errorMessage = `Erro ${response.status}: ${response.statusText}`;
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();

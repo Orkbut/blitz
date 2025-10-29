@@ -7,6 +7,19 @@ const nextConfig = {
   // ✅ DESENVOLVIMENTO RÁPIDO
   reactStrictMode: false,
   
+  // ✅ CONFIGURAÇÕES DE UPLOAD DE ARQUIVOS
+  experimental: {
+    serverComponentsExternalPackages: [],
+  },
+  
+  // ✅ CONFIGURAÇÕES DE API PARA UPLOADS
+  api: {
+    bodyParser: {
+      sizeLimit: '20mb', // Limite de 20MB para uploads
+    },
+    responseLimit: false,
+  },
+  
   // ✅ IGNORAR ESLINT EM BUILD PARA RAPIDEZ
   eslint: {
     ignoreDuringBuilds: true,
@@ -53,4 +66,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig; 
+export default nextConfig;
