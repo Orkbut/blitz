@@ -1132,11 +1132,21 @@ export const CalendarioSimplesComponent: React.FC = () => {
               <span className={styles.modalidadeCompact}>
                 {modalidadeAbrev}
               </span>
-              <span className={styles.participantesCompact}>
-                {infoParticipantes}
-                {infoFila && <span className={styles.filaCompact}>{infoFila}</span>}
-              </span>
-              {isInativa && <span className={styles.historicoIndicator}>📁</span>}
+              {isInativa ? (
+                <div className={styles.participantesCompactBadge}>
+                  <span className={styles.participantesCompactCount}>
+                    {confirmados}
+                  </span>
+                  <svg className={styles.participantesCompactIcon} viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M16 11c1.66 0 3-1.57 3-3.5S17.66 4 16 4s-3 1.57-3 3.5S14.34 11 16 11zM8 11c1.66 0 3-1.57 3-3.5S9.66 4 8 4 5 5.57 5 7.5 6.34 11 8 11zm0 2c-2.33 0-7 1.17-7 3.5V19a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.93 1.97 3.45V19c0 .35-.06.68-.17 1H23a1 1 0 0 0 1-1v-2.5c0-2.33-4.67-3.5-8-3.5z"></path>
+                  </svg>
+                </div>
+              ) : (
+                <span className={styles.participantesCompact}>
+                  {infoParticipantes}
+                  {infoFila && <span className={styles.filaCompact}>{infoFila}</span>}
+                </span>
+              )}
             </div>
           );
         })}
