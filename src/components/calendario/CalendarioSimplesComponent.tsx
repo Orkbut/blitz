@@ -1058,9 +1058,22 @@ export const CalendarioSimplesComponent: React.FC = () => {
             {operacao.modalidade === 'BLITZ' ? 'RADAR' : operacao.modalidade}
           </div>
           <div className={styles.participantStats}>
-            {confirmados}/{limite}
-            {pendentes > 0 && (
-              <span className={styles.queueIndicator}>+{pendentes}</span>
+            {isInativa ? (
+              // Badge de pessoas para operações arquivadas
+              <div className={styles.peopleBadge}>
+                 <svg className={styles.peopleBadgeIcon} viewBox="0 0 24 24" aria-hidden="true">
+                   <path d="M16 11c1.66 0 3-1.57 3-3.5S17.66 4 16 4s-3 1.57-3 3.5S14.34 11 16 11zM8 11c1.66 0 3-1.57 3-3.5S9.66 4 8 4 5 5.57 5 7.5 6.34 11 8 11zm0 2c-2.33 0-7 1.17-7 3.5V19a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.93 1.97 3.45V19c0 .35-.06.68-.17 1H23a1 1 0 0 0 1-1v-2.5c0-2.33-4.67-3.5-8-3.5z"></path>
+                 </svg>
+                 <span className={styles.peopleBadgeCount}>{confirmados}</span>
+               </div>
+            ) : (
+              // Formato tradicional para operações ativas
+              <>
+                {confirmados}/{limite}
+                {pendentes > 0 && (
+                  <span className={styles.queueIndicator}>+{pendentes}</span>
+                )}
+              </>
             )}
           </div>
         </div>
