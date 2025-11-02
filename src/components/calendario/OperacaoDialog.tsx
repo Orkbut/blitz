@@ -813,7 +813,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <h2>Operações - {format(date, 'EEEE, dd/MM/yyyy', { locale: ptBR })}</h2>
+          <h2>{format(date, 'EEEE, dd/MM/yyyy', { locale: ptBR })}</h2>
           <div className={styles.headerActions}>
             <button 
               className={styles.refreshButton}
@@ -874,16 +874,19 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                     </div>
 
                     <div className={styles.operacaoInfo}>
-                      <div className={styles.infoItem}>
-                        <Clock size={16} />
-                        <span>
-                          {operacao.horario ? (
-                            <>Turno: {getTurnoFromHorario(operacao.horario)} ({operacao.horario})</>
-                          ) : (
-                            <>Turno: {operacao.turno}</>
-                          )}
-                        </span>
-                      </div>
+                      {/* Só mostrar turno se estiver especificado */}
+                      {operacao.turno && operacao.turno !== 'NAO_ESPECIFICADO' && (
+                        <div className={styles.infoItem}>
+                          <Clock size={16} />
+                          <span>
+                            {operacao.horario ? (
+                              <>Turno: {getTurnoFromHorario(operacao.horario)} ({operacao.horario})</>
+                            ) : (
+                              <>Turno: {operacao.turno}</>
+                            )}
+                          </span>
+                        </div>
+                      )}
                       
                       <div className={styles.infoItem}>
                         <Users size={16} />
@@ -911,12 +914,6 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                     </div>
 
                     <div className={styles.operacaoFooter}>
-                      {/* ✅ ESTADO VISUAL - Apenas informativo, sem hover */}
-                      <div className={`${styles.estadoVisual} ${estadoInfo.className}`}>
-                        <span>{estadoInfo.icon}</span>
-                        <span>{estadoInfo.text}</span>
-                      </div>
-
                       {/* ✅ NOVO: Container para ícones lado a lado */}
                       <div className={styles.iconesContainer}>
                         {/* Ícone para abrir histórico da operação */}
