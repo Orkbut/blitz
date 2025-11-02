@@ -7,18 +7,8 @@ const nextConfig = {
   // ✅ DESENVOLVIMENTO RÁPIDO
   reactStrictMode: false,
   
-  // ✅ CONFIGURAÇÕES DE UPLOAD DE ARQUIVOS
-  experimental: {
-    serverComponentsExternalPackages: [],
-  },
-  
-  // ✅ CONFIGURAÇÕES DE API PARA UPLOADS
-  api: {
-    bodyParser: {
-      sizeLimit: '20mb', // Limite de 20MB para uploads
-    },
-    responseLimit: false,
-  },
+  // ✅ CONFIGURAÇÕES DE UPLOAD DE ARQUIVOS (CORRIGIDO PARA NEXT.JS 15)
+  serverExternalPackages: [],
   
   // ✅ IGNORAR ESLINT EM BUILD PARA RAPIDEZ
   eslint: {

@@ -2082,10 +2082,8 @@
   justify-content: center !important;
   width: clamp(28px, 7vw, 36px) !important;
   height: clamp(28px, 7vw, 36px) !important;
-  background: rgba(255, 255, 255, 0.8) url('/adicionar-foto.png') no-repeat center center !important;
+  background: url('/adicionar-foto.png') no-repeat center center !important;
   background-size: clamp(20px, 5vw, 26px) !important;
-  border-radius: 50% !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
 }
 
 /* Mostrar apenas em resoluções verticalizadas (mobile portrait e landscape estreito) */
@@ -2146,10 +2144,8 @@
   justify-content: center !important;
   width: clamp(20px, 5vw, 28px) !important;
   height: clamp(20px, 5vw, 28px) !important;
-  background: rgba(255, 255, 255, 0.7) url('/adicionar-foto.png') no-repeat center center !important;
+  background: url('/adicionar-foto.png') no-repeat center center !important;
   background-size: clamp(14px, 3.5vw, 20px) !important;
-  border-radius: 50% !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
 }
 
 /* Mostrar apenas em resoluções verticalizadas */
@@ -2165,7 +2161,7 @@
   .multipleOperations.comFotos:has(.operacaoInativa):not(:has(.operationItem:not(.operacaoInativa)))::after {
     opacity: 1 !important;
     filter: none !important;
-    background: rgba(255, 255, 255, 0.9) url('/adicionar-foto.png') no-repeat center center !important;
+    background: url('/adicionar-foto.png') no-repeat center center !important;
     background-size: clamp(14px, 3.5vw, 20px) !important;
   }
   
@@ -2182,8 +2178,6 @@
     background-position: 
       clamp(8px, 2vw, 12px) center,
       calc(100% - clamp(8px, 2vw, 12px)) center !important;
-    background-color: rgba(255, 255, 255, 0.9) !important;
-    border-radius: clamp(11px, 3vw, 15px) !important;
   }
 }
 
@@ -2208,10 +2202,8 @@
     justify-content: center !important;
     width: clamp(20px, 5vw, 28px) !important;
     height: clamp(20px, 5vw, 28px) !important;
-    background: rgba(255, 255, 255, 0.7) url('/adicionar-foto.png') no-repeat center center !important;
+    background: url('/adicionar-foto.png') no-repeat center center !important;
     background-size: clamp(14px, 3.5vw, 20px) !important;
-    border-radius: 50% !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
   }
   
   /* Mostrar fallback apenas em resoluções verticalizadas */
