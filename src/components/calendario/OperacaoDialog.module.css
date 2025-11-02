@@ -52,19 +52,64 @@ TODO FUTURO: Analisar uso destes estilos em:
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.25rem 1.5rem;
+  padding: 1rem 1.5rem;
   border-bottom: 1px solid #e9ecef;
-  background: #f8f9fa;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   border-radius: 12px 12px 0 0;
 }
 
-.header h2 {
-  font-size: 1.375rem;
+/* Container da data moderna */
+.dateContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #ffffff;
+  padding: 0.5rem 1rem;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Abreviação do dia (estilo moderno) */
+.dayAbbr {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #1f2937;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  background: #FDB913;
+  color: #1d1d1d;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  min-width: 2.5rem;
+  text-align: center;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+/* Data completa */
+.fullDate {
+  font-size: 0.9375rem;
   font-weight: 600;
-  color: #212529;
+  color: #374151;
+  letter-spacing: -0.01em;
+  font-family: "Inter", system-ui, sans-serif;
+  white-space: nowrap;
+}
+
+.header h2 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1f2937;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   letter-spacing: -0.02em;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Header Actions - Container para botões */
@@ -965,7 +1010,30 @@ TODO FUTURO: Analisar uso destes estilos em:
   }
 
   .header {
-    padding: 1rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .dateContainer {
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 10px;
+  }
+
+  .dayAbbr {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.4rem;
+    min-width: 2rem;
+    border-radius: 4px;
+  }
+
+  .fullDate {
+    font-size: 0.8125rem;
+  }
+
+  .header h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.1;
   }
 
   .content {
@@ -990,6 +1058,59 @@ TODO FUTURO: Analisar uso destes estilos em:
   .euVouButton {
     width: 100%;
     padding: 0.75rem;
+  }
+}
+
+/* Responsividade adicional para tablets */
+@media (max-width: 768px) {
+  .header {
+    padding: 0.875rem 1.25rem;
+  }
+
+  .dateContainer {
+    gap: 0.625rem;
+    padding: 0.4375rem 0.875rem;
+    border-radius: 12px;
+  }
+
+  .dayAbbr {
+    font-size: 0.8125rem;
+    padding: 0.225rem 0.45rem;
+    min-width: 2.25rem;
+    border-radius: 5px;
+  }
+
+  .fullDate {
+    font-size: 0.875rem;
+  }
+
+  .header h2 {
+    font-size: 1.0625rem;
+    line-height: 1.15;
+  }
+}
+
+/* Responsividade para telas muito pequenas */
+@media (max-width: 480px) {
+  .header {
+    padding: 0.625rem 0.875rem;
+  }
+
+  .dateContainer {
+    gap: 0.375rem;
+    padding: 0.3125rem 0.625rem;
+    border-radius: 8px;
+  }
+
+  .dayAbbr {
+    font-size: 0.6875rem;
+    padding: 0.1875rem 0.375rem;
+    min-width: 1.75rem;
+    border-radius: 3px;
+  }
+
+  .fullDate {
+    font-size: 0.75rem;
   }
 }
 

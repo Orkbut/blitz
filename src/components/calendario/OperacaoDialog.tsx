@@ -813,7 +813,14 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <h2>{format(date, 'EEEE, dd/MM/yyyy', { locale: ptBR })}</h2>
+          <div className={styles.dateContainer}>
+            <span className={styles.dayAbbr}>
+              {format(date, 'EEE', { locale: ptBR }).toUpperCase()}
+            </span>
+            <span className={styles.fullDate}>
+              {format(date, 'dd/MM/yyyy', { locale: ptBR })}
+            </span>
+          </div>
           <div className={styles.headerActions}>
             <button 
               className={styles.refreshButton}
@@ -867,9 +874,6 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                     <div className={styles.operacaoHeader}>
                       <div className={styles.modalidadeBadge}>
                         {operacao.modalidade === 'BLITZ' ? '🚨' : '⚖️'} {operacao.modalidade === 'BLITZ' ? 'RADAR' : operacao.modalidade}
-                      </div>
-                      <div className={`${styles.tipoBadge} ${styles[operacao.tipo.toLowerCase()]}`}>
-                        {operacao.tipo}
                       </div>
                     </div>
 
