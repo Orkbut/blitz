@@ -946,7 +946,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                           
                           return mostrarCamera ? (
                             <img 
-                              src="/CAMERA.png" 
+                              src="/camera.png" 
                               alt="Câmera" 
                               className={styles.fotoIcon}
                               onClick={() => setFotoModalAberto(operacao.id)}
