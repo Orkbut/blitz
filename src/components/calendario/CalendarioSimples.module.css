@@ -1593,8 +1593,8 @@
   
   .operationItem {
     font-size: clamp(0.45rem, 1.6vw, 0.6rem) !important;
-    padding: clamp(2px, 0.6vw, 4px) clamp(3px, 0.8vw, 5px) !important;
-    min-height: clamp(14px, 3.5vw, 20px) !important;
+    padding: clamp(3px, 0.7vw, 5px) clamp(3px, 0.8vw, 5px) !important;
+    min-height: clamp(18px, 4.2vw, 24px) !important;
     border-radius: clamp(2px, 0.6vw, 4px) !important;
   }
   
@@ -1613,8 +1613,8 @@
   
   .operationItem {
     font-size: clamp(0.4rem, 1.8vw, 0.55rem) !important;
-    padding: clamp(2px, 0.5vw, 3px) clamp(2px, 0.6vw, 4px) !important;
-    min-height: clamp(12px, 3.2vw, 18px) !important;
+    padding: clamp(3px, 0.6vw, 4px) clamp(2px, 0.6vw, 4px) !important;
+    min-height: clamp(16px, 3.8vw, 22px) !important;
     border-radius: clamp(2px, 0.5vw, 3px) !important;
     border-left-width: clamp(1px, 0.3vw, 2px) !important;
   }
@@ -1635,8 +1635,8 @@
   
   .operationItem {
     font-size: clamp(0.32rem, 2vw, 0.48rem) !important;
-    padding: clamp(1px, 0.4vw, 2px) clamp(2px, 0.5vw, 3px) !important;
-    min-height: clamp(10px, 3vw, 14px) !important;
+    padding: clamp(2px, 0.5vw, 3px) clamp(2px, 0.5vw, 3px) !important;
+    min-height: clamp(14px, 3.5vw, 18px) !important;
     border-radius: clamp(1px, 0.3vw, 2px) !important;
     border-left-width: clamp(1px, 0.2vw, 2px) !important;
     line-height: 1 !important;
@@ -1664,6 +1664,7 @@
 .participantesCompact {
   font-weight: 600;
   font-size: clamp(0.4rem, 1.1vw, 0.6rem);
+  color: #0058A1;
   display: flex;
   align-items: center;
   gap: clamp(1px, 0.2vw, 2px);
@@ -2352,6 +2353,68 @@
     font-size: clamp(0.32rem, 1.2vw, 0.45rem) !important;
     padding: clamp(0.12rem, 0.6vw, 0.25rem) clamp(0.08rem, 0.4vw, 0.15rem) !important;
     height: clamp(14px, 4vw, 20px) !important;
+  }
+}
+
+/* ===== BADGE DE PARTICIPANTES PARA OPERAÇÕES ARQUIVADAS ===== */
+.participantesCompactBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(1px, 0.4vw, 2px);
+  user-select: none;
+  margin-left: clamp(1px, 0.3vw, 2px);
+}
+
+.participantesCompactIcon {
+  width: clamp(10px, 2.2vw, 14px);
+  height: clamp(10px, 2.2vw, 14px);
+  fill: #0058A1;
+  flex-shrink: 0;
+}
+
+.participantesCompactCount {
+  font-weight: 600;
+  font-size: clamp(10px, 2.8vw, 13px);
+  color: #0058A1;
+  letter-spacing: -0.2px;
+  line-height: 1;
+  text-shadow: none;
+  min-width: 1.2em;
+  text-align: center;
+}
+
+/* Responsividade para container queries */
+@container calendar (max-width: 400px) {
+  .participantesCompactBadge {
+    gap: clamp(1px, 0.3vw, 2px);
+    margin-left: clamp(1px, 0.2vw, 1px);
+  }
+  
+  .participantesCompactIcon {
+    width: clamp(8px, 2vw, 12px);
+    height: clamp(8px, 2vw, 12px);
+  }
+  
+  .participantesCompactCount {
+    font-size: clamp(9px, 2.5vw, 12px);
+    font-weight: 600;
+  }
+}
+
+@container calendar (max-width: 320px) {
+  .participantesCompactBadge {
+    gap: clamp(0.5px, 0.2vw, 1px);
+    margin-left: clamp(0.5px, 0.1vw, 1px);
+  }
+  
+  .participantesCompactIcon {
+    width: clamp(7px, 1.8vw, 10px);
+    height: clamp(7px, 1.8vw, 10px);
+  }
+  
+  .participantesCompactCount {
+    font-size: clamp(9px, 2.5vw, 12px);
+    font-weight: 600;
   }
 }
 
