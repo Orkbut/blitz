@@ -890,29 +890,131 @@ TODO FUTURO: Analisar uso destes estilos em:
   }
 }
 
-/* Toggle participantes */
+/* Toggle participantes - Design profissional mobile-first */
 .toggleParticipantes {
   width: 100%;
-  padding: 10px;
-  margin-top: 12px;
-  background: #f8f9fa;
-  border: 1px dashed #dee2e6;
-  border-radius: 6px;
+  padding: 12px 16px;
+  margin-top: 16px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
   cursor: pointer;
-  font-size: 0.875rem;
-  color: #495057;
-  transition: all 0.2s ease;
+  font-size: 0.9375rem;
+  color: #1f2937;
   display: flex;
   align-items: center;
   gap: 8px;
   justify-content: center;
-  font-weight: 500;
+  font-weight: 600;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  letter-spacing: -0.01em;
+  min-height: 44px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  position: relative;
+  overflow: hidden; /* habilita micro-ripple sem vazar */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform 140ms cubic-bezier(0.2, 0.7, 0.2, 1),
+              box-shadow 160ms ease,
+              border-color 160ms ease,
+              background-color 160ms ease;
 }
 
-.toggleParticipantes:hover {
-  background: #e9ecef;
-  border-color: #adb5bd;
-  color: #212529;
+/* Sem hover para mobile-first */
+
+/* Indicador de seta com rotação discreta (game-feel) */
+.toggleParticipantes::before {
+  content: '▶';
+  display: inline-block;
+  font-size: 0.95rem;
+  line-height: 1;
+  opacity: 0.85;
+  transform-origin: 50% 50%;
+  transition: transform 180ms cubic-bezier(0.2, 0.9, 0.2, 1), opacity 180ms ease;
+  margin-right: 4px;
+}
+
+/* Estado expandido: leve realce de contexto e rotação da seta */
+.toggleParticipantes[aria-expanded="true"] {
+  border-color: #d1e9ff; /* azul bem suave que casa com o calendário */
+  background: #f6f9ff;
+  box-shadow: 0 2px 6px rgba(16, 24, 40, 0.06);
+  animation: expandPop 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.toggleParticipantes[aria-expanded="true"]::before {
+  transform: rotate(90deg);
+  opacity: 0.9;
+}
+
+/* Focus acessível (teclado): anel discreto */
+.toggleParticipantes:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18), 0 1px 2px rgba(16, 24, 40, 0.06);
+  border-color: #bfdbfe;
+}
+
+/* Micro squash & stretch no toque/click */
+@keyframes pressJuice {
+  0% { transform: scale(1); }
+  35% { transform: scale(0.985, 0.97); }
+  65% { transform: scale(1.012, 1.018); }
+  100% { transform: scale(1); }
+}
+/* Pop discreto quando alterna para expandido */
+@keyframes expandPop {
+  0% { transform: scale(0.99); }
+  60% { transform: scale(1.015); }
+  100% { transform: scale(1); }
+}
+.toggleParticipantes:active {
+  animation: pressJuice 140ms ease-out;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+}
+
+/* Micro-ripple sutil centralizado, apenas para toque */
+.toggleParticipantes::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.0) 60%);
+  transform: translate(-50%, -50%) scale(0.8);
+  opacity: 0;
+}
+@keyframes rippleOut {
+  0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.22; }
+  100% { transform: translate(-50%, -50%) scale(26); opacity: 0; }
+}
+.toggleParticipantes:active::after {
+  animation: rippleOut 260ms ease-out;
+}
+
+/* Entrada suave e informativa da lista (sem exageros) */
+@keyframes slideDownJuice {
+  0% { opacity: 0; transform: translateY(-6px) scale(0.99); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Respeito a usuários com redução de movimento */
+@media (prefers-reduced-motion: reduce) {
+  .toggleParticipantes {
+    transition: none;
+  }
+  .toggleParticipantes::before {
+    transition: none;
+  }
+  .toggleParticipantes:active {
+    animation: none;
+  }
+  .toggleParticipantes:active::after {
+    animation: none;
+  }
+  .toggleParticipantes[aria-expanded="true"] { animation: none; }
+  .participantesLista { animation: none; }
 }
 
 /* Lista de participantes */
@@ -923,6 +1025,51 @@ TODO FUTURO: Analisar uso destes estilos em:
   border-radius: 6px;
   font-size: 0.875rem;
   border: 1px solid #e9ecef;
+  animation: slideDownJuice 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Itens da lista — animação leve e escalonada por item */
+.participantesLista ul > li {
+  animation: listItemJuice 260ms cubic-bezier(0.175, 0.885, 0.32, 1.275) both; /* easeOutBack para um "boom" sutil */
+  will-change: transform, opacity;
+  transform-origin: 16px 50%;
+}
+
+/* Stagger simples e barato (até 12 itens) */
+.participantesLista ul > li:nth-child(1) { animation-delay: 0ms; }
+.participantesLista ul > li:nth-child(2) { animation-delay: 50ms; }
+.participantesLista ul > li:nth-child(3) { animation-delay: 100ms; }
+.participantesLista ul > li:nth-child(4) { animation-delay: 150ms; }
+.participantesLista ul > li:nth-child(5) { animation-delay: 200ms; }
+.participantesLista ul > li:nth-child(6) { animation-delay: 250ms; }
+.participantesLista ul > li:nth-child(7) { animation-delay: 300ms; }
+.participantesLista ul > li:nth-child(8) { animation-delay: 350ms; }
+.participantesLista ul > li:nth-child(9) { animation-delay: 400ms; }
+.participantesLista ul > li:nth-child(10) { animation-delay: 450ms; }
+.participantesLista ul > li:nth-child(11) { animation-delay: 500ms; }
+.participantesLista ul > li:nth-child(12) { animation-delay: 550ms; }
+
+@keyframes listItemJuice {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+    filter: saturate(0.98);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(0) scale(1.04); /* pico do "boom" */
+  }
+  85% {
+    transform: scale(0.998); /* pequeno retorno para assentamento */
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .participantesLista ul > li { animation: none !important; }
 }
 
 .participantesSection,
@@ -988,6 +1135,285 @@ TODO FUTURO: Analisar uso destes estilos em:
   color: #6c757d;
   font-style: italic;
   padding: 8px;
+}
+
+/* ===== PARTICIPANTES & FILA — DESIGN PROFISSIONAL MOBILE-FIRST ===== */
+/* Título das seções - tipografia charmosa e profissional */
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #334155;
+  letter-spacing: -0.01em;
+  margin: 0 0 16px 0;
+  padding: 0 4px;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.sectionCount {
+  font-weight: 500;
+  color: #64748b;
+  font-size: 0.8125rem;
+  background: #f8fafc;
+  padding: 2px 8px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+/* Container principal dos participantes - design charmoso e sofisticado, sem hover */
+.personRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.55rem 0.9rem;
+  margin: 0;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.035);
+  border-radius: 0;
+  box-shadow: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.personRow::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  display: none !important;
+}
+
+/* Sem hover para mobile-first */
+
+/* Remove ícones padrão das seções antigas */
+.personRow::before {
+  content: none !important;
+}
+
+/* Container principal do nome e matrícula */
+.personMain {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+  flex: 1;
+}
+
+/* Bloco de identidade: empilha nome e matrícula verticalmente */
+.personIdentity {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+/* Fila: manter separadores idênticos à referência */
+.queueRow {
+  padding: 0.55rem 0.9rem;
+  margin: 0;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.035);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.queueRow:last-child {
+  border-bottom: none;
+}
+
+/* Ícone de confirmação (check) — acessível e discreto */
+.membro__check {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(8, 166, 108, 0.12);
+  border: 1px solid rgba(8, 166, 108, 0.35);
+  flex: 0 0 22px;
+}
+
+.membro__check svg {
+  width: 14px;
+  height: 14px;
+  stroke: #0f7e58; /* verde de confirmação, alto contraste */
+  stroke-width: 2.2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Avatar com iniciais — profissional e coerente com a paleta */
+.membro__avatar {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(249, 197, 19, 0.16);
+  color: #8c6513;
+  font-size: 0.68rem;
+  font-weight: 600;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  flex: 0 0 32px;
+  text-transform: uppercase;
+}
+
+/* Nome do participante - tipografia charmosa e acessível */
+.personName {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Chip de matrícula - design charmoso, com contraste e acessibilidade */
+.personMatriculaChip {
+  background: #e5e7eb;
+  color: #1f2937;
+  border: 1px solid #cbd5e1;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-family: "Inter", system-ui, sans-serif;
+  letter-spacing: 0.01em;
+  min-width: 64px;
+  text-align: center;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.personMatriculaChip::before {
+  content: 'Mat.';
+  margin-right: 4px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Matrícula abaixo do nome (estilo supporting text) */
+.personMatriculaSub {
+  color: #6b7280; /* on-surface-variant */
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  margin-top: 2px;
+  display: block;
+  line-height: 1.35;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-variant-numeric: tabular-nums;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.personMatriculaSub::before {
+  content: 'Matrícula ';
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+/* Tag de participante adicionado - estilo sutil */
+.personAddedTag {
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  color: #3730a3;
+  border: 1px solid #c7d2fe;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 10px;
+  letter-spacing: 0.02em;
+}
+
+/* Fila — linha estruturada com posição, nome e status */
+.queueRow {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  margin: 6px 0;
+  background: #ffffff;
+  border: 1px solid #edf2f7;
+  border-radius: 10px;
+}
+
+.queueRow::before {
+  content: none !important;
+}
+
+.queuePositionChip {
+  background: #e5e7eb;
+  color: #111827;
+  border: 1px solid #d1d5db;
+  font-size: 0.75rem;
+  min-width: 32px;
+  text-align: center;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+.queueStatusChip {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 10px;
+  border: 1px solid;
+  font-weight: 600;
+}
+
+/* variações de cor para status da fila */
+.green {
+  background: #d1fae5;
+  color: #065f46;
+  border-color: #a7f3d0;
+}
+
+.yellow {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+/* destaque de linha por estado */
+.vagaDireta {
+  border-color: #a7f3d0;
+  background: #ecfdf5;
+}
+
+.filaEspera {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+/* Responsividade para telas pequenas: status quebra linha abaixo do nome */
+@media (max-width: 480px) {
+  .queueRow {
+    grid-template-columns: auto 1fr;
+  }
+  .queueStatusChip {
+    justify-self: start;
+    margin-top: 4px;
+  }
 }
 
 /* Ícone indicativo para membros adicionados pelo supervisor */
@@ -1686,4 +2112,7 @@ TODO FUTURO: Analisar uso destes estilos em:
   .historicoModalTitle strong {
     font-size: 1.125rem;
   }
+}
+.personRow:last-child {
+  border-bottom: none;
 }

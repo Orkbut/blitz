@@ -174,6 +174,30 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
   const [historicoModalAberto, setHistoricoModalAberto] = useState<number | null>(null);
   const [fotoModalAberto, setFotoModalAberto] = useState<number | null>(null);
   
+  // Utilitário: gerar iniciais do servidor (ex.: "Fulano de Deus" -> "FD")
+  const getInitials = (nome?: string) => {
+    if (!nome || typeof nome !== 'string') return '?';
+    // Palavras de ligação que não contam como nomes
+    const stopwords = new Set(['de', 'da', 'do', 'das', 'dos', 'e', 'd', 'di', 'du', 'del']);
+    const partes = nome
+      .trim()
+      .split(/\s+/)
+      .map(p => p.replace(/[^A-Za-zÀ-ÿ]/g, '')) // remove pontuação e símbolos (ex.: "N.")
+      .filter(p => p && !stopwords.has(p.toLowerCase()));
+
+    if (partes.length >= 2) {
+      return (partes[0][0] + partes[1][0]).toUpperCase();
+    }
+
+    if (partes.length === 1) {
+      const p = partes[0];
+      const segundaLetra = p.length >= 2 ? p[1] : p[0];
+      return (p[0] + segundaLetra).toUpperCase();
+    }
+
+    return '?';
+  };
+  
   // 🚀 REALTIME: IDs das operações no modal (memoizados para estabilidade)
   const operacaoIds = useMemo(() => {
     const ids = operacoes.map(op => op.id).sort((a, b) => a - b);
@@ -979,33 +1003,41 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                     {/* Botão para mostrar/esconder participantes */}
                     <button
                       className={styles.toggleParticipantes}
+                      aria-expanded={showParticipantes === operacao.id}
+                      data-expanded={showParticipantes === operacao.id ? 'true' : 'false'}
                       onClick={() => setShowParticipantes(
                         showParticipantes === operacao.id ? null : operacao.id
                       )}
                     >
-                      {showParticipantes === operacao.id ? '▼' : '▶'} 
                       Ver participantes e fila
                     </button>
 
                     {/* Lista de participantes com lógica corrigida */}
                     {showParticipantes === operacao.id && (
                       <div className={styles.participantesLista}>
-                        {/* ✅ CONFIRMADOS - Aprovados pelo supervisor */}
+                        {/* ✅ CONFIRMADOS - Aprovados pelo supervisor (visual mobile-first) */}
                         {operacao.participantes_detalhes && operacao.participantes_detalhes.length > 0 && (
                           <div className={styles.participantesSection}>
-                            <h4>✅ Confirmados pelo supervisor ({operacao.participantes_detalhes.length}):</h4>
+                            <h4 className={styles.sectionTitle}>
+                              Confirmados pelo supervisor <span className={styles.sectionCount}>({operacao.participantes_detalhes.length})</span>
+                            </h4>
                             <ul>
                               {operacao.participantes_detalhes.map((p: any) => (
-                                <li key={p.id}>
-                                  ✅ {p.servidor?.nome || 'Nome não disponível'} - Mat: {p.servidor?.matricula || 'N/A'}
-                                  {p.estado_visual === 'ADICIONADO_SUP' && (
-                                    <img 
-                                      src="/icons/adicionar-membro.png"
-                                      alt="Adicionado pelo supervisor"
-                                      className={styles.adicionadoSupervisorIcon}
-                                      title="Adicionado diretamente pelo supervisor"
-                                    />
-                                  )}
+                                <li key={p.id} className={styles.personRow}>
+                                  <div className={styles.personMain}>
+                                    <div className={styles['membro__check']} aria-label="Confirmado">
+                                      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+                                        <polyline points="20 6 9 17 4 12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                      </svg>
+                                    </div>
+                                    <div className={styles['membro__avatar']} aria-hidden="true">
+                                      {getInitials(p.servidor?.nome)}
+                                    </div>
+                                    <div className={styles.personIdentity}>
+                                      <span className={styles.personName}>{p.servidor?.nome || 'Nome não disponível'}</span>
+                                      <span className={styles.personMatriculaSub} aria-label={`Matrícula ${p.servidor?.matricula || 'N/A'}`}>{p.servidor?.matricula || 'N/A'}</span>
+                                    </div>
+                                  </div>
                                 </li>
                               ))}
                             </ul>
@@ -1015,7 +1047,9 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                         {/* ⏳ SOLICITAÇÕES PENDENTES - Aguardando decisão do supervisor */}
                         {operacao.fila_detalhes && operacao.fila_detalhes.length > 0 && (
                           <div className={styles.filaSection}>
-                            <h4>⏳ Solicitações pendentes ({operacao.fila_detalhes.length}):</h4>
+                            <h4 className={styles.sectionTitle}>
+                              Solicitações pendentes <span className={styles.sectionCount}>({operacao.fila_detalhes.length})</span>
+                            </h4>
                             <div className={styles.solicitacoesPendentes}>
                               <small>📋 Ordem cronológica de solicitação - Supervisor decide quem aprovar</small>
                               
@@ -1109,51 +1143,35 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                               
                               <ul>
                                 {operacao.fila_detalhes.map((f: any, index: number) => {
-
-                                  
-                                  // 🎯 LÓGICA INTELIGENTE: Considerar contexto real da operação
+                                  // Lógica: status de vaga direta vs fila
                                   const limite = operacao.limite_participantes;
                                   const confirmados = operacao.participantes_confirmados || 0;
-                                  const posicao = index + 1; // Posição na lista de solicitações pendentes
-                                  
-                                  // ✅ CALCULAR VAGAS DIRETAS DISPONÍVEIS
+                                  const posicao = index + 1;
                                   const vagasDisponiveis = Math.max(0, limite - confirmados);
-                                  
-                                  // 🔍 DETERMINAR STATUS REAL
-                                  // Se há vagas disponíveis, as primeiras posições têm chance de vaga direta
                                   const temChanceVagaDireta = posicao <= vagasDisponiveis;
-                                  
-                                  // Se não há vagas, todos estão na fila
                                   const definitivamenteNaFila = vagasDisponiveis === 0;
-                                  
-                                  // Posição real na fila (considerando que não há vagas diretas)
                                   const posicaoRealNaFila = definitivamenteNaFila ? posicao : Math.max(1, posicao - vagasDisponiveis);
-                                  
 
-                                  
-                                  // 🎨 DETERMINAR COR E TEXTO
-                                  let icone = '🟡'; // Padrão: amarelo (fila)
-                                  let textoStatus = '';
-                                  let classNameExtra = styles.filaEspera;
-                                  
-                                  if (temChanceVagaDireta && !definitivamenteNaFila) {
-                                    // Verde: tem chance real de vaga direta
-                                    icone = '🟢';
-                                    textoStatus = `${posicao}º - ${f.servidor?.nome || 'Nome não disponível'} - Mat: ${f.servidor?.matricula || 'N/A'} (vaga direta disponível)`;
-                                    classNameExtra = styles.vagaDireta;
-                                  } else {
-                                    // Amarelo: está na fila
-                                    icone = '🟡';
-                                    if (definitivamenteNaFila) {
-                                      textoStatus = `${posicaoRealNaFila}º fila - ${f.servidor?.nome || 'Nome não disponível'} - Mat: ${f.servidor?.matricula || 'N/A'} (aguardando vaga)`;
-                                    } else {
-                                      textoStatus = `${posicaoRealNaFila}º fila - ${f.servidor?.nome || 'Nome não disponível'} - Mat: ${f.servidor?.matricula || 'N/A'} (fila de espera)`;
-                                    }
-                                  }
-                                  
+                                  const rowClass = `${styles.queueRow} ${temChanceVagaDireta && !definitivamenteNaFila ? styles.vagaDireta : styles.filaEspera}`;
+                                  const displayPosicao = temChanceVagaDireta && !definitivamenteNaFila ? `${posicao}º` : `${posicaoRealNaFila}º`;
+                                  const statusText = temChanceVagaDireta && !definitivamenteNaFila
+                                    ? 'Vaga direta'
+                                    : (definitivamenteNaFila ? 'Aguardando vaga' : 'Fila de espera');
+                                  const statusColor = temChanceVagaDireta && !definitivamenteNaFila ? styles.green : styles.yellow;
+
                                   return (
-                                    <li key={f.id} className={classNameExtra}>
-                                      {icone} {textoStatus}
+                                    <li key={f.id} className={rowClass}>
+                                      <span className={styles.queuePositionChip}>{displayPosicao}</span>
+                                      <div className={styles.personMain}>
+                                        <div className={styles['membro__avatar']} aria-hidden="true">
+                                          {getInitials(f.servidor?.nome)}
+                                        </div>
+                                        <div className={styles.personIdentity}>
+                                          <span className={styles.personName}>{f.servidor?.nome || 'Nome não disponível'}</span>
+                                          <span className={styles.personMatriculaSub} aria-label={`Matrícula ${f.servidor?.matricula || 'N/A'}`}>{f.servidor?.matricula || 'N/A'}</span>
+                                        </div>
+                                      </div>
+                                      <span className={`${styles.queueStatusChip} ${statusColor}`}>{statusText}</span>
                                     </li>
                                   );
                                 })}
