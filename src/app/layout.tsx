@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "Radar Detran - Sistema EU VOU",
   description: "Sistema de gestão de operações DETRAN Ceará - PWA",
   generator: "Next.js",
-  manifest: "/manifest.json",
+  manifest: "/manifest.json?v=2",
   keywords: ["detran", "ceará", "diárias", "solicitações", "pwa"],
   authors: [{ name: "DETRAN CE" }],
   icons: {
