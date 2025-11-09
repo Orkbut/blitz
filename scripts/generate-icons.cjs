@@ -17,6 +17,35 @@ const PWA_SIZES = [
 // Tamanhos para favicon
 const FAVICON_SIZES = [16, 32, 48];
 
+// Escala segura para ícones "maskable" no Android (conteúdo centralizado)
+// Mantém ~8% de margem em cada lado (84% do tamanho dentro da máscara)
+const MASKABLE_SAFE_SCALE = 0.84;
+
+async function createPaddedPWAIcon(inputImagePath, size, outputPath) {
+  const inner = Math.max(1, Math.round(size * MASKABLE_SAFE_SCALE));
+  const canvas = {
+    create: {
+      width: size,
+      height: size,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    },
+  };
+
+  const innerBuffer = await sharp(inputImagePath)
+    .resize(inner, inner, {
+      fit: 'contain',
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    })
+    .png({ quality: 100, compressionLevel: 6 })
+    .toBuffer();
+
+  await sharp(canvas)
+    .composite([{ input: innerBuffer, gravity: 'center' }])
+    .png({ quality: 100, compressionLevel: 6 })
+    .toFile(outputPath);
+}
+
 async function generateIcons(inputImagePath, options = {}) {
   try {
     console.log('🎨 Iniciando geração de ícones...');
@@ -39,17 +68,11 @@ async function generateIcons(inputImagePath, options = {}) {
     }
 
     // Gerar ícones PWA
-    console.log('📱 Gerando ícones PWA...');
+    console.log('📱 Gerando ícones PWA (com margem maskable)...');
     for (const { size, name } of PWA_SIZES) {
       const fileName = nameSuffix ? name.replace('.png', `${nameSuffix}.png`) : name;
       const outputPath = path.join(iconsDir, fileName);
-      await sharp(inputImagePath)
-        .resize(size, size, {
-          fit: 'contain',
-          background: { r: 0, g: 0, b: 0, alpha: 0 } // Fundo transparente
-        })
-        .png({ quality: 100, compressionLevel: 6 })
-        .toFile(outputPath);
+      await createPaddedPWAIcon(inputImagePath, size, outputPath);
       
       console.log(`✅ Gerado: ${fileName} (${size}x${size})`);
     }

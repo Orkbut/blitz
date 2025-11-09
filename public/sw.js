@@ -1,10 +1,10 @@
-const CACHE_NAME = 'radar-detran-static-v2';
+const CACHE_NAME = 'radar-detran-static-v3';
 
 // APENAS recursos estáticos que NUNCA mudam
 const staticUrlsToCache = [
-  '/manifest.json?v=2',
-  '/icons/v2/icon-192x192-v2.png',
-  '/icons/v2/icon-512x512-v2.png'
+  '/manifest.json?v=3',
+  '/icons/v3/icon-192x192-v3.png',
+  '/icons/v3/icon-512x512-v3.png'
 ];
 
 // Rotas que NUNCA devem ser cacheadas (sistema de agendamento)
@@ -135,8 +135,8 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('push', (event) => {
   const options = {
     body: event.data ? event.data.text() : 'Nova notificação do Radar Detran',
-    icon: '/icons/v2/icon-192x192-v2.png',
-    badge: '/icons/v2/icon-72x72-v2.png',
+    icon: '/icons/v3/icon-192x192-v3.png',
+    badge: '/icons/v3/icon-72x72-v3.png',
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),
@@ -146,12 +146,12 @@ self.addEventListener('push', (event) => {
       {
         action: 'explore',
         title: 'Ver detalhes',
-        icon: '/icons/v2/icon-192x192-v2.png'
+        icon: '/icons/v3/icon-192x192-v3.png'
       },
       {
         action: 'close',
         title: 'Fechar',
-        icon: '/icons/v2/icon-192x192-v2.png'
+        icon: '/icons/v3/icon-192x192-v3.png'
       }
     ]
   };
