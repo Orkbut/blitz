@@ -17,7 +17,7 @@ const PWA_SIZES = [
 // Tamanhos para favicon
 const FAVICON_SIZES = [16, 32, 48];
 
-async function generateIcons(inputImagePath) {
+async function generateIcons(inputImagePath, options = {}) {
   try {
     console.log('🎨 Iniciando geração de ícones...');
     
@@ -26,8 +26,14 @@ async function generateIcons(inputImagePath) {
       throw new Error(`Imagem não encontrada: ${inputImagePath}`);
     }
 
-    // Criar diretório de ícones se não existir
-    const iconsDir = path.join(__dirname, '..', 'public', 'icons');
+    // Opções de versionamento
+    const dirSuffix = options.dir ? options.dir.replace(/^\/+|\/+$/g, '') : '';
+    const nameSuffix = options.suffix || '';
+
+    // Criar diretório de ícones (suporta subpasta para versionamento)
+    const iconsDir = dirSuffix
+      ? path.join(__dirname, '..', 'public', 'icons', dirSuffix)
+      : path.join(__dirname, '..', 'public', 'icons');
     if (!fs.existsSync(iconsDir)) {
       fs.mkdirSync(iconsDir, { recursive: true });
     }
@@ -35,7 +41,8 @@ async function generateIcons(inputImagePath) {
     // Gerar ícones PWA
     console.log('📱 Gerando ícones PWA...');
     for (const { size, name } of PWA_SIZES) {
-      const outputPath = path.join(iconsDir, name);
+      const fileName = nameSuffix ? name.replace('.png', `${nameSuffix}.png`) : name;
+      const outputPath = path.join(iconsDir, fileName);
       await sharp(inputImagePath)
         .resize(size, size, {
           fit: 'contain',
@@ -44,7 +51,7 @@ async function generateIcons(inputImagePath) {
         .png({ quality: 100, compressionLevel: 6 })
         .toFile(outputPath);
       
-      console.log(`✅ Gerado: ${name} (${size}x${size})`);
+      console.log(`✅ Gerado: ${fileName} (${size}x${size})`);
     }
 
     // Gerar favicon.ico
@@ -84,6 +91,23 @@ async function generateIcons(inputImagePath) {
       .png()
       .toFile(appFaviconPath.replace('.ico', '.png'));
 
+    // Também gerar ícones 16x16 e 32x32 versionados na pasta icons
+    console.log('🧩 Gerando ícones pequenos (16x16, 32x32) na pasta de ícones...');
+    for (const size of [16, 32]) {
+      const smallOutput = path.join(
+        iconsDir,
+        `icon-${size}x${size}${nameSuffix}.png`
+      );
+      await sharp(inputImagePath)
+        .resize(size, size, {
+          fit: 'contain',
+          background: { r: 255, g: 255, b: 255, alpha: 1 }
+        })
+        .png()
+        .toFile(smallOutput);
+      console.log(`✅ Gerado: icon-${size}x${size}${nameSuffix}.png (${size}x${size})`);
+    }
+
     console.log('✅ Favicon gerado em public/ e src/app/');
 
     // Atualizar manifest.json
@@ -93,20 +117,24 @@ async function generateIcons(inputImagePath) {
     if (fs.existsSync(manifestPath)) {
       const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
       
-      // Atualizar ícones no manifest
-      manifest.icons = PWA_SIZES.map(({ size, name }) => ({
-        src: `/icons/${name}`,
-        sizes: `${size}x${size}`,
-        type: 'image/png',
-        purpose: 'maskable any'
-      }));
+      // Atualizar ícones no manifest (suporta subpasta e sufixo)
+      manifest.icons = PWA_SIZES.map(({ size, name }) => {
+        const fileName = nameSuffix ? name.replace('.png', `${nameSuffix}.png`) : name;
+        const basePath = `/icons/${dirSuffix ? dirSuffix + '/' : ''}${fileName}`;
+        return {
+          src: basePath,
+          sizes: `${size}x${size}`,
+          type: 'image/png',
+          purpose: 'maskable any'
+        };
+      });
 
       // Atualizar shortcuts se existirem
       if (manifest.shortcuts) {
         manifest.shortcuts = manifest.shortcuts.map(shortcut => ({
           ...shortcut,
           icons: [{
-            src: '/icons/icon-96x96.png',
+            src: `/icons/${dirSuffix ? dirSuffix + '/' : ''}${nameSuffix ? 'icon-96x96' + nameSuffix + '.png' : 'icon-96x96.png'}`,
             sizes: '96x96',
             type: 'image/png'
           }]
@@ -119,7 +147,12 @@ async function generateIcons(inputImagePath) {
 
     console.log('\n🎉 Todos os ícones foram gerados com sucesso!');
     console.log('\n📁 Arquivos gerados:');
-    PWA_SIZES.forEach(({ name }) => console.log(`   - public/icons/${name}`));
+    PWA_SIZES.forEach(({ name }) => {
+      const fileName = nameSuffix ? name.replace('.png', `${nameSuffix}.png`) : name;
+      console.log(`   - public/icons/${dirSuffix ? dirSuffix + '/' : ''}${fileName}`);
+    });
+    console.log(`   - public/icons/${dirSuffix ? dirSuffix + '/' : ''}icon-16x16${nameSuffix}.png`);
+    console.log(`   - public/icons/${dirSuffix ? dirSuffix + '/' : ''}icon-32x32${nameSuffix}.png`);
     console.log('   - public/favicon.png');
     console.log('   - src/app/favicon.png');
     console.log('   - manifest.json (atualizado)');
@@ -131,20 +164,34 @@ async function generateIcons(inputImagePath) {
 }
 
 // Verificar argumentos da linha de comando
-const inputImage = process.argv[2];
+// Parse de argumentos: input, --dir=v2, --suffix=-v2
+const argv = process.argv.slice(2);
+let inputImage = null;
+let dir = '';
+let suffix = '';
+
+for (const arg of argv) {
+  if (arg.startsWith('--dir=')) {
+    dir = arg.split('=')[1] || '';
+  } else if (arg.startsWith('--suffix=')) {
+    suffix = arg.split('=')[1] || '';
+  } else if (!inputImage) {
+    inputImage = arg;
+  }
+}
 
 if (!inputImage) {
   console.log('\n🎨 Gerador de Ícones PWA');
-  console.log('\nUso: node scripts/generate-icons.js <caminho-da-imagem>');
+  console.log('\nUso: node scripts/generate-icons.cjs <caminho-da-imagem> [--dir=v2] [--suffix=-v2]');
   console.log('\nExemplo:');
-  console.log('  node scripts/generate-icons.js icons/meu-icone.png');
-  console.log('  node scripts/generate-icons.js C:/Users/Usuario/Desktop/icone.svg');
+  console.log('  node scripts/generate-icons.cjs icons/meu-icone.png --dir=v2 --suffix=-v2');
+  console.log('  node scripts/generate-icons.cjs C:/Users/Usuario/Desktop/icone.svg --dir=v2 --suffix=-v2');
   console.log('\nFormatos suportados: PNG, JPG, SVG, WEBP');
   console.log('Recomendação: Use uma imagem quadrada de pelo menos 512x512px');
   process.exit(1);
 }
 
 // Executar geração
-generateIcons(inputImage);
+generateIcons(inputImage, { dir, suffix });
 
 module.exports = { generateIcons };

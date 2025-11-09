@@ -11,9 +11,9 @@ export const metadata: Metadata = {
   keywords: ["detran", "ceará", "diárias", "solicitações", "pwa"],
   authors: [{ name: "DETRAN CE" }],
   icons: {
-    icon: "/icons/icon-192x192.png",
-    shortcut: "/icons/icon-192x192.png",
-    apple: "/icons/icon-192x192.png",
+    icon: "/icons/v2/icon-192x192-v2.png",
+    shortcut: "/icons/v2/icon-192x192-v2.png",
+    apple: "/icons/v2/icon-192x192-v2.png",
   },
   appleWebApp: {
     capable: true,
@@ -64,18 +64,18 @@ export default function RootLayout({
         <meta name="msapplication-tap-highlight" content="no" />
         
         {/* Apple Touch Icons */}
-        <link rel="apple-touch-icon" href="/icons/icon-152x152.png" />
-        <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" href="/icons/v2/icon-152x152-v2.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/icons/v2/icon-152x152-v2.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icons/v2/icon-192x192-v2.png" />
         
         {/* Favicon */}
-        <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/icons/v2/icon-32x32-v2.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/icons/v2/icon-16x16-v2.png" />
         <link rel="shortcut icon" href="/favicon.ico" />
         
         {/* Splash Screens */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <link rel="apple-touch-startup-image" href="/icons/icon-512x512.png" />
+        <link rel="apple-touch-startup-image" href="/icons/v2/icon-512x512-v2.png" />
       </head>
       <body>
         <RealtimeProvider>
