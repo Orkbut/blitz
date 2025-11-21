@@ -38,6 +38,7 @@ interface Operacao {
   supervisor_inativacao_id?: number;
   // ✅ NOVO: Indicador de fotos
   tem_fotos?: boolean;
+  coordenadores_ids?: number[];
   janela?: {
     id: number;
     dataInicio: string;
@@ -48,9 +49,11 @@ interface Operacao {
     estado_visual: 'CONFIRMADO' | 'PENDENTE' | 'NA_FILA' | 'DISPONIVEL' | 'ADICIONADO_SUP';
     posicao_fila?: number;
   };
+  participacoes?: { id: number; servidor_id: number; estado_visual: string }[];
 }
 
-export const CalendarioSimplesComponent: React.FC = () => {
+type Props = { servidorDestacadoId?: number; onMonthChange?: (date: Date) => void };
+export const CalendarioSimplesComponent: React.FC<Props> = ({ servidorDestacadoId, onMonthChange }) => {
   // Log para debug de re-renderizações
 
   
@@ -90,6 +93,10 @@ export const CalendarioSimplesComponent: React.FC = () => {
   // Estados para janelas e seleção de janela do relatório
   const [janelasDisponiveis, setJanelasDisponiveis] = useState<Array<{ id: number; dataInicio: string; dataFim: string }>>([]);
   const [janelaSelecionada, setJanelaSelecionada] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (onMonthChange) onMonthChange(currentDate);
+  }, [currentDate, onMonthChange]);
 
   // Carregar janelas operacionais ativas (ordem: mais recentes primeiro) e pré-selecionar a última criada
   useEffect(() => {
@@ -650,70 +657,93 @@ export const CalendarioSimplesComponent: React.FC = () => {
 
 
     try {
-      const params = new URLSearchParams({
+      const paramsSummary = new URLSearchParams({
+        startDate: format(startDate, 'yyyy-MM-dd'),
+        endDate: format(endDate, 'yyyy-MM-dd'),
+        membroId,
+        portal: 'membro',
+        includeParticipantes: 'false',
+        includeInactive: 'true',
+        fields: 'summary',
+        _t: Date.now().toString(),
+        _realtime: 'true'
+      });
+      const paramsFull = new URLSearchParams({
         startDate: format(startDate, 'yyyy-MM-dd'),
         endDate: format(endDate, 'yyyy-MM-dd'),
         membroId,
         portal: 'membro',
         includeParticipantes: 'true',
-        includeInactive: 'true', // Incluir operações inativas para histórico completo
-        _t: Date.now().toString(), // Cache busting
-        _realtime: 'true' // Indicador de chamada via realtime
+        includeInactive: 'true',
+        fields: 'full',
+        _t: Date.now().toString(),
+        _realtime: 'true'
       });
 
-      const response = await fetch(`/api/unified/operacoes?${params}`, {
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
-      });
+      const keySummary = `/api/unified/operacoes?${paramsSummary}`;
+      const keyFull = `/api/unified/operacoes?${paramsFull}`;
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
+      const readCache = (key: string): Operacao[] | null => {
+        try {
+          const s = sessionStorage.getItem(`ops:${key}`);
+          if (!s) return null;
+          const parsed = JSON.parse(s);
+          if (Array.isArray(parsed)) return parsed as Operacao[];
+          return null;
+        } catch { return null; }
+      };
+      const writeCache = (key: string, data: Operacao[]) => {
+        try { sessionStorage.setItem(`ops:${key}`, JSON.stringify(data)); } catch {}
+      };
 
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const text = await response.text();
-        console.error('[CalendarioSimples] ❌ Resposta não é JSON:', text.substring(0, 200));
-        throw new Error('Resposta da API não é JSON válido');
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
-
-        const operacoesData = data.data || [];
-        
-
-        
-        setOperacoes(operacoesData);
-
-        // Processar operações por dia para o modal
-        const operacoesPorDiaMap: Record<string, Operacao[]> = {};
-        operacoesData.forEach((op: Operacao) => {
-          // ✅ CORREÇÃO TIMEZONE: Usar substring para evitar problemas de fuso horário
-      const dataKey = op.data_operacao.substring(0, 10); // Extrai apenas YYYY-MM-DD
-          if (!operacoesPorDiaMap[dataKey]) {
-            operacoesPorDiaMap[dataKey] = [];
-          }
-          operacoesPorDiaMap[dataKey].push(op);
+      const cachedSummary = readCache(keySummary);
+      if (cachedSummary) {
+        setOperacoes(cachedSummary as Operacao[]);
+        const map: Record<string, Operacao[]> = {};
+        (cachedSummary as Operacao[]).forEach((op: any) => {
+          const d = (op.data_operacao || op.dataOperacao).substring(0, 10);
+          if (!map[d]) map[d] = [];
+          map[d].push(op);
         });
-        setOperacoesPorDia(operacoesPorDiaMap);
-      } else {
-        console.error('[CalendarioSimples] ❌ Erro na resposta:', data.error);
-        setOperacoes([]);
-        setOperacoesPorDia({});
+        setOperacoesPorDia(map);
+      }
+
+      const respSummary = await fetch(keySummary, { cache: 'force-cache' });
+      const jsonSummary = await respSummary.json();
+      if (jsonSummary?.success && Array.isArray(jsonSummary.data)) {
+        const ops = jsonSummary.data as Operacao[];
+        setOperacoes(ops);
+        const map: Record<string, Operacao[]> = {};
+        ops.forEach((op: any) => {
+          const d = (op.data_operacao || op.dataOperacao).substring(0, 10);
+          if (!map[d]) map[d] = [];
+          map[d].push(op);
+        });
+        setOperacoesPorDia(map);
+        writeCache(keySummary, ops);
+      }
+
+      const respFull = await fetch(keyFull, { cache: 'no-cache' });
+      const jsonFull = await respFull.json();
+      if (jsonFull?.success && Array.isArray(jsonFull.data)) {
+        const ops = jsonFull.data as Operacao[];
+        setOperacoes(ops);
+        const map: Record<string, Operacao[]> = {};
+        ops.forEach((op: any) => {
+          const d = (op.data_operacao || op.dataOperacao).substring(0, 10);
+          if (!map[d]) map[d] = [];
+          map[d].push(op);
+        });
+        setOperacoesPorDia(map);
+        writeCache(keyFull, ops);
       }
     } catch (error) {
       console.error('[CalendarioSimples] ❌ Erro no fetch:', error);
       setOperacoes([]);
-      // Mostrar toast de erro apenas em desenvolvimento
       if (process.env.NODE_ENV === 'development') {
         toast.error('Erro ao carregar operações: ' + (error as Error).message);
       }
     } finally {
-      // Fetch concluído
     }
   }, [currentDate, membroAtual]);
 
@@ -801,7 +831,42 @@ export const CalendarioSimplesComponent: React.FC = () => {
   };
 
   const goToToday = () => {
-    setCurrentDate(new Date());
+    const now = new Date();
+    setCurrentDate(now);
+  };
+
+  const swipeRef = useRef<HTMLDivElement | null>(null);
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const swipeStartRef = useRef<{ x: number; y: number } | null>(null);
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    const t = e.touches[0];
+    swipeStartRef.current = { x: t.clientX, y: t.clientY };
+  };
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!swipeStartRef.current) return;
+    const t = e.touches[0];
+    const dx = t.clientX - swipeStartRef.current.x;
+    const dy = t.clientY - swipeStartRef.current.y;
+    if (Math.abs(dx) <= Math.abs(dy)) {
+      setSwipeOffset(0);
+      return;
+    }
+    e.preventDefault();
+    const limited = Math.max(Math.min(dx, 60), -60);
+    setSwipeOffset(limited);
+  };
+  const handleTouchEnd = () => {
+    if (!swipeStartRef.current) {
+      setSwipeOffset(0);
+      return;
+    }
+    const dx = swipeOffset;
+    const threshold = 40;
+    if (Math.abs(dx) >= threshold) {
+      if (dx > 0) navigateMonth('prev'); else navigateMonth('next');
+    }
+    setSwipeOffset(0);
+    swipeStartRef.current = null;
   };
 
   // Função para alternar tema
@@ -1051,12 +1116,15 @@ export const CalendarioSimplesComponent: React.FC = () => {
 
     // Debug removido para performance
 
+    const estadosValidos = new Set(['CONFIRMADO', 'ADICIONADO_SUP']);
+    const isHighlighted = !!servidorDestacadoId && (operacao.participacoes || []).some(p => p.servidor_id === servidorDestacadoId && estadosValidos.has(p.estado_visual));
     return (
-      <div className={`${styles.singleOperationInfo} ${styles.responsive} ${isInativa ? styles.operacaoInativa : ''} ${isInativa && operacao.tem_fotos ? styles.comFotos : ''}`}>
+      <div className={`${styles.singleOperationInfo} ${styles.responsive} ${isInativa ? styles.operacaoInativa : ''} ${isInativa && operacao.tem_fotos ? styles.comFotos : ''} ${isHighlighted ? styles.opHighlightGold : ''}`}>
         <div className={`${styles.operationHeader} ${styles[operacao.modalidade.toLowerCase()]}`}>
           <div className={`${styles.modalidadeName} ${styles[operacao.modalidade.toLowerCase()]}`}>
             {operacao.modalidade === 'BLITZ' ? 'RADAR' : operacao.modalidade}
           </div>
+          {/* Ícone piscante movido para área do relógio; removido aqui */}
           <div className={styles.participantStats}>
             {isInativa ? (
               // Badge de pessoas para operações arquivadas
@@ -1127,11 +1195,14 @@ export const CalendarioSimplesComponent: React.FC = () => {
           const infoParticipantes = `${confirmados}/${limite}`;
           const infoFila = pendentes > 0 ? `+${pendentes}` : '';
           
+          const estadosValidos = new Set(['CONFIRMADO', 'ADICIONADO_SUP']);
+          const isHighlighted = !!servidorDestacadoId && (op.participacoes || []).some(p => p.servidor_id === servidorDestacadoId && estadosValidos.has(p.estado_visual));
           return (
-            <div key={idx} className={`${styles.operationItem} ${styles[op.modalidade.toLowerCase()]} ${isInativa ? styles.operacaoInativa : ''}`}>
+            <div key={idx} className={`${styles.operationItem} ${styles[op.modalidade.toLowerCase()]} ${isInativa ? styles.operacaoInativa : ''} ${isHighlighted ? styles.operationItemHighlighted : ''}`}>
               <span className={styles.modalidadeCompact}>
                 {modalidadeAbrev}
               </span>
+              {/* Ícone piscante movido para área do relógio; removido aqui */}
               {isInativa ? (
                 <div className={styles.participantesCompactBadge}>
                   <span className={styles.participantesCompactCount}>
@@ -1249,7 +1320,14 @@ export const CalendarioSimplesComponent: React.FC = () => {
       </div>
 
       {/* Grid do Calendário */}
-      <div className={styles.calendarGrid}>
+      <div
+        className={styles.calendarGrid}
+        ref={swipeRef}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{ transform: swipeOffset ? `translateX(${swipeOffset}px)` : undefined, transition: swipeOffset === 0 ? 'transform 160ms ease' : 'none' }}
+      >
         {calendarDays.map((day, index) => {
           const operacoesDia = getOperacoesDia(day);
           const isCurrentMonth = isSameMonth(day, currentDate);
@@ -1257,6 +1335,8 @@ export const CalendarioSimplesComponent: React.FC = () => {
           const hasUniqueOperation = operacoesDia.length === 1;
           const shouldHighlight = shouldHighlightDay(day);
 
+          const estadosValidos = new Set(['CONFIRMADO', 'ADICIONADO_SUP']);
+          const dayHighlightedByServidor = !!servidorDestacadoId && operacoesDia.some(op => (op.participacoes || []).some(p => p.servidor_id === servidorDestacadoId && estadosValidos.has(p.estado_visual)));
           return (
             <div
               key={index}
@@ -1265,18 +1345,32 @@ export const CalendarioSimplesComponent: React.FC = () => {
                 ${!isCurrentMonth ? styles.otherMonth : ''}
                 ${isCurrentDay ? styles.currentDay : ''}
                 ${shouldHighlight ? styles.highlightedDay : ''}
+                ${dayHighlightedByServidor ? styles.dayHighlightGold : ''}
+                ${shouldHighlight && dayHighlightedByServidor ? styles.conflictHighlight : ''}
               `}
               onClick={() => handleDayClick(day)}
             >
               <div className={styles.dayNumber}>
                 {format(day, 'd')}
               </div>
+              {(() => {
+                const hasCoord = !!servidorDestacadoId && operacoesDia.some(op => (op.coordenadores_ids || []).includes(servidorDestacadoId));
+                return hasCoord ? (
+                  <img src="/icons/coordenador.png" className={styles.coordenadorDayBadgeInline} alt="" />
+                ) : null;
+              })()}
 
               {hasUniqueOperation && operacoesDia[0]?.horario && (
                 <span className={styles.dayTimeBadge}>
                   {formatHorario(operacoesDia[0].horario)}
                 </span>
               )}
+              {(() => {
+                const hasCoord = !!servidorDestacadoId && operacoesDia.some(op => (op.coordenadores_ids || []).includes(servidorDestacadoId));
+                return hasCoord && hasUniqueOperation && operacoesDia[0]?.horario ? (
+                  <img src="/icons/coordenador.png" className={styles.coordenadorTimeBadgeInline} alt="" />
+                ) : null;
+              })()}
 
               {operacoesDia.length > 0 && (
                 <div className={styles.operacaoInfo}>

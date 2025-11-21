@@ -636,6 +636,70 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
+/* ===== Conflito: serrilhado animado misto verde+dourado ===== */
+.conflictHighlight {
+  position: relative;
+}
+@property --ants-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.conflictHighlight::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+  --ants-angle: 0deg;
+  --ants-thickness: 2px;
+  --ants-speed: 15s;
+  background: repeating-conic-gradient(from var(--ants-angle), #28a745 0 10deg, #d4a017 10deg 20deg);
+  animation: antsSpin var(--ants-speed) linear infinite;
+  padding: var(--ants-thickness);
+  /* Máscara para exibir apenas o anel (borda) */
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+@keyframes antsSpin {
+  to { --ants-angle: 360deg; }
+}
+
+.coordenadorDayBadgeInline {
+  position: absolute;
+  top: clamp(2px, 0.5vw, 4px);
+  left: calc(clamp(2px, 0.5vw, 4px) + clamp(14px, 3vw, 18px) + 4px);
+  width: clamp(14px, 3vw, 18px);
+  height: clamp(14px, 3vw, 18px);
+  opacity: 1;
+  filter: drop-shadow(0 2px 4px rgba(212,160,23,0.45));
+  z-index: 11;
+  pointer-events: none;
+}
+
+@container calendar (max-width: 400px) {
+  .coordenadorDayBadgeInline {
+    top: 3px;
+    left: calc(3px + 16px + 4px);
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@container calendar (max-width: 320px) {
+  .coordenadorDayBadgeInline {
+    top: 2px;
+    left: calc(2px + 14px + 4px);
+    width: 14px;
+    height: 14px;
+  }
+}
+
 /* Container Queries para Número do Dia */
 @container calendar (max-width: 400px) {
   .dayNumber {
@@ -1914,6 +1978,7 @@
 
 .operationHeader {
   margin-bottom: clamp(2px, 0.5vw, 4px);
+  position: relative;
 }
 
 /* Estilo compacto e elegante para horários das operações */
@@ -2454,5 +2519,72 @@
   
   .peopleBadgeCount {
     font-size: clamp(9px, 2.5vw, 12px);
+  }
+}
+
+.dayHighlightGold {
+  outline: 2px solid rgba(212, 160, 23, 0.35);
+  box-shadow: 0 3px 12px rgba(212, 160, 23, 0.25);
+  transition: outline-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.opHighlightGold {
+  background: linear-gradient(145deg, rgba(247, 201, 72, 0.18), rgba(212, 160, 23, 0.12)) !important;
+  box-shadow: 0 2px 8px rgba(212, 160, 23, 0.25) !important;
+  border-left-color: #d4a017 !important;
+}
+
+.operationItemHighlighted {
+  background: linear-gradient(145deg, rgba(247, 201, 72, 0.15), rgba(212, 160, 23, 0.1)) !important;
+  box-shadow: 0 2px 6px rgba(212, 160, 23, 0.2) !important;
+}
+.coordenadorBadge {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: clamp(16px, 4vw, 22px);
+  height: auto;
+  opacity: 0.85;
+  animation: pulseCoordinator 1.5s ease-in-out infinite;
+  filter: drop-shadow(0 2px 4px rgba(212,160,23,0.35));
+  pointer-events: none;
+}
+
+.coordenadorBadgeSmall {
+  display: inline-block;
+  margin-left: 6px;
+  width: clamp(14px, 3.6vw, 18px);
+  height: auto;
+  opacity: 0.85;
+  animation: pulseCoordinator 1.5s ease-in-out infinite;
+  vertical-align: middle;
+  filter: drop-shadow(0 1px 3px rgba(212,160,23,0.3));
+  pointer-events: none;
+}
+
+@keyframes pulseCoordinator {
+  0% { opacity: 0.85; transform: translateY(-50%) scale(0.98); }
+  50% { opacity: 0.4; transform: translateY(-50%) scale(1.05); }
+  100% { opacity: 0.85; transform: translateY(-50%) scale(0.98); }
+}
+.coordenadorTimeBadgeInline {
+  position: absolute;
+  top: clamp(2px, 0.5vw, 4px);
+  right: calc(clamp(4px, 1vw, 8px) + 22px);
+  width: clamp(16px, 4vw, 22px);
+  height: auto;
+  opacity: 0.95;
+  animation: pulseCoordinator 1.5s ease-in-out infinite;
+  filter: drop-shadow(0 2px 4px rgba(212,160,23,0.45));
+  z-index: 12;
+  pointer-events: none;
+}
+
+@media (max-width: 480px) and (orientation: portrait) {
+  .coordenadorTimeBadgeInline {
+    left: calc(2px + 18px + 4px);
+    right: auto;
+    width: 18px;
   }
 }

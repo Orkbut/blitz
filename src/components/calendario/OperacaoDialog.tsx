@@ -26,7 +26,7 @@ import { toast } from 'react-hot-toast';
 import styles from './OperacaoDialog.module.css';
 import { useRealtime } from '@/hooks/useRealtime';
 import FotoOperacaoManager from './FotoOperacaoManager';
-import { isSupervisorAuthenticated } from '@/lib/auth-utils';
+import { isSupervisorAuthenticated, getSupervisorHeaders } from '@/lib/auth-utils';
 
 interface Operacao {
   id: number;
@@ -115,9 +115,9 @@ interface OperacaoDialogProps {
 // Função para calcular turno correto baseado no horário
 const getTurnoFromHorario = (horario: string): string => {
   if (!horario) return '';
-  
+
   const [hours] = horario.split(':').map(Number);
-  
+
   if (hours >= 6 && hours < 12) {
     return 'MANHÃ';
   } else if (hours >= 12 && hours < 18) {
@@ -137,17 +137,17 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
   const renderCount = useRef(0);
   const lastPropsRef = useRef({ operacoesLength: 0, dateString: '' });
   renderCount.current += 1;
-  
+
   const currentPropsLength = operacoesIniciais.length;
   const currentDateString = date.toISOString();
-  const propsChanged = 
+  const propsChanged =
     lastPropsRef.current.operacoesLength !== currentPropsLength ||
     lastPropsRef.current.dateString !== currentDateString;
-  
+
   if (propsChanged) {
     lastPropsRef.current = { operacoesLength: currentPropsLength, dateString: currentDateString };
   }
-  
+
   // ✅ EXTRAIR ID DA AUTENTICAÇÃO (não localStorage)
   const getMembroIdFromAuth = () => {
     try {
@@ -161,19 +161,70 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
     }
     return '1'; // Fallback apenas em caso de erro
   };
-  
+
   const membroId = getMembroIdFromAuth();
-  
+
   const [operacoes, setOperacoes] = useState<Operacao[]>(operacoesIniciais);
   const [loading, setLoading] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [showParticipantes, setShowParticipantes] = useState<number | null>(null);
-  const [filaDetalhada, setFilaDetalhada] = useState<{[key: number]: FilaDetalhada[]}>({});
+  const [filaDetalhada, setFilaDetalhada] = useState<{ [key: number]: FilaDetalhada[] }>({});
   const [historicoOperacao, setHistoricoOperacao] = useState<Record<number, HistoricoOperacao>>({});
   const [loadingHistorico, setLoadingHistorico] = useState<Record<number, boolean>>({});
   const [historicoModalAberto, setHistoricoModalAberto] = useState<number | null>(null);
   const [fotoModalAberto, setFotoModalAberto] = useState<number | null>(null);
+  const [coordenadoresMarcados, setCoordenadoresMarcados] = useState<Record<number, Record<number, boolean>>>({});
+
+  const handleToggleCoordenador = useCallback(async (operacaoId: number, servidorId?: number) => {
+    if (!servidorId) return;
+    try {
+      const supervisorAuth = localStorage.getItem('supervisorAuth');
+      const eSupervisor = supervisorAuth ? true : isSupervisorAuthenticated();
+      if (!eSupervisor) {
+        toast.error('Apenas supervisores podem definir coordenador');
+        return;
+      }
+    } catch {}
+    const atual = !!coordenadoresMarcados[operacaoId]?.[servidorId];
+    try {
+      if (!atual) {
+        const response = await fetch(`/api/supervisor/operacoes/${operacaoId}/coordenadores`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...getSupervisorHeaders() },
+          body: JSON.stringify({ servidorId })
+        });
+        const data = await response.json();
+        if (response.ok && data?.success) {
+          setCoordenadoresMarcados(prev => {
+            const op = prev[operacaoId] || {};
+            return { ...prev, [operacaoId]: { ...op, [servidorId]: true } };
+          });
+        } else {
+          toast.error(data?.error || 'Erro ao atribuir coordenador');
+        }
+      } else {
+        const response = await fetch(`/api/supervisor/operacoes/${operacaoId}/coordenadores`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json', ...getSupervisorHeaders() },
+          body: JSON.stringify({ servidorId })
+        });
+        const data = await response.json();
+        if (response.ok && data?.success) {
+          setCoordenadoresMarcados(prev => {
+            const op = prev[operacaoId] || {};
+            return { ...prev, [operacaoId]: { ...op, [servidorId]: false } };
+          });
+        } else {
+          toast.error(data?.error || 'Erro ao remover coordenador');
+        }
+      }
+    } catch (error) {
+      toast.error('Erro de comunicação com o servidor');
+    }
+  }, [coordenadoresMarcados]);
+
   
+
   // Utilitário: gerar iniciais do servidor (ex.: "Fulano de Deus" -> "FD")
   const getInitials = (nome?: string) => {
     if (!nome || typeof nome !== 'string') return '?';
@@ -197,13 +248,34 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
 
     return '?';
   };
-  
+
   // 🚀 REALTIME: IDs das operações no modal (memoizados para estabilidade)
   const operacaoIds = useMemo(() => {
     const ids = operacoes.map(op => op.id).sort((a, b) => a - b);
     return ids;
   }, [operacoes]);
-  
+
+  useEffect(() => {
+    const carregar = async () => {
+      for (const id of operacaoIds) {
+        try {
+          const response = await fetch(`/api/supervisor/operacoes/${id}/coordenadores`, {
+            headers: { ...getSupervisorHeaders() }
+          });
+          const data = await response.json();
+          if (response.ok && data?.success && data?.data?.servidores_ids) {
+            const mapa: Record<number, boolean> = {};
+            for (const sid of data.data.servidores_ids as number[]) {
+              mapa[sid] = true;
+            }
+            setCoordenadoresMarcados(prev => ({ ...prev, [id]: mapa }));
+          }
+        } catch {}
+      }
+    };
+    carregar();
+  }, [operacaoIds]);
+
   // ✅ OTIMIZADO: Logs desnecessários removidos
 
   // ✅ CALLBACK SIMPLIFICADO: Atualização das operações
@@ -216,21 +288,21 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
   // ✅ CALLBACK ULTRA-ESTÁVEL: Handle novos eventos de histórico
   const handleNovoEvento = useCallback((evento: any) => {
     const operacaoId = evento.operacao_id;
-    
+
     // 💾 CACHE INTELIGENTE: Adicionar evento ao cache local
     setHistoricoOperacao(prev => {
       const historicoAtual = prev[operacaoId];
-      
+
       if (!historicoAtual) {
         return prev;
       }
-      
+
       // Verificar duplicata
       const eventoExiste = historicoAtual.eventos.some(e => e.id === evento.id.toString());
       if (eventoExiste) {
         return prev;
       }
-      
+
       // Adicionar e reordenar
       const eventosAtualizados = [
         ...historicoAtual.eventos,
@@ -245,7 +317,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
           cor: evento.cor
         }
       ].sort((a, b) => new Date(a.data_evento).getTime() - new Date(b.data_evento).getTime());
-      
+
       return {
         ...prev,
         [operacaoId]: {
@@ -254,7 +326,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
         }
       };
     });
-    
+
     // Forçar atualização visual se modal aberto
     if (historicoModalAberto === operacaoId) {
       setHistoricoModalAberto(null);
@@ -270,11 +342,11 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
     tables: ['eventos_operacao'],
     onDatabaseChange: useCallback((event: any) => {
       const { table, eventType, payload } = event;
-      
+
       // Apenas processar INSERTs na tabela eventos_operacao
       if (table === 'eventos_operacao' && eventType === 'INSERT' && payload.new) {
         const novoEvento = payload.new;
-        
+
         // Verificar se é uma operação que estamos monitorando
         if (operacaoIds.length === 0 || operacaoIds.includes(novoEvento.operacao_id)) {
           handleNovoEvento(novoEvento);
@@ -282,7 +354,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
       }
     }, [operacaoIds, handleNovoEvento])
   });
-  
+
   // Atualizar operações quando prop mudar
   useEffect(() => {
     setOperacoes(operacoesIniciais);
@@ -291,17 +363,17 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
   // ✅ FUNÇÃO: Refresh suave das operações
   const handleRefresh = async () => {
     if (refreshing) return; // Evita múltiplos refreshes simultâneos
-    
+
     setRefreshing(true);
-    
+
     try {
       // Limpar cache das filas detalhadas e histórico para recarregar
       setFilaDetalhada({});
       setHistoricoOperacao({});
-      
+
       // Chamar a função de update que já existe
       await onOperacaoUpdate();
-      
+
       // Feedback visual discreto
       toast.success('Informações atualizadas!', {
         duration: 2000,
@@ -333,7 +405,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
     // ✅ USAR O ID DA AUTENTICAÇÃO (já extraído no componente)
     const membroIdLocal = membroId;
     setLoading(operacaoId);
-    
+
     try {
       // Usar mesma API do calendário principal
       const response = await fetch('/api/participations', {
@@ -372,9 +444,9 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
 
     // ✅ USAR O ID DA AUTENTICAÇÃO (já extraído no componente)
     const membroIdLocal = membroId;
-    
+
     setLoading(operacaoId);
-    
+
     try {
       const response = await fetch('/api/agendamento/cancelar', {
         method: 'POST',
@@ -401,46 +473,46 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
   // ✅ FUNÇÃO: Buscar histórico completo da operação para tooltip inteligente
   const buscarHistoricoOperacao = async (operacaoId: number, forceRefresh: boolean = false) => {
     // 🐛 DIAGNÓSTICO: Log de entrada na função
-    
-    
+
+
     // 💾 CACHE INTELIGENTE: Se já temos dados e não é force refresh, retornar
     if (historicoOperacao[operacaoId] && !forceRefresh) {
       return;
     }
-    
+
     setLoadingHistorico(prev => ({ ...prev, [operacaoId]: true }));
-    
+
     try {
       const response = await fetch(`/api/agendamento/operacoes/${operacaoId}/historico?membroId=${membroId}`);
-      
+
       if (!response.ok) {
         throw new Error('Erro ao buscar histórico');
       }
-      
+
       const data = await response.json();
-      
+
       if (data.success && data.data) {
         // 🔥 CACHE ACUMULATIVO: Mesclar eventos novos com existentes
         const eventosExistentes = historicoOperacao[operacaoId]?.eventos || [];
         const eventosNovos = data.data.eventos;
-        
+
         // Criar um Map para evitar duplicatas baseado no ID do evento
         const eventosMap = new Map();
-        
+
         // Adicionar eventos existentes
         eventosExistentes.forEach(evento => {
           eventosMap.set(evento.id, evento);
         });
-        
+
         // Adicionar/atualizar com eventos novos
         eventosNovos.forEach(evento => {
           eventosMap.set(evento.id, evento);
         });
-        
+
         // Converter de volta para array e ordenar por data
         const eventosCombinados = Array.from(eventosMap.values())
           .sort((a, b) => new Date(a.data_evento).getTime() - new Date(b.data_evento).getTime());
-        
+
         setHistoricoOperacao(prev => ({
           ...prev,
           [operacaoId]: {
@@ -465,7 +537,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
   const abrirHistoricoModal = (operacaoId: number) => {
 
     setHistoricoModalAberto(operacaoId);
-    
+
     // 🔥 SEMPRE buscar dados frescos quando abrir a janela
     buscarHistoricoOperacao(operacaoId, true); // Forçar refresh para obter dados mais recentes
   };
@@ -502,7 +574,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
   // 3. "LOTADO" (vermelho) - quando não há espaço nem na fila (mas mantém clicável para transparência)
   const getEstadoVisualInfo = (operacao: Operacao) => {
     // ✅ OTIMIZADO: Logs removidos (performance)
-    
+
     // Verificar se a operação está inativa
     if (operacao.inativa_pelo_supervisor) {
       return {
@@ -519,14 +591,14 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
         isInactive: true
       };
     }
-    
+
     // Primeiro verificar se o usuário já tem participação
     const estado = operacao.minha_participacao?.estado_visual;
-    
+
     if (estado === 'CONFIRMADO' || estado === 'ADICIONADO_SUP') {
       // ✅ CORREÇÃO: Tratar ADICIONADO_SUP igual a CONFIRMADO
       const textoEstado = estado === 'ADICIONADO_SUP' ? 'Adicionado pelo Supervisor' : 'Confirmado';
-      
+
       return {
         text: textoEstado,
         className: styles.confirmado,
@@ -541,18 +613,18 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
         totalNaFila: operacao.minha_participacao?.transparencia?.total_na_fila_cronologica
       };
     }
-    
+
     if (estado === 'PENDENTE') {
       // ✅ LÓGICA CORRIGIDA: Mostrar posição cronológica de solicitação
       const posicaoCronologica = operacao.minha_participacao?.posicao_cronologica;
       const totalSolicitacoes = operacao.minha_participacao?.transparencia?.total_na_fila_cronologica;
-      
+
       // ✅ OTIMIZADO: Logs removidos (performance)
-      
+
       // Determinar se está nas vagas diretas ou na fila
       const limite = operacao.limite_participantes;
       let textoEstado = '';
-      
+
       if (posicaoCronologica && posicaoCronologica <= limite) {
         // Está nas primeiras posições (vagas diretas)
         textoEstado = `Aguardando aprovação (${posicaoCronologica}º solicitante)`;
@@ -563,7 +635,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
       } else {
         textoEstado = 'Aguardando aprovação';
       }
-      
+
       return {
         text: textoEstado,
         className: styles.pendente,
@@ -577,7 +649,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
         buttonAction: 'cancelar'
       };
     }
-    
+
     if (estado === 'NA_FILA') {
       // ✅ OTIMIZADO: Logs removidos (performance)
       return {
@@ -594,18 +666,18 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
         totalNaFila: operacao.minha_participacao?.transparencia?.total_na_fila_cronologica
       };
     }
-    
+
     // Se não tem participação, calcular disponibilidade
     const confirmados = operacao.participantes_confirmados || 0;
     const totalSolicitacoes = operacao.total_solicitacoes || operacao.pessoas_na_fila || 0; // ✅ CORREÇÃO: usar total_solicitacoes (inclui PENDENTE)
     const limite = operacao.limite_participantes;
-    
+
     // ✅ OTIMIZADO: Logs removidos (performance)
-    
+
     // ✅ NOVA LÓGICA: Verificar se pode solicitar
     const totalOcupado = confirmados + totalSolicitacoes;
     const limiteTotal = limite * 2; // Vagas + fila (mesmo tamanho)
-    
+
     if (totalOcupado < limiteTotal) {
       if (confirmados < limite) {
         // ✅ OTIMIZADO: Logs removidos (performance)
@@ -657,19 +729,19 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
   };
 
   // ✅ COMPONENTE: Janela Modal do Histórico (Substituindo o antigo tooltip)
-  const TooltipHistorico = ({ operacaoId, posicaoCronologica, totalNaFila }: { 
-    operacaoId: number, 
-    posicaoCronologica?: number, 
-    totalNaFila?: number 
+  const TooltipHistorico = ({ operacaoId, posicaoCronologica, totalNaFila }: {
+    operacaoId: number,
+    posicaoCronologica?: number,
+    totalNaFila?: number
   }) => {
     // ✅ OTIMIZADO: Logs de modal histórico removidos (performance)
-    
+
     const historico = historicoOperacao[operacaoId];
     const isLoading = loadingHistorico[operacaoId] || false;
-    
+
     // 🔍 BUSCAR DADOS DA OPERAÇÃO ESPECÍFICA para mostrar a data
     const operacao = operacoes.find(op => op.id === operacaoId);
-    
+
     // 🎨 FUNÇÃO: Formatar data e hora com fuso horário correto para Iguatu-CE
     const formatarDataHora = (dataISO: string) => {
       // ✅ CORREÇÃO: Usar timezone correto para Iguatu-CE (UTC-3)
@@ -682,7 +754,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
         hour: '2-digit',
         minute: '2-digit'
       });
-      
+
       // Remover vírgula desnecessária
       return dataFormatadaComTimezone.replace(',', '');
     };
@@ -695,7 +767,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
       if (/^\d{4}-\d{2}-\d{2}$/.test(dataOperacao)) {
         dataParaProcessar = `${dataOperacao}T12:00:00`;
       }
-      
+
       const data = new Date(dataParaProcessar);
       return data.toLocaleDateString('pt-BR', {
         timeZone: 'America/Fortaleza',
@@ -712,13 +784,13 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
       // Removido o comportamento de fechar para atender ao requisito do usuário
       return;
     };
-    
+
     return (
-      <div 
+      <div
         className={styles.historicoModalOverlay}
         onClick={handleClickOutside}
       >
-        <div 
+        <div
           className={styles.historicoModal}
           onClick={(e) => {
             // ✅ CORREÇÃO CRÍTICA: Evitar que cliques no modal fechem o overlay
@@ -741,7 +813,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
               )}
             </div>
             {/* 🎯 BOTÃO FECHAR */}
-            <button 
+            <button
               className={styles.historicoModalCloseButton}
               onClick={fecharHistoricoModal}
               aria-label="Fechar arquivo"
@@ -749,7 +821,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
               <X size={20} />
             </button>
           </div>
-          
+
           {/* 🎯 CONTEÚDO DO MODAL */}
           <div className={styles.historicoModalContent}>
             {isLoading ? (
@@ -763,28 +835,28 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                 <div className={styles.historicoHeader}>
                   <span>📋 {historico.eventos.length} {historico.eventos.length === 1 ? 'evento' : 'eventos'} registrados</span>
                 </div>
-                
+
                 {/* 🔄 TIMELINE DE EVENTOS - Design profissional */}
                 <div className={styles.timelineEventos}>
                   {historico.eventos.slice().reverse().map((evento, index) => {
                     const dataFormatada = formatarDataHora(evento.data_evento);
                     const isUltimoEvento = index === 0;
-                    
 
-                    
+
+
                     return (
-                      <div 
+                      <div
                         key={evento.id}
                         className={`${styles.eventoItem} ${isUltimoEvento ? styles.eventoRecente : ''}`}
                       >
                         {/* 📍 ÍCONE DO EVENTO */}
-                        <div 
+                        <div
                           className={styles.eventoIcone}
                           style={{ color: evento.cor }}
                         >
                           {evento.icone}
                         </div>
-                        
+
                         {/* 📝 CONTEÚDO DO EVENTO */}
                         <div className={styles.eventoConteudo}>
                           <div className={styles.eventoServidor}>
@@ -797,7 +869,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                             {dataFormatada}
                           </div>
                         </div>
-                        
+
                         {/* 🆕 BADGE PARA ÚLTIMO EVENTO */}
                         {isUltimoEvento && (
                           <div className={styles.badgeRecente}>
@@ -808,7 +880,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                     );
                   })}
                 </div>
-                
+
                 {/* 💡 DICA DE TRANSPARÊNCIA */}
                 <div className={styles.dicaTransparencia}>
                   💡 Arquivo atualiza automaticamente com movimentações em tempo real
@@ -846,19 +918,19 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
             </span>
           </div>
           <div className={styles.headerActions}>
-            <button 
+            <button
               className={styles.refreshButton}
               onClick={handleRefresh}
               disabled={refreshing}
               aria-label="Atualizar informações"
               title="Atualizar informações"
             >
-              <RefreshCw 
-                size={20} 
-                className={refreshing ? styles.spinning : ''} 
+              <RefreshCw
+                size={20}
+                className={refreshing ? styles.spinning : ''}
               />
             </button>
-            <button 
+            <button
               className={styles.closeButton}
               onClick={onClose}
               aria-label="Fechar"
@@ -878,21 +950,21 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
             <div className={styles.operacoesList}>
               {operacoes.map(operacao => {
                 const estadoInfo = getEstadoVisualInfo(operacao);
-                
+
                 // 🔧 CORREÇÃO: Considerar confirmados + fila para calcular vagas reais
                 const confirmados = operacao.participantes_confirmados || 0;
                 const naFila = operacao.total_solicitacoes || operacao.pessoas_na_fila || 0; // ✅ CORREÇÃO: usar total_solicitacoes
                 const limite = operacao.limite_participantes;
-                
+
                 // ✅ LÓGICA CORRIGIDA: Fila pode ter até o mesmo número de vagas
                 const vagasDisponiveis = Math.max(0, limite - confirmados);
                 const espacoNaFila = Math.max(0, limite - naFila);
-                
+
                 // 🎯 NOVA LÓGICA: Determinar se pode participar
                 const podeParticipar = vagasDisponiveis > 0 || espacoNaFila > 0;
                 const seraConfirmado = vagasDisponiveis > 0;
                 const entraNaFila = vagasDisponiveis === 0 && espacoNaFila > 0;
-                
+
                 return (
                   <div key={operacao.id} className={`${styles.operacaoCard} ${operacoes.length > 1 ? styles.operacaoCardMultiple : ''}`}>
                     <div className={styles.operacaoHeader}>
@@ -915,7 +987,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                           </span>
                         </div>
                       )}
-                      
+
                       <div className={styles.infoItem}>
                         <Users size={16} />
                         <span>
@@ -930,11 +1002,11 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                             ✅ {vagasDisponiveis} {vagasDisponiveis === 1 ? 'vaga disponível' : 'vagas disponíveis'}
                           </div>
                         ) : entraNaFila ? (
-                          <div className={styles.vagasRestantes} style={{color: '#f59e0b'}}>
+                          <div className={styles.vagasRestantes} style={{ color: '#f59e0b' }}>
                             ⏳ Operação lotada - Você entrará na fila (posição {naFila + 1})
                           </div>
                         ) : (
-                          <div className={styles.vagasRestantes} style={{color: '#ef4444'}}>
+                          <div className={styles.vagasRestantes} style={{ color: '#ef4444' }}>
                             🚫 Operação completamente lotada (fila também cheia)
                           </div>
                         )
@@ -946,9 +1018,9 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                       <div className={styles.iconesContainer}>
                         {/* Ícone para abrir histórico da operação */}
                         {estadoInfo.showTooltipDetalhado && estadoInfo.operacaoId && (
-                          <img 
-                            src="/historico-de-saude.png" 
-                            alt="Histórico" 
+                          <img
+                            src="/historico-de-saude.png"
+                            alt="Histórico"
                             className={styles.fotoIcon}
                             onClick={() => abrirHistoricoModal(estadoInfo.operacaoId!)}
                             title="Ver arquivo completo da operação"
@@ -957,22 +1029,22 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
 
                         {/* Ícone para gerenciar fotos da operação */}
                         {(() => {
-                          const temParticipacao = operacao.minha_participacao && 
+                          const temParticipacao = operacao.minha_participacao &&
                             ['CONFIRMADO', 'ADICIONADO_SUP'].includes(operacao.minha_participacao.estado_visual);
-                          
+
                           // Verifica se é supervisor através do perfil do membro logado
                           const membroAuth = localStorage.getItem('membroAuth');
-                          const eSupervisor = membroAuth ? 
-                            JSON.parse(membroAuth).perfil === 'Supervisor' : 
+                          const eSupervisor = membroAuth ?
+                            JSON.parse(membroAuth).perfil === 'Supervisor' :
                             isSupervisorAuthenticated();
-                          
+
                           const dataPassou = new Date(operacao.data_operacao) <= new Date();
                           const mostrarCamera = (temParticipacao || eSupervisor) && dataPassou;
-                          
+
                           return mostrarCamera ? (
-                            <img 
-                              src="/camera.png" 
-                              alt="Câmera" 
+                            <img
+                              src="/camera.png"
+                              alt="Câmera"
                               className={styles.fotoIcon}
                               onClick={() => setFotoModalAberto(operacao.id)}
                               title="Gerenciar fotos da operação"
@@ -991,9 +1063,8 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                             }
                           }}
                           disabled={loading === operacao.id}
-                          className={`${styles.euVouButton} ${
-                            estadoInfo.buttonAction === 'cancelar' ? styles.cancelarButton : ''
-                          } ${loading === operacao.id ? styles.loading : ''}`}
+                          className={`${styles.euVouButton} ${estadoInfo.buttonAction === 'cancelar' ? styles.cancelarButton : ''
+                            } ${loading === operacao.id ? styles.loading : ''}`}
                         >
                           {loading === operacao.id ? 'Processando...' : estadoInfo.buttonText}
                         </button>
@@ -1025,16 +1096,31 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                               {operacao.participantes_detalhes.map((p: any) => (
                                 <li key={p.id} className={styles.personRow}>
                                   <div className={styles.personMain}>
-                                    <div className={styles['membro__check']} aria-label="Confirmado">
+                                  <div
+                                    className={styles['membro__check']}
+                                    aria-label={coordenadoresMarcados[operacao.id]?.[p.servidor?.id || 0] ? 'Coordenador' : 'Confirmado'}
+                                    data-coordenador={coordenadoresMarcados[operacao.id]?.[p.servidor?.id || 0] ? 'true' : 'false'}
+                                    onClick={() => handleToggleCoordenador(operacao.id, p.servidor?.id)}
+                                    role="button"
+                                  >
+                                    {coordenadoresMarcados[operacao.id]?.[p.servidor?.id || 0] ? (
+                                      <img src="/icons/coordenador.png" alt="Coordenador" width={18} height={18} aria-hidden="true" />
+                                    ) : (
                                       <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
                                         <polyline points="20 6 9 17 4 12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                       </svg>
-                                    </div>
+                                    )}
+                                  </div>
                                     <div className={styles['membro__avatar']} aria-hidden="true">
                                       {getInitials(p.servidor?.nome)}
                                     </div>
                                     <div className={styles.personIdentity}>
-                                      <span className={styles.personName}>{p.servidor?.nome || 'Nome não disponível'}</span>
+                                      <span
+                                        className={styles.personName}
+                                        data-coordenador={coordenadoresMarcados[operacao.id]?.[p.servidor?.id || 0] ? 'true' : 'false'}
+                                      >
+                                        {p.servidor?.nome || 'Nome não disponível'}
+                                      </span>
                                       <span className={styles.personMatriculaSub} aria-label={`Matrícula ${p.servidor?.matricula || 'N/A'}`}>{p.servidor?.matricula || 'N/A'}</span>
                                     </div>
                                   </div>
@@ -1043,7 +1129,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                             </ul>
                           </div>
                         )}
-                        
+
                         {/* ⏳ SOLICITAÇÕES PENDENTES - Aguardando decisão do supervisor */}
                         {operacao.fila_detalhes && operacao.fila_detalhes.length > 0 && (
                           <div className={styles.filaSection}>
@@ -1052,7 +1138,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                             </h4>
                             <div className={styles.solicitacoesPendentes}>
                               <small>📋 Ordem cronológica de solicitação - Supervisor decide quem aprovar</small>
-                              
+
                               {/* 🔍 ANÁLISE INTELIGENTE DO ESTADO DA OPERAÇÃO */}
                               {(() => {
                                 const limite = operacao.limite_participantes;
@@ -1061,12 +1147,12 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                                 const vagasDisponiveis = Math.max(0, limite - confirmados);
                                 const totalParticipantes = confirmados + pendentes;
                                 const excedeCapacidade = confirmados > limite;
-                                
 
-                                
+
+
                                 return null;
                               })()}
-                              
+
                               {/* 📊 RESUMO VISUAL DO ESTADO DA FILA */}
                               {(() => {
                                 const limite = operacao.limite_participantes;
@@ -1074,14 +1160,14 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                                 const pendentes = operacao.fila_detalhes.length;
                                 const vagasDisponiveis = Math.max(0, limite - confirmados);
                                 const supervisorExcedeuLimite = confirmados > limite;
-                                
+
                                 // Caso especial: supervisor excedeu o limite
                                 if (supervisorExcedeuLimite && pendentes > 0) {
                                   return (
-                                    <div style={{ 
-                                      background: '#fee2e2', 
-                                      padding: '8px 12px', 
-                                      borderRadius: '6px', 
+                                    <div style={{
+                                      background: '#fee2e2',
+                                      padding: '8px 12px',
+                                      borderRadius: '6px',
                                       marginBottom: '10px',
                                       fontSize: '0.875rem',
                                       border: '1px solid #fecaca'
@@ -1089,23 +1175,23 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                                       <div>🚨 <strong>Supervisor excedeu o limite original</strong></div>
                                       <div style={{ marginLeft: '20px', marginTop: '4px' }}>
                                         📊 Limite: {limite} | Confirmados: {confirmados} (excesso: +{confirmados - limite})
-                                        <br/>
+                                        <br />
                                         🟡 Todas as {pendentes} solicitações aguardam decisão do supervisor
                                       </div>
                                     </div>
                                   );
                                 }
-                                
+
                                 // Casos normais
                                 if (vagasDisponiveis > 0 && pendentes > 0) {
                                   const comChanceVaga = Math.min(vagasDisponiveis, pendentes);
                                   const naFilaEspera = Math.max(0, pendentes - vagasDisponiveis);
-                                  
+
                                   return (
-                                    <div style={{ 
-                                      background: '#f3f4f6', 
-                                      padding: '8px 12px', 
-                                      borderRadius: '6px', 
+                                    <div style={{
+                                      background: '#f3f4f6',
+                                      padding: '8px 12px',
+                                      borderRadius: '6px',
                                       marginBottom: '10px',
                                       fontSize: '0.875rem'
                                     }}>
@@ -1114,7 +1200,7 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                                         🟢 {comChanceVaga} {comChanceVaga === 1 ? 'pessoa tem' : 'pessoas têm'} chance de vaga direta
                                         {naFilaEspera > 0 && (
                                           <>
-                                            <br/>
+                                            <br />
                                             🟡 {naFilaEspera} {naFilaEspera === 1 ? 'pessoa está' : 'pessoas estão'} na fila de espera
                                           </>
                                         )}
@@ -1123,10 +1209,10 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                                   );
                                 } else if (vagasDisponiveis === 0 && pendentes > 0) {
                                   return (
-                                    <div style={{ 
-                                      background: '#fef3c7', 
-                                      padding: '8px 12px', 
-                                      borderRadius: '6px', 
+                                    <div style={{
+                                      background: '#fef3c7',
+                                      padding: '8px 12px',
+                                      borderRadius: '6px',
                                       marginBottom: '10px',
                                       fontSize: '0.875rem'
                                     }}>
@@ -1137,10 +1223,10 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                                     </div>
                                   );
                                 }
-                                
+
                                 return null;
                               })()}
-                              
+
                               <ul>
                                 {operacao.fila_detalhes.map((f: any, index: number) => {
                                   // Lógica: status de vaga direta vs fila
@@ -1179,11 +1265,11 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
                             </div>
                           </div>
                         )}
-                        
-                        {(!operacao.participantes_detalhes || operacao.participantes_detalhes.length === 0) && 
-                         (!operacao.fila_detalhes || operacao.fila_detalhes.length === 0) && (
-                          <p className={styles.emptyParticipantes}>Nenhuma solicitação ainda</p>
-                        )}
+
+                        {(!operacao.participantes_detalhes || operacao.participantes_detalhes.length === 0) &&
+                          (!operacao.fila_detalhes || operacao.fila_detalhes.length === 0) && (
+                            <p className={styles.emptyParticipantes}>Nenhuma solicitação ainda</p>
+                          )}
                       </div>
                     )}
                   </div>
@@ -1193,10 +1279,10 @@ export const OperacaoDialog: React.FC<OperacaoDialogProps> = ({
           )}
         </div>
       </div>
-      
+
       {/* ✅ TOOLTIP GLOBAL: Renderizado fora do modal para evitar limitações */}
       {historicoModalAberto && (
-        <TooltipHistorico 
+        <TooltipHistorico
           operacaoId={historicoModalAberto}
           posicaoCronologica={operacoes.find(op => op.id === historicoModalAberto)?.minha_participacao?.posicao_cronologica}
           totalNaFila={operacoes.find(op => op.id === historicoModalAberto)?.minha_participacao?.transparencia?.total_na_fila_cronologica}

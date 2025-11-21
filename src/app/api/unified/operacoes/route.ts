@@ -33,9 +33,23 @@ export async function GET(request: NextRequest) {
     const portal = searchParams.get('portal'); // ✅ NOVO: Detectar se é supervisor
     const includeParticipantes = searchParams.get('includeParticipantes'); // ✅ NOVO: Incluir participantes detalhados
     const includeInactive = searchParams.get('includeInactive'); // 🆕 NOVO: Incluir operações inativas
-    const mode = searchParams.get('mode'); // ✅ OTIMIZAÇÃO: Modo light para modal gerenciar
+    const mode = searchParams.get('mode');
+    const fields = searchParams.get('fields') || 'full';
     const janelaId = searchParams.get('janela_id'); // 🆕 NOVO: Filtro por janela operacional
     const tipo = searchParams.get('tipo'); // 🆕 NOVO: Filtro por tipo de operação
+
+    const cacheKey = [startDate, endDate, membroId, portal, includeParticipantes, includeInactive, mode, janelaId, tipo, fields].join(':');
+    const globalAny: any = globalThis as any;
+    globalAny.__ops_cache = globalAny.__ops_cache || new Map<string, { t: number; data: any }>();
+    const cacheMap: Map<string, { t: number; data: any }> = globalAny.__ops_cache;
+    const now = Date.now();
+    const hit = cacheMap.get(cacheKey);
+    if (hit && now - hit.t < 60000) {
+      const res = NextResponse.json({ success: true, data: hit.data });
+      res.headers.set('Cache-Control', 'public, max-age=10, stale-while-revalidate=60');
+      res.headers.set('x-cache', 'hit');
+      return res;
+    }
 
     // ✅ OTIMIZADO: Log apenas quando necessário (comentado para reduzir verbosidade)
     // logDebug(`🔍 [API-UNIFIED] Requisição recebida`, {
@@ -59,6 +73,10 @@ export async function GET(request: NextRequest) {
           status_interno,
           data_participacao,
           ativa
+        ),
+        coordenadores:operacao_coordenadores!left(
+          servidor_id,
+          revogado_em
         )
       `;
     } else if (portal === 'diretoria') {
@@ -78,6 +96,10 @@ export async function GET(request: NextRequest) {
           ativa,
           bloqueado_diretoria,
           servidor:membro_id(id, nome, matricula)
+        ),
+        coordenadores:operacao_coordenadores!left(
+          servidor_id,
+          revogado_em
         )
       `;
     } else {
@@ -97,6 +119,10 @@ export async function GET(request: NextRequest) {
           data_participacao,
           ativa,
           servidor:membro_id(id, nome, matricula)
+        ),
+        coordenadores:operacao_coordenadores!left(
+          servidor_id,
+          revogado_em
         )
       `;
     }
@@ -236,6 +262,9 @@ export async function GET(request: NextRequest) {
     const operacoesProcessadas = operacoes?.map((op: any) => {
       // ✅ OTIMIZADO: Filtrar e categorizar participações em uma única passada
       const participacoesAtivas = op.participacao?.filter((p: any) => p.ativa === true) || [];
+      const coordenadoresAtivosIds = (op.coordenadores || [])
+        .filter((c: any) => !c.revogado_em)
+        .map((c: any) => c.servidor_id);
       
       // ✅ OTIMIZAÇÃO: Categorizar participações em uma única iteração
       const categorias = {
@@ -326,7 +355,8 @@ export async function GET(request: NextRequest) {
           statusReal: op.status || 'Disponível',
           regional: op.janela?.regional?.nome || 'Sem Regional',
           // ✅ NOVO: Indicador de fotos
-          tem_fotos: operacoesComFotos.has(op.id)
+          tem_fotos: operacoesComFotos.has(op.id),
+          coordenadores_ids: coordenadoresAtivosIds
         };
 
         return resultadoSupervisor;
@@ -365,7 +395,8 @@ export async function GET(request: NextRequest) {
           statusReal: op.status || 'Disponível',
           regional: op.janela?.regional?.nome || 'Sem Regional',
           // ✅ NOVO: Indicador de fotos
-          tem_fotos: operacoesComFotos.has(op.id)
+          tem_fotos: operacoesComFotos.has(op.id),
+          coordenadores_ids: coordenadoresAtivosIds
         };
       }
 
@@ -409,17 +440,39 @@ export async function GET(request: NextRequest) {
         statusReal: op.status || 'Disponível',
         regional: op.janela?.regional?.nome || 'Sem Regional',
         // ✅ NOVO: Indicador de fotos
-        tem_fotos: operacoesComFotos.has(op.id)
+        tem_fotos: operacoesComFotos.has(op.id),
+        coordenadores_ids: coordenadoresAtivosIds
       };
     }) || [];
 
     // ✅ OTIMIZADO: Log final comentado para reduzir verbosidade
     // logInfo(`✅ ${operacoesProcessadas.length} operações processadas com sucesso`);
 
-    return NextResponse.json({
-      success: true,
-      data: operacoesProcessadas
-    });
+    let result = operacoesProcessadas;
+    if (fields === 'summary') {
+      result = operacoesProcessadas.map((op: any) => ({
+        id: op.id,
+        data_operacao: op.data_operacao || op.dataOperacao,
+        modalidade: op.modalidade,
+        tipo: op.tipo,
+        turno: op.turno,
+        limite_participantes: op.limite_participantes || op.limiteParticipantes,
+        participantes_confirmados: op.participantes_confirmados || 0,
+        pessoas_na_fila: op.pessoas_na_fila || 0,
+        total_solicitacoes: op.total_solicitacoes || 0,
+        ativa: op.ativa,
+        inativa_pelo_supervisor: op.inativa_pelo_supervisor || false,
+        excluida_temporariamente: op.excluida_temporariamente,
+        tem_fotos: op.tem_fotos || false,
+        coordenadores_ids: op.coordenadores_ids || []
+      }));
+    }
+
+    cacheMap.set(cacheKey, { t: now, data: result });
+    const res = NextResponse.json({ success: true, data: result });
+    res.headers.set('Cache-Control', 'public, max-age=10, stale-while-revalidate=60');
+    res.headers.set('x-cache', 'miss');
+    return res;
   } catch (error) {
     logError('❌ [API-UNIFIED] Erro na API:', error);
     return NextResponse.json({
