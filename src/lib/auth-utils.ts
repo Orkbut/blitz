@@ -24,18 +24,22 @@ export interface SupervisorData {
 export function getSupervisorData(): SupervisorData | null {
   try {
     const supervisorAuth = localStorage.getItem('supervisorAuth');
-    if (!supervisorAuth) {
-      return null;
+    if (supervisorAuth) {
+      const userData = JSON.parse(supervisorAuth);
+      if (userData?.id && userData?.regionalId && userData?.perfil === 'Supervisor') {
+        return userData;
+      }
     }
-    
-    const userData = JSON.parse(supervisorAuth);
-    
-    // Validar se tem os campos obrigatórios
-    if (!userData.id || !userData.regionalId || userData.perfil !== 'Supervisor') {
-      return null;
+
+    const membroAuth = localStorage.getItem('membroAuth');
+    if (membroAuth) {
+      const userData = JSON.parse(membroAuth);
+      if (userData?.id && userData?.regionalId && userData?.perfil === 'Supervisor') {
+        return userData as SupervisorData;
+      }
     }
-    
-    return userData;
+
+    return null;
   } catch (error) {
     return null;
   }
@@ -70,11 +74,11 @@ export function isSupervisorAuthenticated(): boolean {
  */
 export function getSupervisorHeaders(): HeadersInit {
   const supervisorData = getSupervisorData();
-  
+
   if (!supervisorData) {
     return {};
   }
-  
+
   return {
     'X-Supervisor-Id': supervisorData.id.toString(),
     'X-Regional-Id': supervisorData.regionalId.toString(),
