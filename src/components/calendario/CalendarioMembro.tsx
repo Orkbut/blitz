@@ -285,6 +285,7 @@ export const CalendarioMembro: React.FC = () => {
                         className={`${styles.reportItem} ${servidorDestacadoId === s.servidor_id ? styles.reportItemActive : ''}`}
                         onClick={() => toggleServidorDestacado(s.servidor_id)}
                       >
+                        <img src="/icons/coordenador.png" alt="Coordenador" className={styles.reportItemIcon} />
                         <div className={styles.reportItemName}>
                           <div className={styles.reportItemTitle}>{s.nome}</div>
                           <div className={styles.reportItemSub}>Mat.: {s.matricula}</div>
