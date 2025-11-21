@@ -253,7 +253,13 @@ export const CalendarioMembro: React.FC = () => {
                       Coordenações
                       <div className={styles.reportSubtlePeriod}>
                         {filtroAtivo && dataInicioFiltro && dataFimFiltro
-                          ? `${new Date(dataInicioFiltro).toLocaleDateString()} – ${new Date(dataFimFiltro).toLocaleDateString()}`
+                          ? (() => {
+                              const p = (s: string) => {
+                                const [y, m, d] = s.split('-').map(Number);
+                                return new Date(y, m - 1, d);
+                              };
+                              return `${p(dataInicioFiltro).toLocaleDateString('pt-BR')} – ${p(dataFimFiltro).toLocaleDateString('pt-BR')}`;
+                            })()
                           : (() => {
                               const hoje = new Date();
                               const mesmoMes = displayedDate.getFullYear() === hoje.getFullYear() && displayedDate.getMonth() === hoje.getMonth();
