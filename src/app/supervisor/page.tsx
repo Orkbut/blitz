@@ -855,8 +855,11 @@ export default function SupervisorPage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
       {/* 🎯 HEADER MELHORADO - RESPONSIVO COM CLAMP */}
-      <header className={`sticky top-0 z-[1000] bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg transition-transform duration-300 ease-in-out ${headerVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}
-        style={{ willChange: 'transform, opacity' }}>
+      <header className={`sticky top-0 z-[1000] shadow-lg transition-transform duration-300 ease-in-out ${headerVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}
+        style={{
+          willChange: 'transform, opacity',
+          backgroundImage: 'linear-gradient(90deg, #d6e9ff 0%, #8fbaff 35%, #3b7bd9 70%, #153a85 100%)'
+        }}>
         <div
           className="max-w-7xl mx-auto"
           style={{
@@ -892,14 +895,13 @@ export default function SupervisorPage() {
                 }}
               >
                 <div
-                  className="bg-white/20 rounded-lg flex items-center justify-center"
+                  className="flex items-center justify-center"
                   style={{
-                    width: 'clamp(24px, 5vw, 32px)',
-                    height: 'clamp(24px, 5vw, 32px)',
-                    borderRadius: 'clamp(4px, 1vw, 8px)'
+                    width: 'clamp(28px, 6vw, 36px)',
+                    height: 'clamp(28px, 6vw, 36px)'
                   }}
                 >
-                  <span style={{ fontSize: 'clamp(0.8rem, 2.5vw, 1.2rem)' }}>🎯</span>
+                  <img src="/icons/supervisor.png" alt="Supervisor" style={{ width: 'clamp(26px, 5.5vw, 34px)', height: 'clamp(26px, 5.5vw, 34px)', objectFit: 'contain' }} />
                 </div>
                 <h1
                   className="font-bold text-white"
@@ -925,41 +927,28 @@ export default function SupervisorPage() {
                   gap: 'clamp(1px, 0.2vw, 2px)'
                 }}
               >
-                <button
-                  onClick={() => setActiveTab('operacoes')}
-                  className={`font-medium rounded transition-all ${activeTab === 'operacoes'
-                    ? 'bg-white/20 text-white'
-                    : 'text-blue-100 hover:bg-white/10'
-                    }`}
-                  style={{
-                    padding: 'clamp(4px, 1vw, 8px) clamp(6px, 1.5vw, 12px)',
-                    fontSize: 'clamp(0.6rem, 1.5vw, 0.8rem)',
-                    borderRadius: 'clamp(3px, 0.8vw, 6px)',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    minWidth: '0'
-                  }}
-                >
-                  <span style={{ fontSize: 'clamp(0.6rem, 1.5vw, 0.8rem)' }}>📅</span>
-                  <span
-                    className="hidden sm:inline"
+                {activeTab === 'janelas' && (
+                  <button
+                    onClick={() => setActiveTab('operacoes')}
+                    className="font-medium rounded transition-all text-blue-100 hover:bg-white/10"
                     style={{
-                      marginLeft: 'clamp(2px, 0.5vw, 4px)',
-                      minWidth: '0',
+                      padding: 'clamp(4px, 1vw, 8px) clamp(6px, 1.5vw, 12px)',
+                      fontSize: 'clamp(0.6rem, 1.5vw, 0.8rem)',
+                      borderRadius: 'clamp(3px, 0.8vw, 6px)',
+                      whiteSpace: 'nowrap',
                       overflow: 'hidden',
-                      textOverflow: 'ellipsis'
+                      textOverflow: 'ellipsis',
+                      minWidth: '0'
                     }}
+                    aria-label="Voltar"
                   >
-                    Calendário
-                  </span>
-                </button>
+                    <img src="/icons/seta.png" alt="Voltar" style={{ width: 'clamp(24px, 5.5vw, 34px)', height: 'clamp(24px, 5.5vw, 34px)', objectFit: 'contain' }} />
+                  </button>
+                )}
+                
                 <button
                   onClick={() => setActiveTab('janelas')}
-                  className={`font-medium rounded transition-all ${activeTab === 'janelas'
-                    ? 'bg-white/20 text-white'
-                    : 'text-blue-100 hover:bg-white/10'
-                    }`}
+                  className="text-white transition-all flex items-center"
                   style={{
                     padding: 'clamp(4px, 1vw, 8px) clamp(6px, 1.5vw, 12px)',
                     fontSize: 'clamp(0.6rem, 1.5vw, 0.8rem)',
@@ -967,10 +956,14 @@ export default function SupervisorPage() {
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
-                    minWidth: '0'
+                    minWidth: '0',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    outline: 'none',
+                    justifyContent: 'center'
                   }}
                 >
-                  <span style={{ fontSize: 'clamp(0.6rem, 1.5vw, 0.8rem)' }}>🗂️</span>
+                  <img src="/icons/janela.png" alt="Janelas" style={{ width: 'clamp(24px, 5.5vw, 34px)', height: 'clamp(24px, 5.5vw, 34px)', objectFit: 'contain' }} />
                   <span
                     className="hidden sm:inline"
                     style={{
@@ -1001,39 +994,77 @@ export default function SupervisorPage() {
                 style={{ willChange: 'opacity' }}>
                 <button
                   onClick={() => setShowDropdownMenu(!showDropdownMenu)}
-                  className="bg-white/10 text-white hover:bg-white/20 transition-all flex items-center"
+                  className="text-white transition-all flex items-center"
                   style={{
                     padding: 'clamp(6px, 1.5vw, 10px) clamp(8px, 2vw, 12px)',
                     borderRadius: 'clamp(4px, 1vw, 8px)',
                     fontSize: 'clamp(0.6rem, 1.5vw, 0.8rem)',
                     gap: 'clamp(2px, 0.5vw, 4px)',
                     minWidth: 'clamp(60px, 12vw, 80px)',
-                    boxSizing: 'border-box'
+                    boxSizing: 'border-box',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    outline: 'none',
+                    justifyContent: 'center'
                   }}
                 >
-                  <span className="menuIconPulse">⚙️</span>
+                  <img src="/icons/seta-para-baixo.png" alt="Menu" className="menuIconLed" />
                 </button>
                 <style jsx>{`
-                  .menuIconPulse {
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: clamp(20px, 4vw, 24px);
-                    height: clamp(20px, 4vw, 24px);
-                    border-radius: 50%;
-                    font-size: clamp(0.8rem, 2vw, 1rem);
-                    background: rgba(255,255,255,0.15);
-                    box-shadow: 0 0 0 rgba(255,255,255,0);
-                    animation: gearPulse 3s cubic-bezier(0.22, 1, 0.36, 1) infinite;
-                    will-change: transform, opacity, filter;
+                  .menuIconLed {
+                    display: inline-block;
+                    width: clamp(24px, 5.5vw, 34px);
+                    height: clamp(24px, 5.5vw, 34px);
+                    object-fit: contain;
+                    image-rendering: crisp-edges;
+                    animation: ledGlow 6s infinite;
+                    will-change: opacity, filter;
                   }
-                  @keyframes gearPulse {
-                    0% { transform: scale(1); opacity: 1; filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
-                    15% { transform: scaleX(1.06) scaleY(0.94); }
-                    30% { transform: scaleX(0.95) scaleY(1.05); }
-                    50% { transform: scale(1); }
-                    80% { opacity: 0.35; filter: drop-shadow(0 0 8px rgba(255,255,255,0.35)); }
-                    100% { opacity: 1; filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
+                  @keyframes ledGlow {
+                    0% {
+                      opacity: 0;
+                      filter: drop-shadow(0 0 0 #fff64a) saturate(0.4) brightness(0.9) contrast(1.0);
+                      animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+                    }
+                    20% {
+                      opacity: 0.18;
+                      filter: drop-shadow(0 0 0.5px #fff64a) saturate(0.7) brightness(1.0) contrast(1.05);
+                      animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+                    }
+                    35% {
+                      opacity: 0.4;
+                      filter: drop-shadow(0 0 1px #ffe100) saturate(1.2) brightness(1.1) contrast(1.1);
+                      animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+                    }
+                    60% {
+                      opacity: 1;
+                      filter: drop-shadow(0 0 1.6px #fff64a) drop-shadow(0 0 2.6px #ffe100) saturate(2.4) brightness(1.25) contrast(1.2);
+                      animation-timing-function: linear;
+                    }
+                    68% {
+                      opacity: 0.85;
+                      filter: drop-shadow(0 0 1.4px #fff64a) drop-shadow(0 0 2.2px #ffe100) saturate(2.0) brightness(1.2) contrast(1.15);
+                      animation-timing-function: linear;
+                    }
+                    76% {
+                      opacity: 0.7;
+                      filter: drop-shadow(0 0 1.2px #fff64a) drop-shadow(0 0 1.8px #ffe100) saturate(1.6) brightness(1.1) contrast(1.1);
+                      animation-timing-function: linear;
+                    }
+                    84% {
+                      opacity: 0.55;
+                      filter: drop-shadow(0 0 1px #fff64a) drop-shadow(0 0 1.5px #ffe100) saturate(1.3) brightness(1.05) contrast(1.05);
+                      animation-timing-function: linear;
+                    }
+                    92% {
+                      opacity: 0.4;
+                      filter: drop-shadow(0 0 0.7px #fff64a) drop-shadow(0 0 1.1px #ffe100) saturate(1.0) brightness(1.0) contrast(1.0);
+                      animation-timing-function: linear;
+                    }
+                    100% {
+                      opacity: 0;
+                      filter: drop-shadow(0 0 0 #fff64a) saturate(0.4) brightness(0.9) contrast(1.0);
+                    }
                   }
                 `}</style>
 
@@ -1245,7 +1276,7 @@ export default function SupervisorPage() {
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center mr-3" style={{
                   background: 'var(--primary-light)'
                 }}>
-                  <span className="text-xl" style={{ color: 'var(--primary)' }}>🗂️</span>
+                  <img src="/icons/janela.png" alt="Janelas" style={{ width: 'clamp(24px, 5.5vw, 34px)', height: 'clamp(24px, 5.5vw, 34px)', objectFit: 'contain' }} />
                 </div>
                 <div>
                   <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
@@ -1259,13 +1290,14 @@ export default function SupervisorPage() {
 
               <button
                 onClick={() => setShowCriarJanelaModal(true)}
-                className="px-4 py-2 text-sm font-medium text-white rounded-lg hover:shadow-md transition-all duration-200"
+                className="px-4 py-2 text-sm font-medium text-white rounded-lg hover:shadow-md transition-all duration-200 flex items-center"
                 style={{
                   background: 'var(--primary)',
                   border: '1px solid var(--primary)'
                 }}
               >
-                📅 Nova Janela
+                <img src="/icons/janela.png" alt="Nova Janela" style={{ width: 'clamp(20px, 4.5vw, 28px)', height: 'clamp(20px, 4.5vw, 28px)', objectFit: 'contain' }} />
+                <span style={{ marginLeft: 'clamp(4px, 1vw, 8px)' }}>Nova Janela</span>
               </button>
             </div>
 
@@ -1293,7 +1325,7 @@ export default function SupervisorPage() {
                           : 'linear-gradient(135deg, #6b7280, #4b5563)',
                         color: 'white'
                       }}>
-                        {janela.status === 'ATIVA' ? '🟢' : '🔴'}
+                        <img src="/icons/janela.png" alt="Janela" style={{ width: 'clamp(24px, 5.5vw, 34px)', height: 'clamp(24px, 5.5vw, 34px)', objectFit: 'contain' }} />
                       </div>
                       <div>
                         <h3 className="font-bold text-lg text-gray-900">

@@ -416,7 +416,7 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
         }}>
           {/* Cabeçalho Responsivo Profissional - LAYOUT ADAPTATIVO */}
           <div
-            className="bg-gradient-to-r from-blue-500 to-blue-600 text-white sticky top-0 z-[100] transition-all duration-300 ease-in-out"
+            className={`bg-gradient-to-r from-blue-500 to-blue-600 text-white sticky top-0 z-[100] transition-all duration-300 ease-in-out ${supervisorStyles.cloudHeader}`}
             style={{
               padding: 'clamp(6px, 1vw, 10px) clamp(8px, 1.5vw, 16px)',
               boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
@@ -493,12 +493,10 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
                 {/* Período Ativo - DESTAQUE PRINCIPAL */}
                 <div className="flex-1 min-w-0 mx-auto" style={{ maxWidth: 'clamp(240px, 35vw, 360px)' }}>
                   <div
-                    className="bg-white/30 backdrop-blur-md border-2 border-white/40"
                     style={{
-                      borderRadius: 'clamp(6px, 1.2vw, 8px)',
-                      padding: 'clamp(8px, 1.5vw, 12px) clamp(12px, 2.5vw, 18px)',
+                      borderRadius: 'clamp(8px, 1.6vw, 14px)',
+                      padding: 'clamp(10px, 1.8vw, 14px) clamp(14px, 2.8vw, 20px)',
                       boxSizing: 'border-box',
-                      boxShadow: '0 2px 10px rgba(0,0,0,0.15)',
                       textAlign: 'center'
                     }}
                   >
@@ -1025,7 +1023,7 @@ export const CalendarioSupervisor: React.FC<CalendarioSupervisorProps> = ({
           ) : (
             <div className="flex flex-col items-center justify-center py-16 px-8 text-center">
               <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mb-6 shadow-lg">
-                <span className="text-4xl">📅</span>
+                <img src="/icons/janela.png" alt="Janela" style={{ width: 'clamp(40px, 8vw, 64px)', height: 'clamp(40px, 8vw, 64px)', objectFit: 'contain' }} />
               </div>
 
               <h3 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">

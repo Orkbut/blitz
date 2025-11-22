@@ -138,7 +138,7 @@ export class CalculadorDiariasServidor {
         totalDiariasCompletas += sequencia.diasOperacao.length;
         
         // Meia diária = 1 por sequência somente quando a data de retorno REAL está dentro do filtro
-        if (sequencia.sequencia.includes('+1')) {
+        if (sequencia.sequencia.includes('+ M')) {
           totalMeiasDiarias += 1; // Cada +1 conta como 1 meia diária (0.5)
         }
       });
@@ -222,7 +222,7 @@ export class CalculadorDiariasServidor {
       
       // Calcular sequência (D+1, DD+1, DDD+1, etc.)
       const qtdDias = diasOperacao.length;
-      const sequenciaStr = 'D'.repeat(qtdDias) + '+1';
+      const sequenciaStr = 'D'.repeat(qtdDias) + '+ M';
       
       // Formatear período
       const dataInicioCorreta = new Date(diasOperacao[0] + 'T00:00:00-03:00');
@@ -325,7 +325,7 @@ function aplicarFiltroSequencias(
     if (diasTrim.length === 0 && !retornoDentro) continue;
 
     const qtdDias = diasTrim.length;
-    const seqStr = 'D'.repeat(qtdDias) + (retornoDentro ? '+1' : '');
+    const seqStr = 'D'.repeat(qtdDias) + (retornoDentro ? '+ M' : '');
 
     // Determinar datas para exibição
     const inicioExib = diasTrim.length > 0 ? diasTrim[0] : seq.dataInicio; // fallback

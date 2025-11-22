@@ -464,10 +464,11 @@ export const CalendarioSimplesComponent: React.FC<Props> = ({ servidorDestacadoI
       });
       
       // Gerar relatório no formato WhatsApp (igual à API do supervisor)
-      let relatorio = '========================================';
-      relatorio += `\n           ${tituloOperacao}\n`;
-      relatorio += `               ${periodoOperacao}\n`;
-      relatorio += '========================================\n\n';
+      let relatorio = '==================================';
+      relatorio += `\n _Compartilhado pelo Sistema Radar_ \n`;
+      relatorio += `           ${tituloOperacao}\n`;
+      relatorio += `                ${periodoOperacao}\n`;
+      relatorio += '==================================\n\n';
       
       periodosOrdenados.forEach(periodo => {
         // Formatar período
@@ -1187,12 +1188,13 @@ export const CalendarioSimplesComponent: React.FC<Props> = ({ servidorDestacadoI
     <div className={`${styles.calendarContainer} ${isDarkTheme ? styles.darkTheme : ''}`}>
       {/* NOVO: Barra superior com seletor de janela e botão de compartilhar (independente do mês visualizado) */}
       <div className={styles.rightButtons} style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 8 }}>
+        <img src="/icons/janela.png" alt="Janela Operacional" style={{ width: 'clamp(16px, 3.2vw, 24px)', height: 'clamp(16px, 3.2vw, 24px)', objectFit: 'contain' }} />
         <select
           value={janelaSelecionada || ''}
           onChange={(e) => setJanelaSelecionada(e.target.value ? Number(e.target.value) : null)}
-          aria-label="Selecionar janela operacional"
+          aria-label="Janela Operacional"
         >
-          <option value="">Selecione a Janela Operacional</option>
+          <option value="">Janela Operacional</option>
           {janelasDisponiveis.map((j) => {
             // Evitar deslocamento de fuso ao interpretar 'YYYY-MM-DD' (tratar como data local)
             const di = new Date(`${j.dataInicio}T12:00:00`);
