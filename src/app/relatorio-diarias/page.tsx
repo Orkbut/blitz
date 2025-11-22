@@ -184,8 +184,9 @@ export default function RelatorioDiariasPage() {
         <div className="bg-white rounded-lg shadow-sm p-3 sm:p-6 mb-4 sm:mb-6 max-w-full">
           <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
             <div className="min-w-0 flex-1">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 break-words">
-                📊 Contabilização de Diárias
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 break-words" style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+                <img src="/icons/relatoriodediarias.png" alt="Relatório de Diárias" style={{ width: 28, height: 28 }} />
+                Contabilização de Diárias
               </h1>
               <p className="text-sm sm:text-base text-gray-600 mt-2 break-words">
                 Baseado na mesma lógica da tabela da Diretoria • Apenas participações confirmadas e ativas

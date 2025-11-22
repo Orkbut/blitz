@@ -43,6 +43,29 @@ export const UserBar: React.FC = () => {
     window.location.href = '/membro/auth';
   };
 
+  const handleSwitchToSupervisor = () => {
+    try {
+      const membroAuth = localStorage.getItem('membroAuth');
+      if (!membroAuth) {
+        window.location.href = '/supervisor/auth';
+        return;
+      }
+      const data = JSON.parse(membroAuth);
+      if (data?.perfil === 'Supervisor') {
+        const supervisorData = {
+          ...data,
+          autenticado: true
+        };
+        localStorage.setItem('supervisorAuth', JSON.stringify(supervisorData));
+        window.location.href = '/supervisor';
+        return;
+      }
+      alert('Seu perfil não é de Supervisor.');
+    } catch {
+      window.location.href = '/supervisor/auth';
+    }
+  };
+
   if (!userData) {
     return null;
   }
@@ -103,6 +126,16 @@ export const UserBar: React.FC = () => {
                         <div>Regional: <span className="font-semibold">{userData.regional?.nome || userData.regionalId}</span></div>
                       </div>
                     </div>
+                    
+                    {userData.perfil === 'Supervisor' && (
+                      <button
+                        onClick={handleSwitchToSupervisor}
+                        className="flex items-center w-full px-4 py-3 text-sm text-blue-700 hover:bg-blue-50 transition-colors"
+                      >
+                        <img src="/icons/alternarconta.png" alt="Alternar conta" className="mr-3" style={{ width: 16, height: 16 }} />
+                        Ir para Supervisor
+                      </button>
+                    )}
                     
                     <button
                       onClick={() => setIsDropdownOpen(false)}

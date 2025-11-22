@@ -1054,8 +1054,20 @@ export default function SupervisorPage() {
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
                         onClick={() => setShowDropdownMenu(false)}
                       >
-                        📊 Relatório de Diárias
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                          <img src="/icons/relatoriodediarias.png" alt="Relatório de Diárias" style={{ width: 16, height: 16 }} />
+                          Relatório de Diárias
+                        </span>
                       </a>
+                      <button
+                        onClick={() => { setShowDropdownMenu(false); handleSwitchToMembro(); }}
+                        className="block w-full text-left px-4 py-2 text-sm text-blue-700 hover:bg-blue-50 active:bg-blue-100 transition-colors"
+                      >
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                          <img src="/icons/alternarconta.png" alt="Alternar conta" style={{ width: 16, height: 16 }} />
+                          Ir para Membro
+                        </span>
+                      </button>
                     </div>
                   </>
                 )}
@@ -1551,3 +1563,24 @@ export default function SupervisorPage() {
     </div>
   );
 }
+  const handleSwitchToMembro = () => {
+    try {
+      const supervisorAuth = localStorage.getItem('supervisorAuth');
+      if (!supervisorAuth) {
+        window.location.href = '/membro/auth';
+        return;
+      }
+      const data = JSON.parse(supervisorAuth);
+      const membroData = {
+        ...data,
+        autenticado: true
+      };
+      localStorage.setItem('membroAuth', JSON.stringify(membroData));
+      if (data?.id) {
+        localStorage.setItem('membroId', String(data.id));
+      }
+      window.location.href = '/membro';
+    } catch {
+      window.location.href = '/membro/auth';
+    }
+  };
