@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { getSupervisorHeaders } from '@/lib/auth-utils';
+import { getRegionalHeaders } from '@/lib/auth-utils';
 import { MultiDateCalendar } from '@/components/supervisor/MultiDateCalendar';
 
 interface EstatisticasServidor {
@@ -43,6 +43,8 @@ interface RelatorioResponse {
 export default function RelatorioDiariasPage() {
   const [relatorio, setRelatorio] = useState<RelatorioResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [blinkFilter, setBlinkFilter] = useState(false);
+  const [backHref, setBackHref] = useState<string>('/supervisor');
   
   // ✅ NOVO: Estados para filtro de período
   const [filtroAtivo, setFiltroAtivo] = useState(false);
@@ -54,6 +56,24 @@ export default function RelatorioDiariasPage() {
   // Carregar relatório automaticamente
   useEffect(() => {
     carregarRelatorio();
+  }, []);
+
+  useEffect(() => {
+    setBlinkFilter(true);
+    const t = setTimeout(() => setBlinkFilter(false), 5000);
+    try {
+      const membroAuth = localStorage.getItem('membroAuth');
+      if (membroAuth) {
+        setBackHref('/membro');
+      } else {
+        const supervisorAuth = localStorage.getItem('supervisorAuth');
+        if (supervisorAuth) setBackHref('/supervisor');
+        else setBackHref('/');
+      }
+    } catch {
+      setBackHref('/');
+    }
+    return () => clearTimeout(t);
   }, []);
 
   const carregarRelatorio = async () => {
@@ -74,8 +94,13 @@ export default function RelatorioDiariasPage() {
       }
       
       const response = await fetch(url, {
-        headers: getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
+        headers: getRegionalHeaders()
       });
+      const ct = response.headers.get('content-type') || '';
+      if (!ct.includes('application/json')) {
+        const text = await response.text();
+        throw new Error(text);
+      }
       const data = await response.json();
       
       if (data.success) {
@@ -104,7 +129,7 @@ export default function RelatorioDiariasPage() {
       }
       
       const response = await fetch(url, {
-        headers: getSupervisorHeaders() // ✅ ISOLAMENTO POR REGIONAL
+        headers: getRegionalHeaders()
       });
       const texto = await response.text();
       
@@ -212,8 +237,9 @@ export default function RelatorioDiariasPage() {
                 📄 Baixar TXT
               </button>
               <Link 
-                href="/supervisor"
-                className="bg-gray-600 text-white px-3 sm:px-4 py-2 rounded-md hover:bg-gray-700 transition-colors inline-flex items-center text-sm sm:text-base whitespace-nowrap"
+                href={backHref}
+                aria-label="Voltar ao calendário"
+                className="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-md hover:bg-blue-700 transition-colors inline-flex items-center text-sm sm:text-base whitespace-nowrap"
               >
                 ← Voltar
               </Link>
@@ -263,12 +289,12 @@ export default function RelatorioDiariasPage() {
               </div>
 
               {!filtroAtivo && (
-                <button
-                  onClick={() => setShowDatePicker(true)}
-                  className="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap flex-shrink-0"
-                >
-                  Filtrar
-                </button>
+              <button
+                onClick={() => setShowDatePicker(true)}
+                className={`px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap flex-shrink-0 ${blinkFilter ? 'animate-nudge' : ''}`}
+              >
+                Filtrar
+              </button>
               )}
             </div>
 

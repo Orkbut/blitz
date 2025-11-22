@@ -105,6 +105,26 @@ export function getSupervisorContext() {
   };
 }
 
+export function getRegionalHeaders(): HeadersInit {
+  try {
+    const supervisorAuth = localStorage.getItem('supervisorAuth');
+    if (supervisorAuth) {
+      const sup = JSON.parse(supervisorAuth);
+      if (sup?.regionalId) {
+        return { 'X-Regional-Id': sup.regionalId.toString() };
+      }
+    }
+    const membroAuth = localStorage.getItem('membroAuth');
+    if (membroAuth) {
+      const mem = JSON.parse(membroAuth);
+      if (mem?.regionalId) {
+        return { 'X-Regional-Id': mem.regionalId.toString() };
+      }
+    }
+  } catch {}
+  return {};
+}
+
 /**
  * ✅ FORMATAÇÃO DE DATAS CENTRALIZADAS
  * Timezone: America/Fortaleza (Iguatu-CE, Brasil)

@@ -13,8 +13,9 @@ export async function GET(request: NextRequest) {
     const startDateParam = request.nextUrl.searchParams.get('startDate');
     const endDateParam = request.nextUrl.searchParams.get('endDate');
     const fields = request.nextUrl.searchParams.get('fields') || 'full';
+    const modalidadeParam = (request.nextUrl.searchParams.get('modalidade') || 'EXCLUDE_BALANCA').toUpperCase();
 
-    const cacheKey = `${status}:${startDateParam || ''}:${endDateParam || ''}:${fields}`;
+    const cacheKey = `${status}:${startDateParam || ''}:${endDateParam || ''}:${fields}:${modalidadeParam}`;
     const globalAny: any = globalThis as any;
     globalAny.__coord_cache = globalAny.__coord_cache || new Map<string, { t: number; data: any }>();
     const cacheMap: Map<string, { t: number; data: any }> = globalAny.__coord_cache;
@@ -73,7 +74,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
-    const filtradas: CoordenacaoRow[] = (rows || []).filter((r) => includeRevogadas ? true : !r.revogado_em);
+    const filtradas: CoordenacaoRow[] = (rows || []).filter((r) => {
+      const op = Array.isArray(r.operacao) ? r.operacao[0] : r.operacao;
+      const isBalanca = (op?.modalidade ?? null) === 'BALANCA';
+      const revogadaPass = includeRevogadas ? true : !r.revogado_em;
+      if (!revogadaPass) return false;
+      if (modalidadeParam === 'BALANCA_ONLY') {
+        return isBalanca;
+      }
+      if (modalidadeParam === 'EXCLUDE_BALANCA') {
+        return !isBalanca;
+      }
+      return true;
+    });
 
     type CoordenacaoItem = {
       operacao_id: number;

@@ -22,8 +22,12 @@ export const CalendarioMembro: React.FC = () => {
   const [filtroAtivo, setFiltroAtivo] = useState(false);
   const [dataInicioFiltro, setDataInicioFiltro] = useState<string>('');
   const [dataFimFiltro, setDataFimFiltro] = useState<string>('');
+  const [modalidadeFiltro, setModalidadeFiltro] = useState<'EXCLUDE_BALANCA' | 'BALANCA_ONLY' | 'ALL'>('EXCLUDE_BALANCA');
   const cacheRef = React.useRef<Map<string, ServidorCoordenacoes[]>>(new Map());
   const inFlightRef = React.useRef<Record<string, AbortController>>({});
+  const reportListRef = React.useRef<HTMLDivElement | null>(null);
+  const reportPanelRef = React.useRef<HTMLDivElement | null>(null);
+  const autoScrollRef = React.useRef<boolean>(false);
 
   const obterPeriodoRelatorio = (ref: Date) => {
     const hoje = new Date();
@@ -36,14 +40,18 @@ export const CalendarioMembro: React.FC = () => {
     return { startDate: toISO(inicio), endDate: toISO(end) };
   };
 
-  const buildQuery = () => {
+  const buildQuery = (override?: 'EXCLUDE_BALANCA' | 'BALANCA_ONLY' | 'ALL') => {
     let query = '/api/unified/coordenacoes?status=ativas&fields=summary';
     if (filtroAtivo && dataInicioFiltro && dataFimFiltro) {
       query += `&startDate=${dataInicioFiltro}&endDate=${dataFimFiltro}`;
     } else {
       const periodo = obterPeriodoRelatorio(displayedDate);
+      console.log('[Coordenações] buildQuery periodo', periodo);
       query += `&startDate=${periodo.startDate}&endDate=${periodo.endDate}`;
     }
+    const mod = override ?? modalidadeFiltro;
+    query += `&modalidade=${mod}`;
+    console.log('[Coordenações] buildQuery modalidade', mod, 'query', query);
     return query;
   };
 
@@ -63,48 +71,84 @@ export const CalendarioMembro: React.FC = () => {
 
   const abrirRelatorio = async () => {
     if (mostrarCoordenacoes) {
+      console.log('[Coordenações] abrirRelatorio fecharPainel');
       setServidorDestacadoId(undefined);
       setMostrarCoordenacoes(false);
       return;
     }
+    console.log('[Coordenações] abrirRelatorio abrirPainel');
     setMostrarCoordenacoes(true);
+    autoScrollRef.current = true;
     const key = buildQuery();
     const cached = cacheRef.current.get(key) || readSessionCache(key);
     if (cached && cached.length >= 0) {
+      console.log('[Coordenações] cache hit ao abrir', { itens: cached.length });
       setDadosCoordenacoes(cached);
     }
     if (!loadingCoordenacoes) {
+      console.log('[Coordenações] carregarRelatorio após abrir');
       await carregarRelatorio();
     }
   };
 
-  const carregarRelatorio = async () => {
+  const carregarRelatorio = async (override?: 'EXCLUDE_BALANCA' | 'BALANCA_ONLY' | 'ALL') => {
     try {
       setLoadingCoordenacoes(true);
       setErroCoordenacoes(null);
-      const query = buildQuery();
+      const query = buildQuery(override);
       const cached = cacheRef.current.get(query) || readSessionCache(query);
       if (cached && cached.length >= 0) {
+        console.log('[Coordenações] cache hit no carregar', { itens: cached.length });
         setDadosCoordenacoes(cached);
       }
       if (inFlightRef.current[query]) {
+        console.log('[Coordenações] abortando requisição anterior');
         inFlightRef.current[query].abort();
       }
       const ac = new AbortController();
       inFlightRef.current[query] = ac;
-      const resp = await fetch(query, { signal: ac.signal });
+      console.log('[Coordenações] fetch iniciada', query);
+      const resp = await fetch(query, { signal: ac.signal, cache: 'no-store' });
+      console.log('[Coordenações] resposta recebida', {
+        status: resp.status,
+        xcache: resp.headers.get('x-cache'),
+        cacheControl: resp.headers.get('cache-control')
+      });
       const json = await resp.json();
       if (json?.success) {
-        setDadosCoordenacoes(json.data as ServidorCoordenacoes[]);
-        cacheRef.current.set(query, json.data as ServidorCoordenacoes[]);
-        writeSessionCache(query, json.data as ServidorCoordenacoes[]);
+        const lista = json.data as ServidorCoordenacoes[];
+        console.log('[Coordenações] sucesso', { itens: Array.isArray(lista) ? lista.length : 0 });
+        try {
+          const sumAtivas = Array.isArray(lista) ? lista.reduce((a, s) => a + (s.ativa_count || 0), 0) : 0;
+          const sumTotal = Array.isArray(lista) ? lista.reduce((a, s) => a + (s.total_count || 0), 0) : 0;
+          console.log('[Coordenações] contagens', { sumAtivas, sumTotal, modalidadeFiltro });
+          const moda: Record<string, number> = { BALANCA: 0, BLITZ: 0, RADAR: 0, EXCLUSIVA: 0, OUTROS: 0 };
+          if (Array.isArray(lista)) {
+            for (const s of lista) {
+              const cs = (s as any).coordenacoes;
+              if (Array.isArray(cs)) {
+                for (const c of cs) {
+                  const m = (c?.modalidade as string) || 'OUTROS';
+                  moda[m] = (moda[m] || 0) + 1;
+                }
+              }
+            }
+          }
+          console.log('[Coordenações] modalidades', moda);
+        } catch {}
+        setDadosCoordenacoes(lista);
+        cacheRef.current.set(query, lista);
+        writeSessionCache(query, lista);
       } else {
         setErroCoordenacoes(json?.error || 'Erro ao carregar coordenações');
+        console.log('[Coordenações] erro', json?.error);
       }
     } catch {
       setErroCoordenacoes('Erro de comunicação');
+      console.log('[Coordenações] erro de comunicação');
     } finally {
       setLoadingCoordenacoes(false);
+      console.log('[Coordenações] fim carregarRelatorio');
     }
   };
 
@@ -114,6 +158,7 @@ export const CalendarioMembro: React.FC = () => {
     setDadosCoordenacoes(null);
     setErroCoordenacoes(null);
     if (mostrarCoordenacoes) {
+      autoScrollRef.current = true;
       await carregarRelatorio();
     }
   };
@@ -125,7 +170,20 @@ export const CalendarioMembro: React.FC = () => {
     setDadosCoordenacoes(null);
     setErroCoordenacoes(null);
     if (mostrarCoordenacoes) {
+      autoScrollRef.current = true;
       await carregarRelatorio();
+    }
+  };
+
+  const aplicarModalidade = async (m: 'EXCLUDE_BALANCA' | 'BALANCA_ONLY' | 'ALL') => {
+    setModalidadeFiltro(m);
+    console.log('[Coordenações] aplicarModalidade', m);
+    setDadosCoordenacoes(null);
+    setErroCoordenacoes(null);
+    if (mostrarCoordenacoes) {
+      console.log('[Coordenações] recarregar após aplicar modalidade');
+      autoScrollRef.current = true;
+      await carregarRelatorio(m);
     }
   };
 
@@ -146,15 +204,38 @@ export const CalendarioMembro: React.FC = () => {
     idle(async () => {
       if (cacheRef.current.get(key) || readSessionCache(key)) return;
       try {
+        console.log('[Coordenações] prefetch', key);
         const resp = await fetch(key, { cache: 'force-cache' });
         const json = await resp.json();
         if (json?.success && Array.isArray(json.data)) {
           cacheRef.current.set(key, json.data as ServidorCoordenacoes[]);
           writeSessionCache(key, json.data as ServidorCoordenacoes[]);
+          console.log('[Coordenações] prefetch sucesso', { itens: json.data.length });
         }
       } catch {}
     });
   }, [displayedDate, filtroAtivo, dataInicioFiltro, dataFimFiltro]);
+
+  React.useEffect(() => {
+    if (Array.isArray(dadosCoordenacoes)) {
+      console.log('[Coordenações] listaAtualizada', {
+        itens: dadosCoordenacoes.length,
+        modalidadeFiltro,
+        filtroAtivo,
+        dataInicioFiltro,
+        dataFimFiltro
+      });
+      try {
+        console.table(dadosCoordenacoes.map(s => ({ servidor_id: s.servidor_id, nome: s.nome, ativa_count: s.ativa_count, total_count: s.total_count })));
+      } catch {}
+      try {
+        if (autoScrollRef.current) {
+          autoScrollRef.current = false;
+          (reportListRef.current || reportPanelRef.current)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      } catch {}
+    }
+  }, [dadosCoordenacoes, modalidadeFiltro, filtroAtivo, dataInicioFiltro, dataFimFiltro]);
 
   
 
@@ -178,8 +259,15 @@ export const CalendarioMembro: React.FC = () => {
                 })()}
           </button>
 
+          <button
+            className={styles.reportButtonGreen}
+            onClick={() => { window.location.href = '/relatorio-diarias'; }}
+          >
+            Relatório de Diárias confirmadas
+          </button>
+
           {mostrarCoordenacoes && (
-            <div className={styles.reportPanel}>
+            <div className={styles.reportPanel} ref={reportPanelRef}>
               <div className={styles.reportDateRow}>
                 <input
                   type="date"
@@ -200,6 +288,36 @@ export const CalendarioMembro: React.FC = () => {
                   <button onClick={aplicarFiltro} disabled={!dataInicioFiltro || !dataFimFiltro}>Aplicar</button>
                   <button onClick={limparFiltro} disabled={!filtroAtivo}>Limpar filtro</button>
                 </div>
+              </div>
+
+              <div className={styles.iconFilterRow} aria-label="Filtros por modalidade">
+                <button
+                  className={`${styles.iconButton} ${modalidadeFiltro === 'BALANCA_ONLY' ? styles.iconButtonActive : ''}`}
+                  onClick={() => { console.log('[Coordenações] filtro modalidade','BALANCA_ONLY'); aplicarModalidade('BALANCA_ONLY'); }}
+                  aria-pressed={modalidadeFiltro === 'BALANCA_ONLY'}
+                  aria-label="Mostrar apenas Balança"
+                  title="Mostrar apenas Balança"
+                >
+                  <img src="/caminhao.png" alt="Balança" className={styles.iconImage} />
+                </button>
+                <button
+                  className={`${styles.iconButton} ${modalidadeFiltro === 'EXCLUDE_BALANCA' ? styles.iconButtonActive : ''}`}
+                  onClick={() => { console.log('[Coordenações] filtro modalidade','EXCLUDE_BALANCA'); aplicarModalidade('EXCLUDE_BALANCA'); }}
+                  aria-pressed={modalidadeFiltro === 'EXCLUDE_BALANCA'}
+                  aria-label="Mostrar BLITZ, RADAR e EXCLUSIVA"
+                  title="Mostrar BLITZ, RADAR e EXCLUSIVA"
+                >
+                  <img src="/icons/radar.ico" alt="Padrão" className={styles.iconImage} />
+                </button>
+                <button
+                  className={`${styles.iconButton} ${modalidadeFiltro === 'ALL' ? styles.iconButtonActive : ''}`}
+                  onClick={() => { console.log('[Coordenações] filtro modalidade','ALL'); aplicarModalidade('ALL'); }}
+                  aria-pressed={modalidadeFiltro === 'ALL'}
+                  aria-label="Mostrar todas as coordenações"
+                  title="Mostrar todas as coordenações"
+                >
+                  <img src="/globe.svg" alt="Todas" className={styles.iconImage} />
+                </button>
               </div>
 
               {!dadosCoordenacoes && !erroCoordenacoes && (
@@ -246,7 +364,7 @@ export const CalendarioMembro: React.FC = () => {
                       <span>Total: {dadosCoordenacoes.reduce((a, s) => a + (s.ativa_count || 0), 0)}</span>
                     </div>
                   </div>
-                  <div className={styles.reportList}>
+                  <div className={styles.reportList} ref={reportListRef}>
                     {dadosCoordenacoes.map((s) => (
                       <div
                         key={s.servidor_id}
