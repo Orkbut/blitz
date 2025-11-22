@@ -83,7 +83,8 @@ export async function GET(request: NextRequest) {
         servidor:membro_id(
           id,
           nome,
-          matricula
+          matricula,
+          ativo
         )
       `)
       .eq('ativa', true)
@@ -135,6 +136,8 @@ export async function GET(request: NextRequest) {
         servidor_nome: servidorData?.nome || 'Servidor',
         nome: servidorData?.nome || 'Servidor',
         matricula: servidorData?.matricula || '',
+        servidor_ativo: servidorData?.ativo ?? true,
+        servidor_id: servidorData?.id,
         operacao_id: p.operacao_id,
         data_operacao: dataOperacao, // Usar data da operação, ou data_participacao como fallback
         estado_visual: p.estado_visual,
@@ -158,9 +161,22 @@ export async function GET(request: NextRequest) {
 
     console.log('📈 Estatísticas calculadas para', estatisticas.length, 'servidores');
 
+    // ✅ FILTRAR: remover servidores com 0 diárias E inativos simultaneamente
+    const servidorAtivoMap = new Map<number, boolean>();
+    for (const p of participacoesMapeadas) {
+      const sid = p.membro_id || p.servidor_id;
+      if (sid) {
+        servidorAtivoMap.set(sid, p.servidor_ativo === false ? false : true);
+      }
+    }
+    const estatisticasFiltradas = estatisticas.filter(s => {
+      const ativo = servidorAtivoMap.get(s.servidorId);
+      return !(s.totalDiariasEquivalentes === 0 && ativo === false);
+    });
+
     // 5. RETORNAR RESPOSTA NO FORMATO SOLICITADO
     if (formato === 'texto') {
-      const relatorioTexto = CalculadorDiariasServidor.gerarRelatorioResumo(estatisticas);
+      const relatorioTexto = CalculadorDiariasServidor.gerarRelatorioResumo(estatisticasFiltradas);
 
       return new NextResponse(relatorioTexto, {
         status: 200,
@@ -182,15 +198,15 @@ export async function GET(request: NextRequest) {
           servidor_id
         },
         resumo: {
-          total_servidores: estatisticas.length,
+          total_servidores: estatisticasFiltradas.length,
           total_operacoes: operacoesMapeadas.length,
           total_participacoes: participacoesMapeadas.length,
-          total_diarias_completas: estatisticas.reduce((sum, s) => sum + s.totalDiariasCompletas, 0),
-          total_meias_diarias: estatisticas.reduce((sum, s) => sum + s.totalMeiasDiarias, 0),
-          total_diarias_equivalentes: estatisticas.reduce((sum, s) => sum + s.totalDiariasEquivalentes, 0)
+          total_diarias_completas: estatisticasFiltradas.reduce((sum, s) => sum + s.totalDiariasCompletas, 0),
+          total_meias_diarias: estatisticasFiltradas.reduce((sum, s) => sum + s.totalMeiasDiarias, 0),
+          total_diarias_equivalentes: estatisticasFiltradas.reduce((sum, s) => sum + s.totalDiariasEquivalentes, 0)
         },
-        servidores: estatisticas,
-        relatorio_texto: CalculadorDiariasServidor.gerarRelatorioResumo(estatisticas)
+        servidores: estatisticasFiltradas,
+        relatorio_texto: CalculadorDiariasServidor.gerarRelatorioResumo(estatisticasFiltradas)
       }
     });
 
