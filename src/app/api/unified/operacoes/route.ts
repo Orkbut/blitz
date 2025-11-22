@@ -38,18 +38,7 @@ export async function GET(request: NextRequest) {
     const janelaId = searchParams.get('janela_id'); // 🆕 NOVO: Filtro por janela operacional
     const tipo = searchParams.get('tipo'); // 🆕 NOVO: Filtro por tipo de operação
 
-    const cacheKey = [startDate, endDate, membroId, portal, includeParticipantes, includeInactive, mode, janelaId, tipo, fields].join(':');
-    const globalAny: any = globalThis as any;
-    globalAny.__ops_cache = globalAny.__ops_cache || new Map<string, { t: number; data: any }>();
-    const cacheMap: Map<string, { t: number; data: any }> = globalAny.__ops_cache;
-    const now = Date.now();
-    const hit = cacheMap.get(cacheKey);
-    if (hit && now - hit.t < 60000) {
-      const res = NextResponse.json({ success: true, data: hit.data });
-      res.headers.set('Cache-Control', 'public, max-age=10, stale-while-revalidate=60');
-      res.headers.set('x-cache', 'hit');
-      return res;
-    }
+    
 
     // ✅ OTIMIZADO: Log apenas quando necessário (comentado para reduzir verbosidade)
     // logDebug(`🔍 [API-UNIFIED] Requisição recebida`, {
@@ -468,10 +457,8 @@ export async function GET(request: NextRequest) {
       }));
     }
 
-    cacheMap.set(cacheKey, { t: now, data: result });
     const res = NextResponse.json({ success: true, data: result });
-    res.headers.set('Cache-Control', 'public, max-age=10, stale-while-revalidate=60');
-    res.headers.set('x-cache', 'miss');
+    res.headers.set('Cache-Control', 'no-store');
     return res;
   } catch (error) {
     logError('❌ [API-UNIFIED] Erro na API:', error);

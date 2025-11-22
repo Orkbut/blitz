@@ -683,32 +683,7 @@ export const CalendarioSimplesComponent: React.FC<Props> = ({ servidorDestacadoI
       const keySummary = `/api/unified/operacoes?${paramsSummary}`;
       const keyFull = `/api/unified/operacoes?${paramsFull}`;
 
-      const readCache = (key: string): Operacao[] | null => {
-        try {
-          const s = sessionStorage.getItem(`ops:${key}`);
-          if (!s) return null;
-          const parsed = JSON.parse(s);
-          if (Array.isArray(parsed)) return parsed as Operacao[];
-          return null;
-        } catch { return null; }
-      };
-      const writeCache = (key: string, data: Operacao[]) => {
-        try { sessionStorage.setItem(`ops:${key}`, JSON.stringify(data)); } catch {}
-      };
-
-      const cachedSummary = readCache(keySummary);
-      if (cachedSummary) {
-        setOperacoes(cachedSummary as Operacao[]);
-        const map: Record<string, Operacao[]> = {};
-        (cachedSummary as Operacao[]).forEach((op: any) => {
-          const d = (op.data_operacao || op.dataOperacao).substring(0, 10);
-          if (!map[d]) map[d] = [];
-          map[d].push(op);
-        });
-        setOperacoesPorDia(map);
-      }
-
-      const respSummary = await fetch(keySummary, { cache: 'force-cache' });
+      const respSummary = await fetch(keySummary, { cache: 'no-store' });
       const jsonSummary = await respSummary.json();
       if (jsonSummary?.success && Array.isArray(jsonSummary.data)) {
         const ops = jsonSummary.data as Operacao[];
@@ -720,10 +695,9 @@ export const CalendarioSimplesComponent: React.FC<Props> = ({ servidorDestacadoI
           map[d].push(op);
         });
         setOperacoesPorDia(map);
-        writeCache(keySummary, ops);
       }
 
-      const respFull = await fetch(keyFull, { cache: 'no-cache' });
+      const respFull = await fetch(keyFull, { cache: 'no-store' });
       const jsonFull = await respFull.json();
       if (jsonFull?.success && Array.isArray(jsonFull.data)) {
         const ops = jsonFull.data as Operacao[];
@@ -735,7 +709,6 @@ export const CalendarioSimplesComponent: React.FC<Props> = ({ servidorDestacadoI
           map[d].push(op);
         });
         setOperacoesPorDia(map);
-        writeCache(keyFull, ops);
       }
     } catch (error) {
       console.error('[CalendarioSimples] ❌ Erro no fetch:', error);

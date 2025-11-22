@@ -156,39 +156,7 @@ export const CalendarioMembro: React.FC = () => {
     });
   }, [displayedDate, filtroAtivo, dataInicioFiltro, dataFimFiltro]);
 
-  React.useEffect(() => {
-    const idle = (window as any).requestIdleCallback || ((fn: any) => setTimeout(fn, 250));
-    idle(async () => {
-      try {
-        const membroId = typeof window !== 'undefined' ? (localStorage.getItem('membroId') || (() => {
-          const s = localStorage.getItem('membroAuth');
-          if (!s) return '1';
-          try { return JSON.parse(s).id?.toString() || '1'; } catch { return '1'; }
-        })()) : '1';
-        const periodo = obterPeriodoRelatorio(displayedDate);
-        const params = new URLSearchParams({
-          startDate: periodo.startDate,
-          endDate: periodo.endDate,
-          membroId,
-          portal: 'membro',
-          includeParticipantes: 'false',
-          includeInactive: 'true',
-          fields: 'summary',
-          _t: Date.now().toString(),
-          _realtime: 'true'
-        });
-        const key = `/api/unified/operacoes?${params}`;
-        const existing = sessionStorage.getItem(`ops:${key}`);
-        if (!existing) {
-          const resp = await fetch(key, { cache: 'force-cache' });
-          const json = await resp.json();
-          if (json?.success && Array.isArray(json.data)) {
-            try { sessionStorage.setItem(`ops:${key}`, JSON.stringify(json.data)); } catch {}
-          }
-        }
-      } catch {}
-    });
-  }, [displayedDate]);
+  
 
   return (
     <div className={styles.calendarioWrapper}>
