@@ -1011,30 +1011,31 @@ export default function SupervisorPage() {
                     boxSizing: 'border-box'
                   }}
                 >
-                  <span style={{ fontSize: 'clamp(0.6rem, 1.5vw, 0.8rem)' }}>⚙️</span>
-                  <span
-                    className="hidden sm:inline"
-                    style={{
-                      minWidth: '0',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}
-                  >
-                    Menu
-                  </span>
-                  <svg
-                    className={`transition-transform ${showDropdownMenu ? 'rotate-180' : ''}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    style={{
-                      width: 'clamp(12px, 2.5vw, 16px)',
-                      height: 'clamp(12px, 2.5vw, 16px)'
-                    }}
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
+                  <span className="menuIconPulse">⚙️</span>
                 </button>
+                <style jsx>{`
+                  .menuIconPulse {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: clamp(20px, 4vw, 24px);
+                    height: clamp(20px, 4vw, 24px);
+                    border-radius: 50%;
+                    font-size: clamp(0.8rem, 2vw, 1rem);
+                    background: rgba(255,255,255,0.15);
+                    box-shadow: 0 0 0 rgba(255,255,255,0);
+                    animation: gearPulse 3s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+                    will-change: transform, opacity, filter;
+                  }
+                  @keyframes gearPulse {
+                    0% { transform: scale(1); opacity: 1; filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
+                    15% { transform: scaleX(1.06) scaleY(0.94); }
+                    30% { transform: scaleX(0.95) scaleY(1.05); }
+                    50% { transform: scale(1); }
+                    80% { opacity: 0.35; filter: drop-shadow(0 0 8px rgba(255,255,255,0.35)); }
+                    100% { opacity: 1; filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
+                  }
+                `}</style>
 
                 {/* Menu dropdown - agora funciona com clique/toque */}
                 {showDropdownMenu && (
