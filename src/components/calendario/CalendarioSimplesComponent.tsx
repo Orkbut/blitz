@@ -657,17 +657,6 @@ export const CalendarioSimplesComponent: React.FC<Props> = ({ servidorDestacadoI
 
 
     try {
-      const paramsSummary = new URLSearchParams({
-        startDate: format(startDate, 'yyyy-MM-dd'),
-        endDate: format(endDate, 'yyyy-MM-dd'),
-        membroId,
-        portal: 'membro',
-        includeParticipantes: 'false',
-        includeInactive: 'true',
-        fields: 'summary',
-        _t: Date.now().toString(),
-        _realtime: 'true'
-      });
       const paramsFull = new URLSearchParams({
         startDate: format(startDate, 'yyyy-MM-dd'),
         endDate: format(endDate, 'yyyy-MM-dd'),
@@ -679,23 +668,7 @@ export const CalendarioSimplesComponent: React.FC<Props> = ({ servidorDestacadoI
         _t: Date.now().toString(),
         _realtime: 'true'
       });
-
-      const keySummary = `/api/unified/operacoes?${paramsSummary}`;
       const keyFull = `/api/unified/operacoes?${paramsFull}`;
-
-      const respSummary = await fetch(keySummary, { cache: 'no-store' });
-      const jsonSummary = await respSummary.json();
-      if (jsonSummary?.success && Array.isArray(jsonSummary.data)) {
-        const ops = jsonSummary.data as Operacao[];
-        setOperacoes(ops);
-        const map: Record<string, Operacao[]> = {};
-        ops.forEach((op: any) => {
-          const d = (op.data_operacao || op.dataOperacao).substring(0, 10);
-          if (!map[d]) map[d] = [];
-          map[d].push(op);
-        });
-        setOperacoesPorDia(map);
-      }
 
       const respFull = await fetch(keyFull, { cache: 'no-store' });
       const jsonFull = await respFull.json();
@@ -730,7 +703,9 @@ export const CalendarioSimplesComponent: React.FC<Props> = ({ servidorDestacadoI
   fetchOperacoesRef.current = fetchOperacoes;
 
   // Callback estável para recarregamento
+  const lastManualReloadRef = useRef(0);
   const reloadOperacoes = useCallback(() => {
+    lastManualReloadRef.current = Date.now();
     fetchOperacoesRef.current();
   }, []);
 
@@ -745,8 +720,11 @@ export const CalendarioSimplesComponent: React.FC<Props> = ({ servidorDestacadoI
     tables: ['operacao', 'participacao'],
     onDatabaseChange: useCallback((event: any) => {
       const { table, eventType } = event;
-      
-      // SIMPLES: Qualquer mudança = recarrega os dados
+      const now = Date.now();
+      // Evitar reload duplicado quando já fizemos um reload manual há poucos ms
+      if (now - lastManualReloadRef.current < 800) {
+        return;
+      }
       reloadOperacoes();
     }, [reloadOperacoes])
   });
@@ -928,7 +906,7 @@ export const CalendarioSimplesComponent: React.FC<Props> = ({ servidorDestacadoI
 
       if (data.success) {
         toast.success('Participação confirmada!');
-        fetchOperacoes(); // Recarregar dados
+        reloadOperacoes();
       } else {
         toast.error(data.error || 'Erro ao confirmar participação');
       }
@@ -957,7 +935,7 @@ export const CalendarioSimplesComponent: React.FC<Props> = ({ servidorDestacadoI
 
       if (data.success) {
         toast.success('Participação cancelada!');
-        fetchOperacoes(); // Recarregar dados
+        reloadOperacoes();
       } else {
         toast.error(data.error || 'Erro ao cancelar participação');
       }
